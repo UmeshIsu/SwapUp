@@ -15,7 +15,7 @@ const Card: React.FC<CardProps> & {
     LockedHint: React.FC<{ text: string }>;
     BigStat: React.FC<{ value: string; tone?: 'success' | 'danger' | 'default' }>;
     SubText: React.FC<{ children: React.ReactNode }>;
-    InfoBox: React.FC<{ tone?: 'success' | 'danger' | 'info' | 'default'; title: string; text: string }>;
+    InfoBox: React.FC<{ tone?: 'primary' | 'success' | 'danger' | 'info' | 'default'; title: string; text: string }>;
 } = ({ children, style }) => {
     return <View style={[styles.card, style]}>{children}</View>;
 };
@@ -65,6 +65,7 @@ Card.SubText = ({ children }) => (
 Card.InfoBox = ({ tone = 'default', title, text }) => {
     const { backgroundColor, iconColor, iconName } = (() => {
         switch (tone) {
+            case 'primary': return { backgroundColor: colors.soft || colors.light, iconColor: colors.primary, iconName: 'information-circle' as const };
             case 'success': return { backgroundColor: colors.light, iconColor: colors.success, iconName: 'checkmark-circle' as const };
             case 'danger': return { backgroundColor: colors.light, iconColor: colors.danger, iconName: 'alert-circle' as const };
             case 'info': return { backgroundColor: colors.light, iconColor: colors.info, iconName: 'information-circle' as const };

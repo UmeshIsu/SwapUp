@@ -7,16 +7,17 @@ interface ScreenProps {
     children: React.ReactNode;
     style?: ViewStyle;
     scroll?: boolean;
+    center?: boolean;
 }
 
-export const Screen: React.FC<ScreenProps> = ({ children, style, scroll = true }) => {
+export const Screen: React.FC<ScreenProps> = ({ children, style, scroll = true, center }) => {
     const insets = useSafeAreaInsets();
     const Container = scroll ? ScrollView : View;
 
     return (
         <Container
-            style={[styles.container, style]}
-            contentContainerStyle={scroll ? styles.contentContainer : undefined}
+            style={[styles.container, style, !scroll && center && { justifyContent: 'center' }]}
+            contentContainerStyle={scroll ? [styles.contentContainer, center && { flexGrow: 1, justifyContent: 'center' }] : undefined}
         >
             <View style={{ height: 0 }} />
             {children}
