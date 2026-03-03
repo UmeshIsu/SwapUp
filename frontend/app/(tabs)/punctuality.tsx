@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { View } from "react-native";
-import Screen from "../../src/components/layout/Screen";
-import HeaderBar from "../../src/components/layout/HeaderBar";
-import Card from "../../src/components/ui/Card";
-import SegmentedToggle from "../../src/components/ui/SegmentedToggle";
-import MiniSparkline from "../../src/components/charts/MiniSparkline";
-import EventItem from "../../src/components/lists/EventItem";
-import { monthOptions, mockPunctuality } from "../../src/data/mock";
+import Screen from "@/src/components/layout/Screen";
+import HeaderBar from "@/src/components/layout/HeaderBar";
+import Card from "@/src/components/ui/Card";
+import SegmentedToggle from "@/src/components/ui/SegmentedToggle";
+import MiniSparkline from "@/src/components/charts/MiniSparkline";
+import EventItem from "@/src/components/lists/EventItem";
+import { monthOptions, mockPunctuality } from "@/src/data/mock";
 
 export default function PunctualityScreen() {
     const [month, setMonth] = useState(monthOptions[0].value);
