@@ -4,12 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '../themed-text';
 import { colors } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MonthPicker } from '../ui/MonthPicker';
 
 interface HeaderBarProps {
     title: string;
     showBack?: boolean;
     onBackPress?: () => void;
     rightElement?: React.ReactNode;
+    monthValue?: string;
+    onMonthChange?: (value: string) => void;
 }
 
 export const HeaderBar: React.FC<HeaderBarProps> = ({
@@ -17,6 +20,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
     showBack = false,
     onBackPress,
     rightElement,
+    monthValue,
+    onMonthChange,
 }) => {
     const insets = useSafeAreaInsets();
 
@@ -41,6 +46,11 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     {rightElement}
                 </View>
             </View>
+            {monthValue && onMonthChange && (
+                <View style={styles.monthPickerContainer}>
+                    <MonthPicker value={monthValue} onChange={onMonthChange} />
+                </View>
+            )}
         </View>
     );
 };
@@ -88,6 +98,10 @@ const styles = StyleSheet.create({
     backButton: {
         padding: 4,
         marginLeft: -4,
+    },
+    monthPickerContainer: {
+        paddingBottom: 8,
+        alignItems: 'center',
     },
 });
 
