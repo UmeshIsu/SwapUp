@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text } from "react-native";
-import Screen from "../src/components/layout/Screen";
-import Card from "../src/components/ui/Card";
-import Button from "../src/components/ui/Button";
+import Screen from "@/src/components/layout/Screen";
+import Card from "@/src/components/ui/Card";
+import Button from "@/src/components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../src/constants/colors";
-import { usePremium } from "../src/hooks/usePremium";
+import { colors } from "@/src/constants/colors";
+import { usePremium } from "@/src/hooks/usePremium";
 
 export default function OvertimePremiumScreen() {
     const { setPremium } = usePremium();
