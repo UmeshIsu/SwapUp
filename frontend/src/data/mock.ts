@@ -74,3 +74,22 @@ export const mockAbsentee: Record<string, AbsenteeData> = {
     },
 };
 
+export interface OvertimeData {
+    totalHours: number;
+    earnings: number;
+    weekTrend: number[];
+    monthTrend: number[];
+    logs: { id: string; date: string; timeRange: string; duration: string }[];
+}
+
+export const mockOvertime: OvertimeData = {
+    totalHours: 24.5,
+    earnings: 857.50,
+    weekTrend: [2, 0, 3, 1.5, 0, 4, 0],
+    monthTrend: [0, 2, 1.5, 3, 0, 4, 2, 0, 0, 1, 2, 3, 0, 0, 1.5, 2, 0, 0, 0, 4, 2, 0, 3, 1.5, 0, 4, 0, 2],
+    logs: [
+        { id: "1", date: "Mar 02, 2026", timeRange: "18:00 - 20:30", duration: "2h 30m" },
+        { id: "2", date: "Feb 28, 2026", timeRange: "17:30 - 19:00", duration: "1h 30m" },
+        { id: "3", date: "Feb 25, 2026", timeRange: "18:00 - 21:00", duration: "3h 00m" },
+    ]
+};
