@@ -11,6 +11,14 @@ export interface PunctualityData {
     comparison: { you: number; prev: number; dept: number };
 }
 
+export interface AbsenteeData {
+    label: string;
+    absentDays: number;
+    absentRate: number;
+    last4Months: number[];
+    records: { id: string; date: string; reason: string }[];
+}
+
 export const mockPunctuality: Record<string, PunctualityData> = {
     '2026-01': {
         weekTrend: [85, 92, 78, 95, 88, 70, 92],
@@ -36,3 +44,33 @@ export const mockPunctuality: Record<string, PunctualityData> = {
         comparison: { you: 98, prev: 95, dept: 93 },
     },
 };
+
+export const mockAbsentee: Record<string, AbsenteeData> = {
+    '2026-01': {
+        label: 'January 2026',
+        absentDays: 2,
+        absentRate: 4.5,
+        last4Months: [1, 2, 0, 2],
+        records: [
+            { id: '1', date: 'Jan 10, 2026', reason: 'Sick Leave' },
+            { id: '2', date: 'Jan 15, 2026', reason: 'Personal Leave' },
+        ],
+    },
+    '2026-02': {
+        label: 'February 2026',
+        absentDays: 0,
+        absentRate: 0,
+        last4Months: [1, 2, 2, 0],
+        records: [],
+    },
+    '2026-03': {
+        label: 'March 2026',
+        absentDays: 1,
+        absentRate: 2.1,
+        last4Months: [2, 0, 2, 1],
+        records: [
+            { id: '3', date: 'Mar 02, 2026', reason: 'Emergency Leave' },
+        ],
+    },
+};
+

@@ -5,9 +5,10 @@ import { colors } from '../../constants/colors';
 interface MiniSparklineProps {
     values: number[];
     style?: ViewStyle;
+    variant?: 'bars' | 'line';
 }
 
-export const MiniSparkline: React.FC<MiniSparklineProps> = ({ values, style }) => {
+export const MiniSparkline: React.FC<MiniSparklineProps> = ({ values, style, variant = 'bars' }) => {
     const max = Math.max(...values, 1);
     const min = Math.min(...values);
     const range = max - min;

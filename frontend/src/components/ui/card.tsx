@@ -13,6 +13,9 @@ const Card: React.FC<CardProps> & {
     Title: React.FC<{ children: React.ReactNode; style?: TextStyle }>;
     StatRow: React.FC<{ label: string; value: string; tone?: 'success' | 'danger' | 'info' | 'default' }>;
     LockedHint: React.FC<{ text: string }>;
+    BigStat: React.FC<{ value: string; tone?: 'success' | 'danger' | 'default' }>;
+    SubText: React.FC<{ children: React.ReactNode }>;
+    InfoBox: React.FC<{ tone?: 'success' | 'danger' | 'info' | 'default'; title: string; text: string }>;
 } = ({ children, style }) => {
     return <View style={[styles.card, style]}>{children}</View>;
 };
@@ -45,6 +48,40 @@ Card.LockedHint = ({ text }) => (
         <ThemedText style={styles.lockedText}>{text}</ThemedText>
     </View>
 );
+
+Card.BigStat = ({ value, tone = 'default' }) => {
+    const valueStyle = [
+        styles.bigStat,
+        tone === 'success' && { color: colors.success },
+        tone === 'danger' && { color: colors.danger },
+    ];
+    return <ThemedText style={valueStyle}>{value}</ThemedText>;
+};
+
+Card.SubText = ({ children }) => (
+    <ThemedText style={styles.subText}>{children}</ThemedText>
+);
+
+Card.InfoBox = ({ tone = 'default', title, text }) => {
+    const { backgroundColor, iconColor, iconName } = (() => {
+        switch (tone) {
+            case 'success': return { backgroundColor: colors.light, iconColor: colors.success, iconName: 'checkmark-circle' as const };
+            case 'danger': return { backgroundColor: colors.light, iconColor: colors.danger, iconName: 'alert-circle' as const };
+            case 'info': return { backgroundColor: colors.light, iconColor: colors.info, iconName: 'information-circle' as const };
+            default: return { backgroundColor: colors.light, iconColor: colors.muted, iconName: 'ellipse' as const };
+        }
+    })();
+
+    return (
+        <View style={[styles.infoBox, { backgroundColor }]}>
+            <Ionicons name={iconName} size={20} color={iconColor} style={{ marginTop: 2 }} />
+            <View style={{ flex: 1, gap: 4 }}>
+                <ThemedText type="defaultSemiBold" style={{ color: iconColor }}>{title}</ThemedText>
+                <ThemedText style={styles.infoBoxText}>{text}</ThemedText>
+            </View>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     card: {
@@ -90,6 +127,25 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: colors.muted,
         flex: 1,
+    },
+    bigStat: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: colors.dark,
+    },
+    subText: {
+        fontSize: 14,
+        color: colors.muted,
+    },
+    infoBox: {
+        flexDirection: 'row',
+        padding: 12,
+        borderRadius: 8,
+        gap: 10,
+    },
+    infoBoxText: {
+        fontSize: 13,
+        color: colors.dark,
     },
 });
 
