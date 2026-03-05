@@ -93,3 +93,19 @@ export const mockOvertime: OvertimeData = {
         { id: "3", date: "Feb 25, 2026", timeRange: "18:00 - 21:00", duration: "3h 00m" },
     ]
 };
+
+export interface OverviewData {
+    labels: string[];
+    daily: number[];
+    weekly: number[];
+    overtimeHours: number;
+    bonusPoints: number;
+}
+
+export const mockOverview: OverviewData = {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    daily: [8, 8.5, 9, 8, 10, 4, 0],
+    weekly: [40, 42, 38, 45, 41, 0, 0],
+    overtimeHours: 24.5,
+    bonusPoints: 350
+};

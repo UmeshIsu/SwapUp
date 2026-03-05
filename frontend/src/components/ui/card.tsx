@@ -16,6 +16,8 @@ const Card: React.FC<CardProps> & {
     BigStat: React.FC<{ value: string; tone?: 'success' | 'danger' | 'default' }>;
     SubText: React.FC<{ children: React.ReactNode }>;
     InfoBox: React.FC<{ tone?: 'primary' | 'success' | 'danger' | 'info' | 'default'; title: string; text: string }>;
+    StatPill: React.FC<{ label: string; value: string; tone?: 'primary' | 'success' | 'danger' | 'default' }>;
+    LinkButton: React.FC<{ label: string; onPress: () => void; style?: ViewStyle }>;
 } = ({ children, style }) => {
     return <View style={[styles.card, style]}>{children}</View>;
 };
@@ -84,6 +86,37 @@ Card.InfoBox = ({ tone = 'default', title, text }) => {
     );
 };
 
+Card.StatPill = ({ label, value, tone = 'default' }) => {
+    let bgColor: string = colors.light;
+    let textColor: string = colors.dark;
+
+    if (tone === 'primary') {
+        bgColor = (colors.primary || '#007AFF') + '20';
+        textColor = colors.primary || '#007AFF';
+    } else if (tone === 'success') {
+        bgColor = (colors.success || '#34C759') + '20';
+        textColor = colors.success || '#34C759';
+    } else if (tone === 'danger') {
+        bgColor = (colors.danger || '#FF3B30') + '20';
+        textColor = colors.danger || '#FF3B30';
+    }
+
+    return (
+        <View style={[styles.statPill, { backgroundColor: bgColor }]}>
+            <ThemedText style={styles.statPillLabel}>{label}</ThemedText>
+            <ThemedText style={[styles.statPillValue, { color: textColor }]}>{value}</ThemedText>
+        </View>
+    );
+};
+
+import { TouchableOpacity } from 'react-native';
+
+Card.LinkButton = ({ label, onPress, style }) => (
+    <TouchableOpacity onPress={onPress} style={[styles.linkButton, style]} activeOpacity={0.7}>
+        <ThemedText style={styles.linkButtonText}>{label}</ThemedText>
+    </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
     card: {
         backgroundColor: colors.white,
@@ -147,6 +180,31 @@ const styles = StyleSheet.create({
     infoBoxText: {
         fontSize: 13,
         color: colors.dark,
+    },
+    statPill: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    statPillLabel: {
+        fontSize: 12,
+        color: colors.muted,
+    },
+    statPillValue: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    linkButton: {
+        paddingVertical: 8,
+        alignItems: 'center',
+    },
+    linkButtonText: {
+        color: colors.primary,
+        fontSize: 14,
+        fontWeight: '600',
     },
 });
 
