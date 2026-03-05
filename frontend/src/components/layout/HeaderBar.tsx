@@ -1,108 +1,57 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { ThemedText } from '../themed-text';
-import { colors } from '../../constants/colors';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MonthPicker } from '../ui/MonthPicker';
+import React from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../../constants/colors";
+import { monthOptions } from "../../data/mock";
 
-interface HeaderBarProps {
-    title: string;
-    showBack?: boolean;
-    onBackPress?: () => void;
-    rightElement?: React.ReactNode;
-    monthValue?: string;
-    onMonthChange?: (value: string) => void;
-}
-
-export const HeaderBar: React.FC<HeaderBarProps> = ({
+export default function HeaderBar({
     title,
-    showBack = false,
-    onBackPress,
-    rightElement,
     monthValue,
     onMonthChange,
-}) => {
-    const insets = useSafeAreaInsets();
+}: {
+    title: string;
+    monthValue: string;
+    onMonthChange: (v: string) => void;
+}) {
+    const idx = monthOptions.findIndex((m) => m.value === monthValue);
+    const label = monthOptions[idx]?.label ?? "Select";
+
+    const prev = () => onMonthChange(monthOptions[Math.max(0, idx - 1)].value);
+    const next = () => onMonthChange(monthOptions[Math.min(monthOptions.length - 1, idx + 1)].value);
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            <View style={styles.content}>
-                <View style={styles.leftSection}>
-                    {showBack && (
-                        <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-                            <Ionicons name="chevron-back" size={24} color={colors.primary} />
-                        </TouchableOpacity>
-                    )}
-                </View>
+        <View style={styles.row}>
+            <Text style={styles.title}>{title}</Text>
 
-                <View style={styles.centerSection}>
-                    <ThemedText type="subtitle" style={styles.title}>
-                        {title}
-                    </ThemedText>
-                </View>
+            <View style={styles.pill}>
+                <Pressable onPress={prev} style={styles.iconBtn}>
+                    <Ionicons name="chevron-back" size={16} color={colors.text} />
+                </Pressable>
 
-                <View style={styles.rightSection}>
-                    {rightElement}
-                </View>
+                <Text style={styles.pillText}>{label}</Text>
+
+                <Pressable onPress={next} style={styles.iconBtn}>
+                    <Ionicons name="chevron-forward" size={16} color={colors.text} />
+                </Pressable>
             </View>
-            {monthValue && onMonthChange && (
-                <View style={styles.monthPickerContainer}>
-                    <MonthPicker value={monthValue} onChange={onMonthChange} />
-                </View>
-            )}
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
-    container: {
+    row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    title: { fontSize: 18, fontWeight: "800", color: colors.text },
+    pill: {
+        flexDirection: "row",
+        alignItems: "center",
         backgroundColor: colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        ...Platform.select({
-            ios: {
-                shadowColor: colors.black,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 10,
-            },
-            android: {
-                elevation: 4,
-            },
-        }),
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 999,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        gap: 6,
     },
-    content: {
-        height: 56,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-    },
-    leftSection: {
-        flex: 1,
-        alignItems: 'flex-start',
-    },
-    centerSection: {
-        flex: 2,
-        alignItems: 'center',
-    },
-    rightSection: {
-        flex: 1,
-        alignItems: 'flex-end',
-    },
-    title: {
-        fontWeight: '700',
-        color: colors.primary,
-    },
-    backButton: {
-        padding: 4,
-        marginLeft: -4,
-    },
-    monthPickerContainer: {
-        paddingBottom: 8,
-        alignItems: 'center',
-    },
+    pillText: { fontSize: 12, fontWeight: "700", color: colors.text },
+    iconBtn: { padding: 4 },
 });
-
-export default HeaderBar;

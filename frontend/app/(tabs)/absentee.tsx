@@ -3,8 +3,8 @@ import { View } from "react-native";
 import Screen from "@/src/components/layout/Screen";
 import HeaderBar from "@/src/components/layout/HeaderBar";
 import Card from "@/src/components/ui/Card";
-import MiniSparkline from "@/src/components/charts/MiniSparkline";
-import RecordRow from "@/src/components/lists/RecordRow";
+import MiniSparkline from "@/src/components/Charts/MiniSparkline";
+import RecordRow from "@/src/components/Lists/RecordRow";
 import { monthOptions, mockAbsentee } from "@/src/data/mock";
 
 export default function AbsenteeScreen() {

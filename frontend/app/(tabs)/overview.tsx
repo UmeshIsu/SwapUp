@@ -4,7 +4,7 @@ import Screen from "@/src/components/layout/Screen";
 import HeaderSimple from "@/src/components/layout/HeaderSimple";
 import Card from "@/src/components/ui/Card";
 import SegmentedToggle from "@/src/components/ui/SegmentedToggle";
-import BarChart from "@/src/components/charts/BarChart";
+import BarChart from "@/src/components/Charts/BarChart";
 import WarningBanner from "@/src/components/ui/WarningBanner";
 import { mockOverview } from "@/src/data/mock";
 import { usePremium } from "@/src/hooks/usePremium";
