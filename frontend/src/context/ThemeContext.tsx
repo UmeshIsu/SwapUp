@@ -30,8 +30,16 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useAppTheme = () => {
     const context = useContext(ThemeContext);
+    const deviceColorScheme = useDeviceColorScheme();
+
     if (context === undefined) {
-        throw new Error('useAppTheme must be used within an AppThemeProvider');
+        const fallbackTheme: ThemeMode = deviceColorScheme === 'dark' ? 'dark' : 'light';
+        return {
+            theme: fallbackTheme,
+            toggleTheme: () => { },
+            isDark: fallbackTheme === 'dark',
+        };
     }
+
     return context;
 };
