@@ -37,6 +37,7 @@ model Shift {
   endTime      String
   instructions String?
   type         String   // Morning, Afternoon, Night
+  location     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
