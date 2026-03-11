@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, StyleProp, ViewStyle } from "react-native";
 import { colors } from "@/src/constants/colors";
 import { spacing } from "@/src/constants/spacing";
 import { Ionicons } from "@expo/vector-icons";
 
-function Card({ children }: { children: React.ReactNode }) {
-    return <View style={styles.card}>{children}</View>;
+function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+    return <View style={[styles.card, style]}>{children}</View>;
 }
 
 Card.Title = function Title({ children }: { children: React.ReactNode }) {
