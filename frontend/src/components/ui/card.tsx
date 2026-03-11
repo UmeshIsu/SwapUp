@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { colors } from "../../constants/colors";
-import { spacing } from "../../constants/spacing";
+import { colors } from "@/src/constants/colors";
+import { spacing } from "@/src/constants/spacing";
 import { Ionicons } from "@expo/vector-icons";
 
 function Card({ children }: { children: React.ReactNode }) {

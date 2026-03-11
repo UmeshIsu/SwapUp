@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
-import { ThemedText } from "../themed-text";
-import { colors } from "../../constants/colors";
+import { ThemedText } from "@/src/components/themed-text";
+import { colors } from "@/src/constants/colors";
 
 interface BarChartProps {
     labels: string[];
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     barBackground: {
         width: 24,
         flex: 1,
-        backgroundColor: colors.light,
+        backgroundColor: colors.soft,
         borderRadius: 4,
         justifyContent: "flex-end",
         overflow: "hidden",

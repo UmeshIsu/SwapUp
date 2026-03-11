@@ -12,8 +12,8 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="overtime-premium" />
-        <Stack.Screen name="(modals)/export-report" options={{ presentation: "modal" }} />
+        <Stack.Screen name="(employee)" />
+        <Stack.Screen name="modals/export-report" options={{ presentation: "modal" }} />
       </Stack>
     </>
   );

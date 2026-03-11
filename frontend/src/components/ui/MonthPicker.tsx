@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemedText } from '../themed-text';
-import { colors } from '../../constants/colors';
+import { ThemedText } from '@/src/components/themed-text';
+import { colors } from '@/src/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import { monthOptions } from '../../data/mock';
+import { monthOptions } from '@/src/data/mock';
 
 interface MonthPickerProps {
     value: string;

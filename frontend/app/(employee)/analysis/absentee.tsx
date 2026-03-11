@@ -42,7 +42,7 @@ export default function AbsenteeScreen() {
                         {data.records.length === 0 ? (
                             <Card.SubText>No other absence recorded for this month.</Card.SubText>
                         ) : (
-                            data.records.map((r: any) => (
+                            data.records.map((r: { id: string; date: string; reason: string }) => (
                                 <RecordRow key={r.id} date={r.date} reason={r.reason} />
                             ))
                         )}

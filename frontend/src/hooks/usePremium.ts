@@ -5,12 +5,11 @@ import { useState, useCallback } from 'react';
 let premiumState = false;
 
 export const usePremium = () => {
-    const [isPremium, setIsPremiumState] = useState(premiumState);
-
-    const setPremium = useCallback((value: boolean) => {
-        premiumState = value;
-        setIsPremiumState(value);
-    }, []);
+    // Hardcoded to true to remove premium restrictions
+    const isPremium = true;
+    const setPremium = (value: boolean) => {
+        // No-op since premium is now permanent
+    };
 
     return { isPremium, setPremium };
 };

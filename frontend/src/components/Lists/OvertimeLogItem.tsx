@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: 16,
         fontWeight: "600",
-        color: colors.text.light,
+        color: colors.text,
         marginBottom: 2,
     },
     timeText: {

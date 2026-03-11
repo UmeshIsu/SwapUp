@@ -1,0 +1,7 @@
+﻿app/(employee)/analysis/reports.tsx(3,10): error TS2614: Module '"@/src/components/layout/HeaderBar"' has no exported member 'HeaderBar'. Did you mean to use 'import HeaderBar from "@/src/components/layout/HeaderBar"' instead?
+app/(employee)/analysis/reports.tsx(26,33): error TS2339: Property 'background' does not exist on type '{ primary: string; white: string; bg: string; text: string; muted: string; border: string; soft: string; success: string; danger: string; warning: string; dark: string; secondary: string; black: string; }'.
+src/components/layout/HeaderSimple.tsx(23,76): error TS2339: Property 'light' does not exist on type 'string'.
+src/components/layout/HeaderSimple.tsx(28,36): error TS2339: Property 'light' does not exist on type 'string'.
+src/components/Lists/EventItem.tsx(36,35): error TS2339: Property 'light' does not exist on type '{ primary: string; white: string; bg: string; text: string; muted: string; border: string; soft: string; success: string; danger: string; warning: string; dark: string; secondary: string; black: string; }'.
+src/components/Lists/EventItem.tsx(51,33): error TS2339: Property 'light' does not exist on type '{ primary: string; white: string; bg: string; text: string; muted: string; border: string; soft: string; success: string; danger: string; warning: string; dark: string; secondary: string; black: string; }'.
+src/components/ui/collapsible.tsx(6,28): error TS2307: Cannot find module '@/app/(employee)/analysis/ui/icon-symbol' or its corresponding type declarations.

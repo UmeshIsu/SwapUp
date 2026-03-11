@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
-import { ThemedText } from "../themed-text";
-import { colors } from "../../constants/colors";
+import { ThemedText } from "@/src/components/themed-text";
+import { colors } from "@/src/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 
 interface WarningBannerProps {

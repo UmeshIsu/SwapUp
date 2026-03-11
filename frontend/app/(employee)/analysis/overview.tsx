@@ -12,7 +12,7 @@ import { usePremium } from "@/src/hooks/usePremium";
 export default function OverviewScreen() {
   const [mode, setMode] = useState<"Daily" | "Weekly">("Daily");
   const data = useMemo(() => mockOverview, []);
-  const { isPremium, setPremium } = usePremium();
+  const { isPremium } = usePremium();
 
   return (
     <Screen>
@@ -22,7 +22,7 @@ export default function OverviewScreen() {
         <Card>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Card.Title>Hours this week</Card.Title>
-            <SegmentedToggle value={mode} options={["Daily", "Weekly"]} onChange={(v) => setMode(v as any)} />
+            <SegmentedToggle value={mode} options={["Daily", "Weekly"]} onChange={(v: string) => setMode(v as any)} />
           </View>
 
           <View style={{ marginTop: 12 }}>
@@ -41,16 +41,6 @@ export default function OverviewScreen() {
             <Card.StatPill label="Bonus Points" value={`+${data.bonusPoints}`} tone="primary" />
           </View>
 
-          {/* dev toggle so you can test premium flow */}
-          <View style={{ marginTop: 14 }}>
-            <Card.SubText>Dev toggle: Premium is {isPremium ? "ON" : "OFF"}</Card.SubText>
-            <View style={{ marginTop: 10 }}>
-              <Card.LinkButton
-                label={isPremium ? "Turn Premium OFF" : "Turn Premium ON"}
-                onPress={() => setPremium(!isPremium)}
-              />
-            </View>
-          </View>
         </Card>
       </View>
     </Screen>

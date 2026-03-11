@@ -25,7 +25,7 @@ export default function PunctualityScreen() {
                         <SegmentedToggle
                             value={mode}
                             options={["Weekly", "Monthly"]}
-                            onChange={(v) => setMode(v as any)}
+                            onChange={(v: string) => setMode(v as any)}
                         />
                     </View>
                     <View style={{ marginTop: 12 }}>
@@ -36,7 +36,7 @@ export default function PunctualityScreen() {
                 <Card>
                     <Card.Title>Punctuality Events ({data.events.length})</Card.Title>
                     <View style={{ marginTop: 10, gap: 10 }}>
-                        {data.events.map((e) => (
+                        {data.events.map((e: { id: string; title: string; subtitle: string; badge: string }) => (
                             <EventItem key={e.id} title={e.title} subtitle={e.subtitle} badge={e.badge} />
                         ))}
                     </View>

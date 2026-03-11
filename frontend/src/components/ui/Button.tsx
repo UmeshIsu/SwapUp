@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, TextStyle, ViewStyle } from 'react-native';
-import { ThemedText } from '../themed-text';
-import { colors } from '../../constants/colors';
+import { ThemedText } from '@/src/components/themed-text';
+import { colors } from '@/src/constants/colors';
 
 interface ButtonProps {
     label: string;

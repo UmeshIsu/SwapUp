@@ -8,4 +8,8 @@ export const colors = {
     soft: "#EEF4FF",
     success: "#16A34A",
     danger: "#EF4444",
+    warning: "#F59E0B",
+    dark: "#111827",
+    secondary: "#6B7280",
+    black: "#000000",
 };

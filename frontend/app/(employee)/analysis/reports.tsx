@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { HeaderBar } from '@/src/components/layout/HeaderBar';
+import HeaderSimple from '@/src/components/layout/HeaderSimple';
 import { ThemedView } from '@/src/components/themed-view';
 import { ThemedText } from '@/src/components/themed-text';
 import { colors } from '@/src/constants/colors';
@@ -8,7 +8,7 @@ import { colors } from '@/src/constants/colors';
 export default function ReportsScreen() {
     return (
         <ThemedView style={styles.container}>
-            <HeaderBar title="Reports" />
+            <HeaderSimple title="Reports" />
             <ThemedView style={styles.content}>
                 <ThemedText type="title">Monthly Attendance Report</ThemedText>
                 <ThemedText style={styles.description}>
@@ -23,7 +23,7 @@ export default function ReportsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background.light,
+        backgroundColor: colors.bg,
     },
     content: {
         flex: 1,

@@ -1,40 +1,24 @@
-import React from 'react';
-import { StyleSheet, View, ViewStyle, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../constants/colors';
+import React from "react";
+import { SafeAreaView, View, StyleSheet } from "react-native";
+import { colors } from "../../constants/colors";
+import { spacing } from "../../constants/spacing";
 
-interface ScreenProps {
-    children: React.ReactNode;
-    style?: ViewStyle;
-    scroll?: boolean;
-    center?: boolean;
+export default function Screen({
+  children,
+  center,
+}: {
+  children: React.ReactNode;
+  center?: boolean;
+}) {
+  return (
+    <SafeAreaView style={styles.safe}>
+      <View style={[styles.container, center && styles.center]}>{children}</View>
+    </SafeAreaView>
+  );
 }
 
-export const Screen: React.FC<ScreenProps> = ({ children, style, scroll = true, center }) => {
-    const insets = useSafeAreaInsets();
-    const Container = scroll ? ScrollView : View;
-
-    return (
-        <Container
-            style={[styles.container, style, !scroll && center && { justifyContent: 'center' }]}
-            contentContainerStyle={scroll ? [styles.contentContainer, center && { flexGrow: 1, justifyContent: 'center' }] : undefined}
-        >
-            <View style={{ height: 0 }} />
-            {children}
-            <View style={{ height: insets.bottom + 20 }} />
-        </Container>
-    );
-};
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F9FA', // Light background for better contrast
-    },
-    contentContainer: {
-        paddingHorizontal: 16,
-        paddingBottom: 20,
-    },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, padding: spacing.screenPad },
+  center: { justifyContent: "center" },
 });
-
-export default Screen;

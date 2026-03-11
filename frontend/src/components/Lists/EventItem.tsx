@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: colors.light,
+        borderBottomColor: colors.border,
     },
     left: {
         flex: 1,
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
         color: colors.muted,
     },
     badge: {
-        backgroundColor: colors.light,
+        backgroundColor: colors.soft,
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 4,
