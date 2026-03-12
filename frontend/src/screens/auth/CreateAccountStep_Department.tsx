@@ -7,7 +7,7 @@ interface Props {
     error?: string;
 }
 
-const DEPARTMENTS = ['Chinese Restaurant', 'Indian Restaurant', 'Other'];
+const DEPARTMENTS = ['Chinese Restaurant', 'Indian Restaurant'];
 
 export default function CreateAccountStep_Department({ value, onChange, error }: Props) {
     return (

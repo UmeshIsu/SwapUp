@@ -39,7 +39,7 @@ type StepName =
 
 const MANAGER_STEPS: StepName[] = [
     'hotelName',
-    'department',    // Manager-only step
+    'department',
     'name',
     'phone',
     'email',
@@ -50,6 +50,7 @@ const MANAGER_STEPS: StepName[] = [
 
 const EMPLOYEE_STEPS: StepName[] = [
     'hotelName',
+    'department',
     'name',
     'phone',
     'email',
