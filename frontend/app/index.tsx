@@ -22,9 +22,9 @@ export default function RoleSelectionScreen() {
     React.useEffect(() => {
         if (isAuthenticated && user) {
             if (user.role === 'MANAGER') {
-                router.replace('/(manager)/home');
+                router.replace('/(manager)/home' as any);
             } else {
-                router.replace('/(employee)/home');
+                router.replace('/(employee)/home' as any);
             }
         }
     }, [isAuthenticated, user]);
