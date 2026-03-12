@@ -22,9 +22,9 @@ export default function RoleSelectionScreen() {
     React.useEffect(() => {
         if (isAuthenticated && user) {
             if (user.role === 'MANAGER') {
-                router.replace('/(manager)/home');
+                router.replace('/(manager)/home' as any);
             } else {
-                router.replace('/(employee)/home');
+                router.replace('/(employee)/home' as any);
             }
         }
     }, [isAuthenticated, user]);
@@ -33,19 +33,15 @@ export default function RoleSelectionScreen() {
         setSelectedRole(role);
         router.push('/login');
     };
-
-    //Test Home screens without login
-
-    /*const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
-        setSelectedRole(role);
-
-        // FOR TESTING: Bypass the login screen entirely
-        if (role === 'MANAGER') {
-            router.replace('/(manager)/home');
-        } else {
-            router.replace('/(employee)/home');
-        }
-    };*/
+    // const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
+    //     setSelectedRole(role);
+    //     // FOR TESTING: Bypass the login screen entirely
+    //     if (role === 'MANAGER') {
+    //         router.replace('/(manager)/home');
+    //     } else {
+    //         router.replace('/(employee)/home');
+    //     }
+    // };
 
 
     return (
