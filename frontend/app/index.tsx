@@ -29,19 +29,19 @@ export default function RoleSelectionScreen() {
         }
     }, [isAuthenticated, user]);
 
-    // const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
-    //     setSelectedRole(role);
-    //     router.push('/login');
-    // };
     const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
         setSelectedRole(role);
-        // FOR TESTING: Bypass the login screen entirely
-        if (role === 'MANAGER') {
-            router.replace('/(manager)/home');
-        } else {
-            router.replace('/(employee)/home');
-        }
+        router.push('/login');
     };
+    // const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
+    //     setSelectedRole(role);
+    //     // FOR TESTING: Bypass the login screen entirely
+    //     if (role === 'MANAGER') {
+    //         router.replace('/(manager)/home');
+    //     } else {
+    //         router.replace('/(employee)/home');
+    //     }
+    // };
 
 
     return (
