@@ -47,26 +47,28 @@ export default function EmployeeHomeScreen() {
     }, []);
 
     const loadData = async () => {
-        try {
-            const [shiftRes, announcementsRes, swapsRes, leaveRes, weekRes] = await Promise.all([
-                shiftAPI.getTodayShift(),
-                announcementAPI.getAnnouncements(),
-                swapAPI.getPendingPeerRequests(),
-                leaveAPI.getLeaveBalance(),
-                shiftAPI.getMyShifts({
-                    startDate: getWeekStart().toISOString(),
-                    endDate: getWeekEnd().toISOString(),
-                }),
-            ]);
+        // Each call is wrapped individually so a 404 from a missing backend
+        // route doesn't prevent the rest of the dashboard from loading.
+        const safeFetch = async <T,>(fn: () => Promise<T>): Promise<T | null> => {
+            try { return await fn(); } catch { return null; }
+        };
 
-            setTodayShift(shiftRes.data.shift);
-            setAnnouncements(announcementsRes.data.announcements.slice(0, 3));
-            setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
-            setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
-            setWeekShifts(weekRes.data.shifts || []);
-        } catch (error) {
-            console.error('Error loading data:', error);
-        }
+        const [shiftRes, announcementsRes, swapsRes, leaveRes, weekRes] = await Promise.all([
+            safeFetch(() => shiftAPI.getTodayShift()),
+            safeFetch(() => announcementAPI.getAnnouncements()),
+            safeFetch(() => swapAPI.getPendingPeerRequests()),
+            safeFetch(() => leaveAPI.getLeaveBalance()),
+            safeFetch(() => shiftAPI.getMyShifts({
+                startDate: getWeekStart().toISOString(),
+                endDate: getWeekEnd().toISOString(),
+            })),
+        ]);
+
+        if (shiftRes) setTodayShift(shiftRes.data.shift);
+        if (announcementsRes) setAnnouncements(announcementsRes.data.announcements.slice(0, 3));
+        if (swapsRes) setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
+        if (leaveRes) setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
+        if (weekRes) setWeekShifts(weekRes.data.shifts || []);
     };
 
     const getWeekStart = () => {
