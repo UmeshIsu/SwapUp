@@ -215,3 +215,55 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     return res.status(500).json({ error: "Internal server error." });
   }
 };
+
+
+/**
+ * Role-Based Login
+ */
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password, role } = req.body; // Frontend sends selected role from splash
+    
+    // Explicit null/undefined check for role before proceeding
+    if (!role) {
+      return res.status(400).json({ error: "Role is required to log in." });
+    }
+
+    // 1. Check against Supabase first
+    const { data: supaData, error: supaError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+    });
+    
+    if(supaError || !supaData.user) {
+        console.error("Supabase auth error:", supaError?.message);
+        return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // 2. Locate user in local Prisma DB
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(401).json({ error: "User not found in local database." });
+    }
+
+    // 3. Ensure the user logging in matches the role selected on the splash screen
+    if (user.role !== role.toUpperCase()) {
+      return res.status(403).json({ error: `This account is not registered as a ${role}.` });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({ 
+      token, 
+      user: { id: user.id, name: user.name, role: user.role } 
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
