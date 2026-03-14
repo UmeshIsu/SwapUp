@@ -71,3 +71,26 @@ export const sendVerificationCode = async (req: Request<{}, {}, OTPBody>, res: R
   }
 };
 
+/** * Step 5: Verify OTP 
+ */
+export const verifyOtp = async (req: Request<{}, {}, VerifyOtpBody>, res: Response) => {
+  try {
+    const { email, token } = req.body;
+    const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+    });
+
+    if (error) {
+       console.error("OTP verification failed:", error);
+       return res.status(400).json({ error: "Invalid or expired verification code." });
+    }
+
+    return res.status(200).json({ message: "Email verified successfully." });
+  } catch (error) {
+    console.error("verifyOtp error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
