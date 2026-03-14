@@ -8,6 +8,7 @@ interface User {
     plan?: string;
     workerId?: string;
     phone?: string;
+    department?: string;
     availabilityPreferences?: string;
 }
 
@@ -31,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         workerId: '20231719',
         plan: 'Basic',
         phone: '070 536 2167',
+        department: 'Chinese',
         availabilityPreferences: 'Morning shifts preferred'
     });
     const [token, setToken] = useState<string | null>('mock-token');

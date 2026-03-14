@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Image, TouchableOpacity, ScrollView, Alert, View, TextInput, ActivityIndicator, Switch } from 'react-native';
+import { CustomModal } from '@/src/components/ui/CustomModal';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/src/components/themed-text';
@@ -18,6 +19,7 @@ export default function ProfileScreen() {
     const { user, logout, updateUser, token } = useAuth();
 
     const { isDark, toggleTheme } = useAppTheme();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     // Edit state
     const [isEditing, setIsEditing] = useState(false);
@@ -76,21 +78,7 @@ export default function ProfileScreen() {
     };
 
     const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Yes, Log Out',
-                    style: 'destructive',
-                    onPress: () => {
-                        logout();
-                        router.replace('/(employee)');
-                    }
-                }
-            ]
-        );
+        setShowLogoutModal(true);
     };
 
     if (!user) {
@@ -115,6 +103,9 @@ export default function ProfileScreen() {
                 </View>
 
                 <ThemedText style={styles.userName}>{user.name}</ThemedText>
+                {user.department ? (
+                    <ThemedText style={styles.userDepartment}>{user.department} Department</ThemedText>
+                ) : null}
                 <ThemedText style={styles.userInfo}>workerID : {user.workerId || '20231789'}</ThemedText>
                 <ThemedText style={styles.userInfo}>Plan : {user.plan || 'Basic'}</ThemedText>
             </ThemedView>
@@ -233,6 +224,20 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <ThemedText style={styles.logoutText}>Logout</ThemedText>
             </TouchableOpacity>
+
+            <CustomModal
+                visible={showLogoutModal}
+                title="Log Out"
+                icon="rectangle.portrait.and.arrow.right"
+                confirmText="Yes, Log Out"
+                cancelText="Cancel"
+                onConfirm={() => {
+                    setShowLogoutModal(false);
+                    logout();
+                    router.replace('/(employee)');
+                }}
+                onCancel={() => setShowLogoutModal(false)}
+            />
         </ScrollView>
     );
 }
@@ -342,6 +347,12 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 20,
         fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    userDepartment: {
+        fontSize: 14,
+        color: '#3498db',
+        fontWeight: '500',
         marginBottom: 4,
     },
     userInfo: {

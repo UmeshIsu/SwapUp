@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/src/components/themed-text';
@@ -15,10 +15,10 @@ export default function SettingsScreen() {
     const router = useRouter();
 
     const settingsItems = [
-        { label: 'Change Password', route: '/(employee)/profile/settings/change-password' },
-        { label: 'Privacy Settings', route: '/(employee)/profile/settings/privacy' },
-        { label: 'Notification Settings', route: '/(employee)/profile/settings/notifications' },
-        { label: 'Language', route: '/(employee)/profile/settings/language' },
+        { label: 'Change Password', route: '/(employee)/profile/settings/change-password', icon: 'lock' },
+        { label: 'Privacy Settings', route: '/(employee)/profile/settings/privacy', icon: 'lock.shield' },
+        { label: 'Notification Settings', route: '/(employee)/profile/settings/notifications', icon: 'bell' },
+        { label: 'Language', route: '/(employee)/profile/settings/language', icon: 'globe' },
     ];
 
     return (
@@ -28,7 +28,11 @@ export default function SettingsScreen() {
             </ThemedView>
 
             <ThemedView style={[styles.item, { backgroundColor: theme.background === '#fff' ? '#F9F9F9' : '#252525' }]}>
+                <View style={[styles.iconContainer, { backgroundColor: theme.background === '#fff' ? '#E8E8E8' : '#3C3C3C' }]}>
+                    <IconSymbol name="moon.fill" size={20} color={theme.icon} />
+                </View>
                 <ThemedText style={styles.label}>Dark Mode</ThemedText>
+                <View style={{ flex: 1 }} />
                 <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ true: theme.tint }} />
             </ThemedView>
 
@@ -38,7 +42,11 @@ export default function SettingsScreen() {
                     style={[styles.item, { backgroundColor: theme.background === '#fff' ? '#F9F9F9' : '#252525' }]}
                     onPress={() => router.push(item.route as any)}
                 >
+                    <View style={[styles.iconContainer, { backgroundColor: theme.background === '#fff' ? '#E8E8E8' : '#3C3C3C' }]}>
+                        <IconSymbol name={item.icon as any} size={20} color={theme.icon} />
+                    </View>
                     <ThemedText style={styles.label}>{item.label}</ThemedText>
+                    <View style={{ flex: 1 }} />
                     <IconSymbol name="chevron.right" size={20} color={theme.icon} />
                 </TouchableOpacity>
             ))}
@@ -56,11 +64,18 @@ const styles = StyleSheet.create({
     },
     item: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
+        padding: 16,
         borderRadius: 12,
         marginBottom: 10,
+    },
+    iconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
     },
     label: {
         fontSize: 16,

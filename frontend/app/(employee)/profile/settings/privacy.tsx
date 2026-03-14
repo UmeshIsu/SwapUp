@@ -1,9 +1,11 @@
-import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/src/components/themed-text';
 import { ThemedView } from '@/src/components/themed-view';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
+import { CustomModal } from '@/src/components/ui/CustomModal';
 import { Colors } from '@/src/constants/theme';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 
@@ -11,26 +13,31 @@ export default function PrivacySettingsScreen() {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
     const router = useRouter();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
             <PrivacyItem label="Data Usage and Sharing" onPress={() => { }} />
             <PrivacyItem label="Manage Data Access" onPress={() => { }} />
             <PrivacyItem label="Terms and Services" onPress={() => { }} />
-            <PrivacyItem label="Privacy Policy" onPress={() => { }} />
+            <PrivacyItem label="Privacy Policy" onPress={() => router.push('/(employee)/profile/settings/privacy-policy' as any)} />
             <PrivacyItem
                 label="Account Deletion"
-                onPress={() => {
-                    Alert.alert(
-                        'Delete Account',
-                        'Are you sure you want to delete your account? This action cannot be undone.',
-                        [
-                            { text: 'Cancel', style: 'cancel' },
-                            { text: 'Yes, Delete', style: 'destructive', onPress: () => console.log('Account deletion requested') }
-                        ]
-                    );
-                }}
+                onPress={() => setShowDeleteModal(true)}
                 isDestructive
+            />
+
+            <CustomModal
+                visible={showDeleteModal}
+                title={'Are you sure to delete\nyour  Account ?'}
+                icon="trash"
+                confirmText="Yes, Delete"
+                cancelText="Cancel"
+                onConfirm={() => {
+                    setShowDeleteModal(false);
+                    console.log('Account deletion requested');
+                }}
+                onCancel={() => setShowDeleteModal(false)}
             />
         </ScrollView>
     );
