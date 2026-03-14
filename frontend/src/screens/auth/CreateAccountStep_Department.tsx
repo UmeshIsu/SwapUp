@@ -17,7 +17,7 @@ export default function CreateAccountStep_Department({ value, onChange, error }:
                 Choose the department that you want to make the roaster
             </Text>
 
-            <View style={styles.optionsContainer}>
+            <View style={styles.optionContainer}>
                 {DEPARTMENTS.map((dept) => (
                     <TouchableOpacity
                         key={dept}
@@ -61,17 +61,20 @@ const styles = StyleSheet.create({
         marginBottom: 28,
         lineHeight: 20,
     },
-    optionsContainer: {
+    optionContainer: {
         gap: 14,
     },
     option: {
-        backgroundColor: '#1373D0',
+        backgroundColor: '#FFFFFF',
         borderRadius: 14,
         paddingVertical: 17,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
     },
     optionSelected: {
-        backgroundColor: '#0F5BAA',
+        backgroundColor: '#1373D0',
+        borderColor: '#1373D0',
         shadowColor: '#1373D0',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -79,7 +82,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     optionText: {
-        color: '#FFFFFF',
+        color: '#4B5563',
         fontSize: 16,
         fontWeight: '600',
     },
