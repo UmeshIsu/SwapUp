@@ -1,5 +1,6 @@
 import AuthButton from '@/src/components/AuthButton';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { authAPI } from '@/src/services/api';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -78,6 +79,8 @@ export default function RegisterScreen() {
         workerId: '',
         password: '',
         confirmPassword: '',
+        verificationCode: '',
+        tenantId: '',
     });
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<FieldErrors>({});
@@ -136,7 +139,9 @@ export default function RegisterScreen() {
                 break;
             }
             case 'verification':
-                // Email verification — currently auto-proceeds
+                if (formData.verificationCode.length !== 8) {
+                    newErrors.verificationCode = 'Please enter an 8-digit code';
+                }
                 break;
             case 'workerId':
                 if (!formData.workerId.trim()) {
@@ -170,12 +175,13 @@ export default function RegisterScreen() {
             await register({
                 email: email.trim(),
                 password,
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
+                confirmPassword: formData.confirmPassword,
+                name: `${firstName.trim()} ${lastName.trim()}`,
                 phone: phone.trim() || undefined,
                 workerId: workerId.trim() || undefined,
                 hotelName: hotelName.trim() || undefined,
                 department: department.trim() || undefined,
+                tenantId: formData.tenantId || undefined,
             });
 
             if (selectedRole === 'MANAGER') {
@@ -191,14 +197,34 @@ export default function RegisterScreen() {
     };
 
     // ── Next / Submit handler ────────────────────────────────────────
-    const handleNext = () => {
+    const handleNext = async () => {
         if (!validateStep()) return;
 
-        if (currentStep < TOTAL_STEPS - 1) {
-            setErrors({});
-            setCurrentStep(prev => prev + 1);
-        } else {
-            handleRegister();
+        setIsLoading(true);
+        try {
+            // Backend validatons
+            if (currentStepName === 'hotelName') {
+                const res = await authAPI.verifyHotel(formData.hotelName.trim());
+                if (res.data?.tenantId) {
+                    setFormData(prev => ({ ...prev, tenantId: res.data.tenantId }));
+                }
+            } else if (currentStepName === 'email') {
+                await authAPI.sendCode(formData.email.trim(), 'EMAIL');
+            } else if (currentStepName === 'verification') {
+                await authAPI.verifyOtp(formData.email.trim(), formData.verificationCode);
+            }
+
+            if (currentStep < TOTAL_STEPS - 1) {
+                setErrors({});
+                setCurrentStep(prev => prev + 1);
+            } else {
+                await handleRegister();
+            }
+        } catch (error: any) {
+            const msg = error.response?.data?.error || 'Validation failed. Please try again.';
+            setErrors({ [currentStepName]: msg });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -268,6 +294,9 @@ export default function RegisterScreen() {
                 return (
                     <CreateAccountStep5
                         email={formData.email}
+                        value={formData.verificationCode}
+                        onChange={(v) => updateField('verificationCode', v)}
+                        error={errors.verification || errors.verificationCode}
                     />
                 );
             case 'workerId':
