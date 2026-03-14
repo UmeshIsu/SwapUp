@@ -94,3 +94,16 @@ export const verifyOtp = async (req: Request<{}, {}, VerifyOtpBody>, res: Respon
   }
 };
 
+/** * Step 6: Verify Identity 
+ */
+export const verifyWorkerId = async (req: Request<{}, {}, VerifyWorkerBody>, res: Response) => {
+  try {
+    const { workerId, tenantId } = req.body;
+    const existingUser = await prisma.user.findUnique({ where: { workerId } });
+    if (existingUser) return res.status(400).json({ error: "Worker ID already registered." });
+    return res.status(200).json({ message: "Identity verified." });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
