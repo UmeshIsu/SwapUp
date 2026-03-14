@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// This is your Prisma schema file
+// https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -12,32 +9,209 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id                      String   @id @default(uuid())
-  name                    String
-  email                   String   @unique
-  phone                   String?
-  password                String
-  workerId                String?  @unique
-  plan                    String   @default("Basic")
-  role                    String   @default("Employee") // Employee or Manager
-  department              String?
-  availabilityPreferences String?
-  shifts                  Shift[]
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+// ==========================================
+// 1. ENUMS (Strict Data Rules)
+// ==========================================
+enum Role {
+  EMPLOYEE
+  MANAGER
 }
 
+// --- NEW ENUMS ADDED ---
+enum Department {
+  INDIAN
+  CHINESE
+}
+
+enum MessageType {
+  TEXT
+  SWAP_REQUEST
+}
+
+enum SwapStatus {
+  PENDING
+  ACCEPTED_BY_EMPLOYEE
+  DECLINED_BY_EMPLOYEE
+  APPROVED_BY_MANAGER
+  REJECTED_BY_MANAGER
+}
+
+// ==========================================
+// 2. CORE AUTH & ORGANIZATION
+// ==========================================
+model Tenant {
+  id          String   @id @default(uuid()) @db.Uuid
+  companyName String   @unique
+  
+  createdAt   DateTime @default(now())
+
+  users User[]
+}
+
+model User {
+  id                      String   @id @default(uuid()) @db.Uuid
+  workerId                String   @unique // The unique ID provided by HR
+  role                    Role     // MANAGER or EMPLOYEE from the Splash screen
+  tenantId                String   @db.Uuid
+  name                    String
+  email                   String   @unique
+  phone                   String   @unique // Mobile number from Step 3
+  password                String
+  
+  // --- NEW FIELDS ADDED ---
+  avatarUrl               String?
+  department              Department @default(INDIAN) // Default added to prevent migration crash on existing users
+  plan                    String     @default("Basic")
+  availabilityPreferences String?
+  fcmToken                String?    // For push notifications
+
+  // --- EXISTING RELATIONS ---
+  tenant                  Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  createdShifts           Shift[]  @relation("CreatedByManager")
+  shifts                  Shift[]  @relation("EmployeeShifts")
+
+  // --- NEW RELATIONS ADDED ---
+  participants            Participant[]
+  messages                Message[]      @relation("SentMessages")
+  swapRequestsAsRequester SwapRequest[]  @relation("RequesterSwaps")
+  swapRequestsAsTarget    SwapRequest[]  @relation("TargetSwaps")
+  leaveRequests           LeaveRequest[]
+  attendances             Attendance[]
+
+  @@index([tenantId])
+}
+
+// ==========================================
+// 3. SCHEDULE & SHIFTS
+// ==========================================
 model Shift {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  date         DateTime
-  startTime    String
-  endTime      String
+  id           String   @id @default(uuid()) @db.Uuid
+  date         DateTime @db.Date
+  startTime    DateTime
+  endTime      DateTime
+  employeeId   String   @db.Uuid
+  createdBy    String   @db.Uuid
+
+  // --- NEW FIELDS ADDED ---
   instructions String?
-  type         String   // Morning, Afternoon, Night
+  type         String?  // Morning, Afternoon, Night
   location     String?
+  role         String?  // Shift-specific role
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime @updatedAt // Added to resolve errors if existing data is modified
+
+  // --- EXISTING RELATIONS ---
+  employee     User     @relation("EmployeeShifts", fields: [employeeId], references: [id], onDelete: Cascade)
+  creator      User     @relation("CreatedByManager", fields: [createdBy], references: [id], onDelete: Restrict)
+
+  // --- NEW RELATIONS ADDED ---
+  swapRequestsAsRequester SwapRequest[] @relation("RequesterShift")
+  swapRequestsAsTarget    SwapRequest[] @relation("TargetShift")
+
+  @@index([employeeId, date])
+}
+
+// ==========================================
+// 4. ATTENDANCE & GEO-LOCATION SYSTEM (NEW)
+// ==========================================
+model Attendance {
+  id           Int      @id @default(autoincrement())
+  userId       String   @db.Uuid
+  checkedInAt  DateTime @default(now()) // server UTC time — never phone time
+  lat          Float
+  lng          Float
+  accuracy     Float
+  status       String   // "APPROVED" | "REJECTED"
+  rejectReason String?
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ==========================================
+// 5. CHAT SYSTEM (NEW)
+// ==========================================
+model Conversation {
+  id           String        @id @default(uuid()) @db.Uuid
+  createdAt    DateTime      @default(now())
+
+  participants Participant[]
+  messages     Message[]
+}
+
+model Participant {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  conversationId String       @db.Uuid
+  
+  user           User         @relation(fields: [userId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
+}
+
+model Message {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @db.Uuid
+  senderId       String       @db.Uuid
+  content        String
+  type           MessageType  @default(TEXT)
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  swapRequest    SwapRequest? 
+}
+
+// ==========================================
+// 6. SMART SWAP SYSTEM (NEW)
+// ==========================================
+model SwapRequest {
+  id               String     @id @default(uuid()) @db.Uuid
+  messageId        String?    @unique @db.Uuid
+  requesterId      String     @db.Uuid
+  targetId         String     @db.Uuid
+  requesterShiftId String     @db.Uuid
+  targetShiftId    String     @db.Uuid
+  status           SwapStatus @default(PENDING)
+  reason           String     @default("")
+  
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  message          Message?   @relation(fields: [messageId], references: [id])
+  requester        User       @relation("RequesterSwaps", fields: [requesterId], references: [id])
+  target           User       @relation("TargetSwaps", fields: [targetId], references: [id])
+  requesterShift   Shift      @relation("RequesterShift", fields: [requesterShiftId], references: [id])
+  targetShift      Shift      @relation("TargetShift", fields: [targetShiftId], references: [id])
+}
+
+// ==========================================
+// 7. LEAVE MANAGEMENT (NEW)
+// ==========================================
+model LeaveType {
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String
+  totalDays      Int            
+  createdAt      DateTime       @default(now())
+
+  leaveRequests  LeaveRequest[]
+}
+
+model LeaveRequest {
+  id          String    @id @default(uuid()) @db.Uuid
+  employeeId  String    @db.Uuid
+  leaveTypeId String    @db.Uuid
+  startDate   DateTime  
+  endDate     DateTime  
+  dayType     String    @default("full") 
+  reason      String    @default("")
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now()) 
+
+  employee    User      @relation(fields: [employeeId], references: [id])
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id])
 }
