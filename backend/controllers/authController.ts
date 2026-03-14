@@ -38,3 +38,36 @@ export const verifyHotel = async (req: Request<{}, {}, VerifyHotelBody>, res: Re
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+/** * Step 3/4: Send Verification Code via Supabase OTP 
+ */
+export const sendVerificationCode = async (req: Request<{}, {}, OTPBody>, res: Response) => {
+  try {
+    const { target, type } = req.body;
+    
+    // We only support Email for now using Supabase OTP
+    if (type === 'EMAIL') {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: target,
+      });
+
+      if (error) {
+         console.error("Supabase OTP send error:", error);
+         return res.status(500).json({ error: "Failed to send verification email." });
+      }
+      
+      console.log(`[EMAIL] OTP sent to ${target}`);
+      return res.status(200).json({ message: "Code sent" });
+    } else {
+       // Phone fallback (not currently supported properly without Vonage/Twilio setup in Supabase)
+       const otp = Math.floor(100000 + Math.random() * 900000).toString();
+       console.log(`[${type}] Code ${otp} mocked for ${target}`);
+       return res.status(200).json({ message: "Code mocked locally", debugOtp: otp });
+    }
+  } catch (error) {
+    console.error("sendVerificationCode error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
