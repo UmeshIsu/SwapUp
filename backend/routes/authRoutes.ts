@@ -43,6 +43,12 @@ router.post("/verify-worker", verifyWorkerId);
 router.post("/signup", signup);
 
 /**
+ * @route   POST /api/auth/register
+ * @desc    Alias for /signup — the frontend calls this endpoint.
+ */
+router.post("/register", signup);
+
+/**
  * @route   POST /api/auth/login
  * @desc    Role-based login. Validates credentials and ensures the user 
  * is logging into the correct interface (Manager vs Employee).
