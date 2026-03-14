@@ -25,12 +25,13 @@ interface AuthContextType {
     register: (data: {
         email: string;
         password: string;
-        firstName: string;
-        lastName: string;
+        confirmPassword: string;
+        name: string;
         phone?: string;
         workerId?: string;
         hotelName?: string;
         department?: string;
+        tenantId?: string;
     }) => Promise<void>;
     logout: () => Promise<void>;
     updateUser: (data: Partial<User>) => void;
@@ -84,29 +85,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await authAPI.login({ email, password, role: selectedRole || undefined });
+            let roleToUse = selectedRole;
+            if (!roleToUse) {
+                const storedRole = await AsyncStorage.getItem('selectedRole');
+                if (storedRole) {
+                    roleToUse = storedRole as 'EMPLOYEE' | 'MANAGER';
+                }
+            }
+
+            const response = await authAPI.login({ email, password, role: roleToUse || undefined });
             const { token: newToken, user: userData } = response.data;
 
             await AsyncStorage.setItem('authToken', newToken);
             await AsyncStorage.setItem('user', JSON.stringify(userData));
+            await AsyncStorage.setItem('selectedRole', userData.role);
 
             setToken(newToken);
             setUser(userData);
             setSelectedRole(userData.role);
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Login failed');
+            throw new Error(error.response?.data?.error || error.response?.data?.message || 'Login failed');
         }
     };
 
     const register = async (data: {
         email: string;
         password: string;
-        firstName: string;
-        lastName: string;
+        confirmPassword: string;
+        name: string;
         phone?: string;
         workerId?: string;
         hotelName?: string;
         department?: string;
+        tenantId?: string;
     }) => {
         try {
             const response = await authAPI.register({
@@ -121,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(newToken);
             setUser(userData);
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Registration failed');
+            throw new Error(error.response?.data?.error || error.response?.data?.message || 'Registration failed');
         }
     };
 
