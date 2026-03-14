@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 // Update this to your backend URL
-const API_BASE_URL = 'http://172.20.10.3:3000/api';
+// Potential IPs: 192.168.8.1, 10.31.13.57
+const API_BASE_URL = 'http://10.0.2.2:5000/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -45,17 +46,27 @@ export const authAPI = {
     register: (data: {
         email: string;
         password: string;
-        firstName: string;
-        lastName: string;
+        confirmPassword: string;
+        name: string;
         phone?: string;
         workerId?: string;
         role: 'EMPLOYEE' | 'MANAGER';
         hotelName?: string;
         department?: string;
+        tenantId?: string;
     }) => api.post('/auth/register', data),
 
     login: (data: { email: string; password: string; role?: string }) =>
         api.post('/auth/login', data),
+
+    verifyHotel: (hotelName: string) => 
+        api.post('/auth/verify-hotel', { hotelName }),
+
+    sendCode: (target: string, type: 'EMAIL' | 'PHONE') => 
+        api.post('/auth/send-code', { target, type }),
+        
+    verifyOtp: (email: string, token: string) => 
+        api.post('/auth/verify-otp', { email, token }),
 
     getProfile: () => api.get('/auth/profile'),
     updateProfile: (data: { firstName?: string; lastName?: string; phone?: string }) =>
