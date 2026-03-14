@@ -107,3 +107,111 @@ export const verifyWorkerId = async (req: Request<{}, {}, VerifyWorkerBody>, res
   }
 };
 
+/** * Step 7: Final Account Creation (Role-Based)
+ */
+export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) => {
+  try {
+    const { name, email, phone, workerId, tenantId, password, confirmPassword, role } = req.body;
+
+    // 1. Validation
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match." });
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ 
+        error: "Password must be 8+ chars with a number, uppercase, and special character." 
+      });
+    }
+
+    // 2. Hash Password (for local DB fallback)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 3. Create User in Supabase Auth globally
+    // We use the admin API to skip email confirmation for immediate login if needed, or regular signUp depending on settings
+    let supabaseUserId = '';
+
+    const { data: supaData, error: supaError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        name,
+        role: role.toUpperCase(),
+        worker_id: workerId,
+        phone,
+        tenant_id: tenantId,
+        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+      }
+    });
+
+    if (supaError) {
+      if (supaError.message.includes('already exists') || supaError.message.includes('already been registered')) {
+        // User was likely created by the OTP step. Fetch and update them instead.
+        const { data: existingList } = await supabase.auth.admin.listUsers();
+        const existingUser = existingList.users.find((u: any) => u.email === email);
+        
+        if (existingUser) {
+           const { data: updateData, error: updateError } = await supabase.auth.admin.updateUserById(existingUser.id, {
+              password,
+              user_metadata: {
+                name,
+                role: role.toUpperCase(),
+                worker_id: workerId,
+                phone,
+                tenant_id: tenantId,
+                avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+              }
+           });
+           
+           if (updateError) {
+              return res.status(500).json({ error: `Supabase Update Error: ${updateError.message}` });
+           }
+           supabaseUserId = updateData.user.id;
+        } else {
+           return res.status(400).json({ error: "Credentials already exist in Supabase but user not found." });
+        }
+      } else {
+        console.error("Supabase user creation failed:", supaError.message);
+        return res.status(500).json({ error: `Supabase Error: ${supaError.message}` });
+      }
+    } else {
+       if (supaData && supaData.user) {
+          supabaseUserId = supaData.user.id;
+       }
+    }
+
+    // 4. Create User in Local Prisma DB
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        phone,
+        workerId,
+        password: hashedPassword,
+        tenantId,
+        role: role.toUpperCase() as "EMPLOYEE" | "MANAGER", 
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        plan: "Basic",
+        department: "INDIAN", // Default fallback if not provided on signup
+      },
+    });
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
+    );
+
+    return res.status(201).json({
+      message: `${role} account created successfully`,
+      token,
+      user: { id: user.id, name: user.name, role: user.role }
+    });
+
+  } catch (error: any) {
+    if (error.code === 'P2002') return res.status(400).json({ error: "Credentials already exist." });
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
