@@ -3,25 +3,30 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface Props {
     email: string;
+    value: string;
+    onChange: (value: string) => void;
+    error?: string;
 }
 
-export default function CreateAccountStep5({ email }: Props) {
+export default function CreateAccountStep5({ email, value, onChange, error }: Props) {
     const inputs = useRef<(TextInput | null)[]>([]);
-    const [code, setCode] = React.useState(['', '', '', '']);
+    
+    // Convert string value to array of exactly 8 chars
+    const codeArray = value.split('').concat(Array(8).fill('')).slice(0, 8);
 
     const handleChange = (text: string, index: number) => {
-        const newCode = [...code];
+        const newCode = [...codeArray];
         newCode[index] = text;
-        setCode(newCode);
+        onChange(newCode.join(''));
 
         // Auto-focus next input
-        if (text && index < 3) {
+        if (text && index < 7) {
             inputs.current[index + 1]?.focus();
         }
     };
 
     const handleKeyPress = (e: any, index: number) => {
-        if (e.nativeEvent.key === 'Backspace' && !code[index] && index > 0) {
+        if (e.nativeEvent.key === 'Backspace' && !codeArray[index] && index > 0) {
             inputs.current[index - 1]?.focus();
         }
     };
@@ -36,11 +41,11 @@ export default function CreateAccountStep5({ email }: Props) {
 
             <Text style={styles.label}>Verification Code</Text>
             <View style={styles.codeRow}>
-                {code.map((digit, index) => (
+                {codeArray.map((digit, index) => (
                     <TextInput
                         key={index}
                         ref={(ref) => { inputs.current[index] = ref; }}
-                        style={styles.codeInput}
+                        style={[styles.codeInput, error && styles.inputError]}
                         value={digit}
                         onChangeText={(text) => handleChange(text, index)}
                         onKeyPress={(e) => handleKeyPress(e, index)}
@@ -50,6 +55,7 @@ export default function CreateAccountStep5({ email }: Props) {
                     />
                 ))}
             </View>
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
             <Text style={styles.resendText}>
                 Didn't receive the code?{' '}
@@ -88,18 +94,30 @@ const styles = StyleSheet.create({
     },
     codeRow: {
         flexDirection: 'row',
-        gap: 12,
+        justifyContent: 'space-between',
+        gap: 6,
         marginBottom: 20,
     },
     codeInput: {
-        width: 56,
-        height: 56,
+        width: 38,
+        height: 48,
         backgroundColor: '#F5F5F5',
-        borderRadius: 12,
+        borderRadius: 8,
         textAlign: 'center',
-        fontSize: 22,
+        fontSize: 18,
         fontWeight: '600',
         color: '#1A1A2E',
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    inputError: {
+        borderColor: '#EF4444',
+        backgroundColor: '#FEF2F2',
+    },
+    errorText: {
+        color: '#EF4444',
+        fontSize: 13,
+        marginBottom: 10,
     },
     resendText: {
         fontSize: 14,
