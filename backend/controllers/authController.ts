@@ -20,6 +20,21 @@ interface SignupBody {
   password: string;
   confirmPassword: string;
   role: "EMPLOYEE" | "MANAGER"; // Now required from the Splash screen
+  department?: string;
+}
+
+// --- Helper Functions ---
+
+/**
+ * Maps a department display name (from frontend) to the Prisma Department enum value.
+ * e.g. "Chinese Restaurant" -> "CHINESE", "Indian Restaurant" -> "INDIAN"
+ */
+function mapDepartment(dept?: string): "INDIAN" | "CHINESE" {
+  if (!dept) return "INDIAN";
+  const normalized = dept.toUpperCase().trim();
+  if (normalized.includes("CHINESE")) return "CHINESE";
+  if (normalized.includes("INDIAN")) return "INDIAN";
+  return "INDIAN"; // fallback
 }
 
 // --- Controller Functions ---
@@ -53,8 +68,8 @@ export const sendVerificationCode = async (req: Request<{}, {}, OTPBody>, res: R
       });
 
       if (error) {
-         console.error("Supabase OTP send error:", error);
-         return res.status(500).json({ error: "Failed to send verification email." });
+         console.error("Supabase OTP send error:", error.message);
+         return res.status(500).json({ error: "Failed to send verification email. Please check your Supabase limit." });
       }
       
       console.log(`[EMAIL] OTP sent to ${target}`);
@@ -83,7 +98,7 @@ export const verifyOtp = async (req: Request<{}, {}, VerifyOtpBody>, res: Respon
     });
 
     if (error) {
-       console.error("OTP verification failed:", error);
+       console.error("OTP verification failed:", error.message);
        return res.status(400).json({ error: "Invalid or expired verification code." });
     }
 
@@ -110,16 +125,21 @@ export const verifyWorkerId = async (req: Request<{}, {}, VerifyWorkerBody>, res
 /** * Step 7: Final Account Creation (Role-Based)
  */
 export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) => {
+  let supabaseUserId = '';
+
   try {
-    const { name, email, phone, workerId, tenantId, password, confirmPassword, role } = req.body;
+    console.log("[SIGNUP] Received request body:", { ...req.body, password: "[REDACTED]", confirmPassword: "[REDACTED]" });
+    const { name, email, phone, workerId, tenantId, password, confirmPassword, role, department } = req.body;
 
     // 1. Validation
     if (password !== confirmPassword) {
+      console.log("[SIGNUP] Validation Failed: Passwords do not match");
       return res.status(400).json({ error: "Passwords do not match." });
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
+      console.log("[SIGNUP] Validation Failed: Password regex failed");
       return res.status(400).json({ 
         error: "Password must be 8+ chars with a number, uppercase, and special character." 
       });
@@ -129,8 +149,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 3. Create User in Supabase Auth globally
-    // We use the admin API to skip email confirmation for immediate login if needed, or regular signUp depending on settings
-    let supabaseUserId = '';
+    console.log("[SIGNUP] Attempting to create user in Supabase:", email);
 
     const { data: supaData, error: supaError } = await supabase.auth.admin.createUser({
       email,
@@ -183,18 +202,19 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     }
 
     // 4. Create User in Local Prisma DB
+    console.log("[SIGNUP] Attempting to create user in Prisma DB:", email);
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
-        workerId,
+        workerId: workerId || `MGR-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
         password: hashedPassword,
         tenantId,
         role: role.toUpperCase() as "EMPLOYEE" | "MANAGER", 
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
         plan: "Basic",
-        department: "INDIAN", // Default fallback if not provided on signup
+        department: mapDepartment(department),
       },
     });
 
@@ -204,6 +224,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
       { expiresIn: "7d" }
     );
 
+    console.log(`[SIGNUP] Success! User created: ${user.id}`);
     return res.status(201).json({
       message: `${role} account created successfully`,
       token,
@@ -211,8 +232,23 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     });
 
   } catch (error: any) {
-    if (error.code === 'P2002') return res.status(400).json({ error: "Credentials already exist." });
-    return res.status(500).json({ error: "Internal server error." });
+    console.error("[SIGNUP] Unhandled Exception caught:", error);
+
+    // Rollback: delete the Supabase user if Prisma creation failed
+    if (supabaseUserId) {
+      try {
+        await supabase.auth.admin.deleteUser(supabaseUserId);
+        console.log(`[SIGNUP] Rolled back Supabase user ${supabaseUserId}`);
+      } catch (rollbackErr) {
+        console.error("[SIGNUP] Failed to rollback Supabase user:", rollbackErr);
+      }
+    }
+
+    if (error.code === 'P2002') {
+        console.error("[SIGNUP] Prisma P2002 Error (Unique constraint failed):", error.meta);
+        return res.status(400).json({ error: "Credentials already exist." });
+    }
+    return res.status(500).json({ error: error.message || "Internal server error." });
   }
 };
 
@@ -230,25 +266,30 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // 1. Check against Supabase first
+    console.log(`[LOGIN] Attempting login for ${email} with role ${role}`);
     const { data: supaData, error: supaError } = await supabase.auth.signInWithPassword({
         email,
         password
     });
     
     if(supaError || !supaData.user) {
-        console.error("Supabase auth error:", supaError?.message);
+        console.error(`[LOGIN] Supabase auth failed for ${email}:`, supaError?.message);
         return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    console.log(`[LOGIN] Supabase auth success for ${email}`);
 
     // 2. Locate user in local Prisma DB
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
+      console.error(`[LOGIN] User ${email} not found in Prisma DB`);
       return res.status(401).json({ error: "User not found in local database." });
     }
 
     // 3. Ensure the user logging in matches the role selected on the splash screen
     if (user.role !== role.toUpperCase()) {
+      console.warn(`[LOGIN] Role mismatch for ${email}. Selected: ${role}, Database: ${user.role}`);
       return res.status(403).json({ error: `This account is not registered as a ${role}.` });
     }
 
@@ -258,12 +299,13 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: "7d" }
     );
 
+    console.log(`[LOGIN] Success for ${email} as ${user.role}`);
     return res.status(200).json({ 
       token, 
       user: { id: user.id, name: user.name, role: user.role } 
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error(`[LOGIN] Catch-all error for ${req.body.email}:`, error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
