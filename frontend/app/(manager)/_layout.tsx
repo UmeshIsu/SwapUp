@@ -32,6 +32,13 @@ export default function ManagerLayout() {
                     tabBarIcon: ({ color, size }) => <Ionicons name="document-text" color={color} size={size} />,
                 }}
             />
+            <Tabs.Screen
+                name="roleManagement/index"
+                options={{
+                    title: "Roles",
+                    tabBarIcon: ({ color, size }) => <Ionicons name="people" color={color} size={size} />,
+                }}
+            />
         </Tabs>
     );
 }
