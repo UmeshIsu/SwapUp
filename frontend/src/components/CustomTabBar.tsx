@@ -48,6 +48,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
                 };
 
                 const icons = TAB_ICONS[route.name];
+                if (!icons) return null; // Hide tabs that don't have configured icons (like swap/index)
                 const iconSource = icons ? (isFocused ? icons.dark : icons.light) : null;
 
                 return (
