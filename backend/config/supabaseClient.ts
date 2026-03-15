@@ -1,14 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
+import { createClient } from "@supabase/supabase-js";
+import "dotenv/config";
 
-dotenv.config();
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-// Use the service role key to allow admin actions like creating users
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('⚠️ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file.');
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error(
+    "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment variables."
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+/**
+ * Server-side Supabase client using the service role key.
+ * Use this for admin operations (storage, realtime, edge functions, etc.).
+ * NOTE: Database operations should continue using Prisma.
+ */
+export const supabase = createClient(supabaseUrl, supabaseServiceKey);
