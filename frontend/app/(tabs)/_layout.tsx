@@ -1,35 +1,14 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 
-import { HapticTab } from '@/src/components/haptic-tab';
-import { IconSymbol } from '@/src/components/ui/icon-symbol';
-import { Colors } from '@/src/constants/theme';
-import { useColorScheme } from '@/src/hooks/use-color-scheme';
-
+// The (tabs) group is kept only to satisfy the Expo Router anchor.
+// All navigation is handled by the employee/manager route groups.
+// The Explore tab from the Expo starter is hidden.
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
+    <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}>
+      <Tabs.Screen name="index" options={{ title: 'Home', href: null }} />
+      <Tabs.Screen name="explore" options={{ title: 'Explore', href: null }} />
     </Tabs>
   );
 }
