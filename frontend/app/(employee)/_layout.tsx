@@ -1,7 +1,20 @@
-import { Stack } from 'expo-router';
+import React from 'react';
+import { Tabs } from 'expo-router';
+import CustomTabBar from '@/src/components/CustomTabBar';
 
 export default function EmployeeLayout() {
     return (
-        <Stack screenOptions={{ headerShown: false }} />
+        <Tabs
+            tabBar={(props) => <CustomTabBar {...props} />}
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            <Tabs.Screen name="home" />
+            <Tabs.Screen name="schedule/index" />
+            <Tabs.Screen name="chat/index" />
+            <Tabs.Screen name="leave/index" />
+            <Tabs.Screen name="analysis/index" />
+        </Tabs>
     );
 }
