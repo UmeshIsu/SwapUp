@@ -10,8 +10,8 @@ const ACTIVE_BG = 'rgba(19, 115, 208, 0.24)';
 const TAB_ICONS: Record<string, { light: any; dark: any }> = {
     // ── Employee tabs ──────────────────────────────────────────────────────────
     'home': { light: require('@/assets/images/ETaskBar/HomeLight.png'), dark: require('@/assets/images/ETaskBar/HomeDark.png') },
-    'schedule/index': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
-    'chat/index': { light: require('@/assets/images/ETaskBar/EChatLight.png'), dark: require('@/assets/images/ETaskBar/EChatDark.png') },
+    'swap/initiate': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
+    'chat': { light: require('@/assets/images/ETaskBar/EChatLight.png'), dark: require('@/assets/images/ETaskBar/EChatDark.png') },
     'leave/index': { light: require('@/assets/images/ETaskBar/LeaveLight.png'), dark: require('@/assets/images/ETaskBar/LeaveDark.png') },
     'analysis/index': { light: require('@/assets/images/ETaskBar/EReportLight.png'), dark: require('@/assets/images/ETaskBar/EReportDark.png') },
 
@@ -49,7 +49,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 
                 const icons = TAB_ICONS[route.name];
                 if (!icons) return null; // Hide tabs that don't have configured icons (like swap/index)
-                const iconSource = icons ? (isFocused ? icons.dark : icons.light) : null;
+
+                const iconSource = isFocused ? icons.dark : icons.light;
 
                 return (
                     <TouchableOpacity
