@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,28 +10,32 @@ import {
     StatusBar,
     KeyboardAvoidingView,
     Platform,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { getMyShifts, Shift } from '../../../src/services/shiftService';
+import { format, parseISO } from 'date-fns';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface ShiftSlot {
-    id: string;
-    time: string;
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function formatShiftTime(startTime: string, endTime: string): string {
+    try {
+        const start = format(parseISO(startTime), 'hh:mm a');
+        const end = format(parseISO(endTime), 'hh:mm a');
+        return `${start} - ${end}`;
+    } catch {
+        return `${startTime} - ${endTime}`;
+    }
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_ROLE = 'Waiter';
-
-const MOCK_SHIFTS: ShiftSlot[] = [
-    { id: '1', time: '01:00 - 02:00 AM' },
-    { id: '2', time: '02:00 - 03:00 AM' },
-    { id: '3', time: '03:00 - 04:00 AM' },
-    { id: '4', time: '04:00 - 05:00 AM' },
-    { id: '5', time: '05:00 - 06:00 AM' },
-    { id: '6', time: '06:00 - 07:00 AM' },
-];
+function formatShiftDate(dateStr: string): string {
+    try {
+        return format(parseISO(dateStr), 'EEEE, dd MMMM');
+    } catch {
+        return dateStr;
+    }
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function InitiateSwapScreen() {
@@ -39,10 +43,31 @@ export default function InitiateSwapScreen() {
     const params = useLocalSearchParams<{ date?: string }>();
 
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedShift, setSelectedShift] = useState<ShiftSlot | null>(null);
+    const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
     const [reason, setReason] = useState('');
+    const [shifts, setShifts] = useState<Shift[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const handleSwapPress = (shift: ShiftSlot) => {
+    // Fetch real shifts on mount
+    useEffect(() => {
+        async function loadShifts() {
+            try {
+                setLoading(true);
+                setError('');
+                const data = await getMyShifts();
+                setShifts(data);
+            } catch (err: any) {
+                console.error('Failed to fetch shifts:', err);
+                setError(err.message || 'Failed to load your shifts.');
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadShifts();
+    }, []);
+
+    const handleSwapPress = (shift: Shift) => {
         setSelectedShift(shift);
         setReason('');
         setModalVisible(true);
@@ -55,13 +80,16 @@ export default function InitiateSwapScreen() {
             pathname: '/(employee)/swap/find-colleague',
             params: {
                 shiftId: selectedShift.id,
-                shiftTime: selectedShift.time,
-                role: MOCK_ROLE,
+                shiftTime: formatShiftTime(selectedShift.startTime, selectedShift.endTime),
+                role: selectedShift.role || 'Waiter',
                 reason: reason.trim(),
-                date: params.date ?? 'Tuesday, 30 October',
+                date: selectedShift.date,
             },
         });
     };
+
+    // Derive role from first shift (all shifts belong to the same employee)
+    const myRole = shifts.length > 0 ? (shifts[0].role || 'Waiter') : 'Waiter';
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -87,30 +115,51 @@ export default function InitiateSwapScreen() {
                         <MaterialCommunityIcons name="card-account-details-outline" size={22} color="#555" />
                     </View>
                     <View>
-                        <Text style={styles.roleName}>{MOCK_ROLE}</Text>
-                        <Text style={styles.roleHint}>Only {MOCK_ROLE.toLowerCase()}s can be select to swap</Text>
+                        <Text style={styles.roleName}>{myRole}</Text>
+                        <Text style={styles.roleHint}>Only {myRole.toLowerCase()}s can be selected to swap</Text>
                     </View>
                 </View>
 
                 {/* Your Schedule */}
                 <Text style={styles.sectionLabel}>Your Schedule</Text>
-                <View style={styles.scheduleCard}>
-                    {MOCK_SHIFTS.map((shift, index) => (
-                        <View key={shift.id}>
-                            <View style={styles.shiftRow}>
-                                <Text style={styles.shiftTime}>{shift.time}</Text>
-                                <TouchableOpacity
-                                    style={styles.swapBtn}
-                                    onPress={() => handleSwapPress(shift)}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.swapBtnText}>Swap</Text>
-                                </TouchableOpacity>
+
+                {loading ? (
+                    <View style={styles.loadingWrap}>
+                        <ActivityIndicator size="large" color={PRIMARY} />
+                        <Text style={styles.loadingText}>Loading your shifts...</Text>
+                    </View>
+                ) : error ? (
+                    <View style={styles.loadingWrap}>
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) : shifts.length === 0 ? (
+                    <View style={styles.loadingWrap}>
+                        <Text style={styles.loadingText}>No shifts found.</Text>
+                    </View>
+                ) : (
+                    <View style={styles.scheduleCard}>
+                        {shifts.map((shift, index) => (
+                            <View key={shift.id}>
+                                <View style={styles.shiftRow}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.shiftDate}>{formatShiftDate(shift.date)}</Text>
+                                        <Text style={styles.shiftTime}>
+                                            {formatShiftTime(shift.startTime, shift.endTime)}
+                                        </Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        style={styles.swapBtn}
+                                        onPress={() => handleSwapPress(shift)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={styles.swapBtnText}>Swap</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                {index < shifts.length - 1 && <View style={styles.divider} />}
                             </View>
-                            {index < MOCK_SHIFTS.length - 1 && <View style={styles.divider} />}
-                        </View>
-                    ))}
-                </View>
+                        ))}
+                    </View>
+                )}
             </ScrollView>
 
             {/* ─── Request Swap Modal ────────────────────────────────────────────── */}
@@ -153,7 +202,7 @@ export default function InitiateSwapScreen() {
                                 onPress={handleFindColleagues}
                                 activeOpacity={0.85}
                             >
-                                <Text style={styles.findBtnText}>Find Collogues</Text>
+                                <Text style={styles.findBtnText}>Find Colleagues</Text>
                             </TouchableOpacity>
                         </View>
                     </KeyboardAvoidingView>
@@ -266,6 +315,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 14,
     },
+    shiftDate: {
+        fontSize: 12,
+        color: '#888',
+        marginBottom: 2,
+    },
     shiftTime: {
         fontSize: 14,
         fontWeight: '600',
@@ -285,6 +339,21 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: '#F0F0F0',
+    },
+
+    // Loading / error states
+    loadingWrap: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    loadingText: {
+        marginTop: 12,
+        color: '#888',
+        fontSize: 14,
+    },
+    errorText: {
+        color: '#EF4444',
+        fontSize: 14,
     },
 
     // Modal
