@@ -4,7 +4,7 @@ import {
     Image, ActivityIndicator, SafeAreaView, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { API_BASE_URL } from '@/src/constants/chatApi';
+import { getConversations, getManagerSwapApprovals, respondToSwapRequest } from '@/src/services/chatService';
 
 const USER_ID = '1'; // TODO: replace with manager's auth context ID
 
@@ -98,13 +98,10 @@ export default function ManagerChatInbox() {
 
     const load = useCallback(async () => {
         try {
-            const [cR, sR] = await Promise.all([
-                fetch(`${API_BASE_URL}/api/chat/conversations/${USER_ID}`),
-                fetch(`${API_BASE_URL}/api/chat/manager/swap-approvals`),
+            const [c, s] = await Promise.all([
+                getConversations(USER_ID),
+                getManagerSwapApprovals(),
             ]);
-
-            const c = cR.ok ? await cR.json() : [];
-            const s = sR.ok ? await sR.json() : [];
 
             setConvos(Array.isArray(c) ? c : []);
             setSwaps(Array.isArray(s) ? s : []);
@@ -118,12 +115,8 @@ export default function ManagerChatInbox() {
 
     const respond = async (id: string, status: string) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/chat/swap-requests/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
-            });
-            if (res.ok) load();
+            await respondToSwapRequest(id, status);
+            load();
         } catch (e) {
             console.error('Failed to respond to swap request:', e);
         }
