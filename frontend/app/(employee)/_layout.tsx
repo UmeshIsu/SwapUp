@@ -11,8 +11,8 @@ export default function EmployeeLayout() {
             }}
         >
             <Tabs.Screen name="home" />
-            <Tabs.Screen name="schedule/index" />
-            <Tabs.Screen name="chat/index" />
+            <Tabs.Screen name="swap/initiate" />
+            <Tabs.Screen name="chat" />
             <Tabs.Screen name="leave/index" />
             <Tabs.Screen name="analysis/index" />
         </Tabs>
