@@ -103,10 +103,8 @@ export default function ProfileScreen() {
                 </View>
 
                 <ThemedText style={styles.userName}>{user.name}</ThemedText>
-                {user.department ? (
-                    <ThemedText style={styles.userDepartment}>{user.department} Department</ThemedText>
-                ) : null}
-                <ThemedText style={styles.userInfo}>workerID : {user.workerId || '20231789'}</ThemedText>
+                <ThemedText style={styles.userRole}>{user.role || 'Employee'}</ThemedText>
+                <ThemedText style={styles.userInfo}>Employee ID : {user.workerId || 'N/A'}</ThemedText>
                 <ThemedText style={styles.userInfo}>Plan : {user.plan || 'Basic'}</ThemedText>
             </ThemedView>
 
@@ -349,7 +347,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 4,
     },
-    userDepartment: {
+    userRole: {
         fontSize: 14,
         color: '#3498db',
         fontWeight: '500',

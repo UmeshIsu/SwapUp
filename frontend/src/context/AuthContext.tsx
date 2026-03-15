@@ -9,6 +9,7 @@ interface User {
     workerId?: string;
     phone?: string;
     department?: string;
+    avatarUrl?: string;
     availabilityPreferences?: string;
 }
 
@@ -25,15 +26,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>({
-        id: 'mock-user-123',
-        name: 'Esala Developer',
-        email: 'esala@swapup.com',
-        role: 'Employee',
-        workerId: '20231719',
-        plan: 'Basic',
-        phone: '070 536 2167',
-        department: 'Chinese',
-        availabilityPreferences: 'Morning shifts preferred'
+        id: '4b465b9f-c953-46f1-b36a-c7fa3fcfac73',
+        name: 'Employee 1 (INDIAN)',
+        email: 'employee1_indian@hilton.com',
+        role: 'EMPLOYEE',
+        workerId: 'E-I-001',
+        plan: 'Premium',
+        phone: '+947721100001',
+        department: 'INDIAN',
+        availabilityPreferences: 'Monday to Friday, 9AM to 5PM'
     });
     const [token, setToken] = useState<string | null>('mock-token');
     const [isLoading, setIsLoading] = useState(false);

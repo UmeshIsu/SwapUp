@@ -99,8 +99,8 @@ export default function ProfileScreen() {
                 </View>
 
                 <ThemedText style={styles.userName}>{user.name}</ThemedText>
-                <ThemedText style={styles.userInfo}>workerID : {user.workerId || '20231789'}</ThemedText>
-                <ThemedText style={styles.userInfo}>{user.role === 'Manager' ? 'F&B Manager' : user.role || 'Manager'}</ThemedText>
+                <ThemedText style={[styles.userInfo, { color: '#3498db', fontWeight: '500', marginBottom: 4 }]}>{user.role || 'Manager'}</ThemedText>
+                <ThemedText style={styles.userInfo}>Employee ID : {user.workerId || 'N/A'}</ThemedText>
             </ThemedView>
 
             {/* Personal Information */}
