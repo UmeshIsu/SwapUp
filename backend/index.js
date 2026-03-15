@@ -1,5 +1,7 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const { requireAuth } = require("./middleware/auth");
 
 const app = express();
 
@@ -10,7 +12,12 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
-const PORT = 5000;
+// Protected route example
+app.get("/api/me", requireAuth, (req, res) => {
+  res.json({ user: req.user });
+});
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
