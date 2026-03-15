@@ -7,7 +7,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     const userId = req.user!.userId;
 
     try {
-        const user = await prisma.user.findUnique({
+        const user = await (prisma as any).user.findUnique({
             where: { id: userId },
             select: {
                 id: true,
@@ -16,6 +16,8 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
                 role: true,
                 workerId: true,
                 phone: true,
+                department: true,
+                avatarUrl: true,
                 availabilityPreferences: true,
                 plan: true,
             },
@@ -37,7 +39,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.userId;
 
     try {
-        const updatedUser = await prisma.user.update({
+        const updatedUser = await (prisma as any).user.update({
             where: { id: userId },
             data: {
                 name,
@@ -88,7 +90,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     }
 
     try {
-        const user = await prisma.user.findUnique({
+        const user = await (prisma as any).user.findUnique({
             where: { id: userId },
             select: { password: true },
         });
@@ -107,7 +109,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        await prisma.user.update({
+        await (prisma as any).user.update({
             where: { id: userId },
             data: { password: hashedPassword },
         });

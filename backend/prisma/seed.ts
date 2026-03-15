@@ -1,7 +1,7 @@
-import prisma from './prismaClient';
+import prisma from '../services/prisma';
 import bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
-import { supabase } from '../config/supabaseClient';
+import { supabase } from '../services/supabase';
 
 // 1. Initialize Dotenv
 dotenv.config();
@@ -23,10 +23,10 @@ async function createSupabaseUser(email: string, password: string, userData: any
     });
 
     if (error) {
-      if (error.message.includes('already exists')) {
+      if (error.message.includes('already exists') || error.message.includes('already been registered')) {
         // If it exists, update the user metadata instead
         const existing = await supabase.auth.admin.listUsers();
-        const found = existing.data.users.find(u => u.email === email);
+        const found = existing.data.users.find((u: any) => u.email === email);
         if (found) {
           await supabase.auth.admin.updateUserById(found.id, {
             user_metadata: {
@@ -57,7 +57,7 @@ async function main() {
   try {
     // Check if Tenant exists
     console.log('Checking for Hilton Hotel...');
-    const hotel = await prisma.tenant.upsert({
+    const hotel = await (prisma as any).tenant.upsert({
       where: { companyName: 'Hilton' },
       update: {},
       create: { companyName: 'Hilton' },
@@ -88,7 +88,7 @@ async function main() {
         phone
       });
 
-      await prisma.user.upsert({
+      await (prisma as any).user.upsert({
         where: { email },
         update: {
           name,

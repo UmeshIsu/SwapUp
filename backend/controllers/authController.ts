@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../services/prisma";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-    const { name, email, password, role, workerId } = req.body;
+    const { name, email, password, role, workerId, phone, tenantId } = req.body;
 
     if (!name || !email || !password) {
         res.status(400).json({ message: "Name, email and password are required" });
@@ -22,7 +22,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
-        const existingUser = await prisma.user.findUnique({
+        const existingUser = await (prisma as any).user.findUnique({
             where: { email },
         });
 
@@ -33,13 +33,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await prisma.user.create({
+        const user = await (prisma as any).user.create({
             data: {
                 name,
                 email,
                 password: hashedPassword,
-                role: role || "Employee",
+                role: (role?.toUpperCase() === "MANAGER" ? "MANAGER" : "EMPLOYEE"),
                 workerId,
+                phone: phone || `+94${Math.floor(Math.random() * 1000000000)}`, // Fallback for demo
+                tenantId: tenantId || (await (prisma as any).tenant.findFirst())?.id, // Fallback to first tenant
             },
         });
 
@@ -71,7 +73,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     try {
-        const user = await prisma.user.findUnique({
+        const user = await (prisma as any).user.findUnique({
             where: { email },
         });
 

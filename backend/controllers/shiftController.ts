@@ -8,7 +8,8 @@ export const getMyShifts = async (req: AuthRequest, res: Response): Promise<void
     const month = Number(req.query.month);
 
     try {
-        const where: any = { userId };
+        const userId = req.user!.userId;
+        const where: any = { employeeId: userId as string };
 
         // Efficient month fetch for the logged-in employee only.
         if (Number.isInteger(year) && Number.isInteger(month) && month >= 1 && month <= 12) {
@@ -17,7 +18,7 @@ export const getMyShifts = async (req: AuthRequest, res: Response): Promise<void
             where.date = { gte: start, lt: end };
         }
 
-        const shifts = await prisma.shift.findMany({
+        const shifts = await (prisma as any).shift.findMany({
             where,
             select: {
                 id: true,
@@ -43,7 +44,10 @@ export const getShiftById = async (req: AuthRequest, res: Response): Promise<voi
 
     try {
         const shift = await prisma.shift.findFirst({
-            where: { id, userId },
+            where: { 
+                id: id as string, 
+                employeeId: userId as string 
+            } as any,
             select: {
                 id: true,
                 date: true,
