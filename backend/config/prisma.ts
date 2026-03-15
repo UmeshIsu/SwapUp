@@ -1,15 +1,13 @@
-import { PrismaClient } from '.prisma/client';
-
-// Instantiate first so TypeScript infers the full concrete type (with all model delegates)
-const prismaInstance = new PrismaClient({ log: ['error'] });
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
-    prisma: typeof prismaInstance;
+  prisma: PrismaClient | undefined;
 };
 
-export const prisma: typeof prismaInstance =
-    globalForPrisma.prisma ?? prismaInstance;
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: ['query', 'error', 'warn'],
+  });
 
-if (process.env.NODE_ENV !== 'production') {
-    globalForPrisma.prisma = prisma;
-}
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
