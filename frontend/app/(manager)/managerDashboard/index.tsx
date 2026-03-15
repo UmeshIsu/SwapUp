@@ -1,6 +1,8 @@
 import React from 'react';
 import {
+  ActivityIndicator,
   Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -41,9 +43,22 @@ export default function ManagerDashboard() {
     activity,
     weeklySummary,
     totalNotifications,
+    refreshing,
+    refreshAll,
   } = useManagerDashboard();
 
   const managerName = user?.email?.split('@')[0] ?? 'manager';
+
+  if (shifts.loading && shifts.shifts.length === 0) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={ManagerColors.primary} />
+          <Text style={styles.loadingText}>loading dashboard...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -51,6 +66,14 @@ export default function ManagerDashboard() {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshAll}
+            tintColor={ManagerColors.primary}
+            colors={[ManagerColors.primary]}
+          />
+        }
       >
         <DashboardHeader
           managerName={managerName}
@@ -176,5 +199,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: ManagerColors.neutral[300],
     letterSpacing: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: ManagerColors.neutral[50],
+  },
+  loadingText: {
+    fontSize: 14,
+    color: ManagerColors.neutral[400],
+    fontWeight: '500',
   },
 });
