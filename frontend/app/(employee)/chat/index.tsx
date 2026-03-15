@@ -4,7 +4,7 @@ import {
     Image, ActivityIndicator, SafeAreaView, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { API_BASE_URL } from '@/src/constants/chatApi';
+import { getConversations, getSentSwapRequests } from '@/src/services/chatService';
 
 const USER_ID = '1'; // TODO: replace with your auth context user ID
 
@@ -68,13 +68,10 @@ export default function ChatInbox() {
 
     const load = useCallback(async () => {
         try {
-            const [cR, sR] = await Promise.all([
-                fetch(`${API_BASE_URL}/api/chat/conversations/${USER_ID}`),
-                fetch(`${API_BASE_URL}/api/chat/sent-swap-requests/${USER_ID}`),
+            const [c, s] = await Promise.all([
+                getConversations(USER_ID),
+                getSentSwapRequests(USER_ID),
             ]);
-
-            const c = cR.ok ? await cR.json() : [];
-            const s = sR.ok ? await sR.json() : [];
 
             setConvos(Array.isArray(c) ? c : []);
             setSwaps(Array.isArray(s) ? s : []);
