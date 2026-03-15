@@ -15,4 +15,8 @@ if (!supabaseUrl || !supabaseServiceKey) {
  * Use this for admin operations (storage, realtime, edge functions, etc.).
  * NOTE: Database operations should continue using Prisma.
  */
+<<<<<<< HEAD
 export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+=======
+export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+>>>>>>> 77804cf8de5c8111267738f15f9041d68d3e07b0
