@@ -5,8 +5,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { API_BASE_URL } from '@/src/constants/chatApi';
 import { useSocket } from '@/src/hooks/useSocket';
+import { getMessages, respondToSwapRequest, sendMessage } from '@/src/services/chatService';
 
 const USER_ID = '1';
 
@@ -25,14 +25,8 @@ function SwapCard({ msg }: { msg: any }) {
 
     const respond = async (status: string) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/chat/swap-requests/${sr.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
-            });
-            if (res.ok) {
-                // Refresh or update state
-            }
+            await respondToSwapRequest(sr.id, status);
+            // Refresh or update state
         } catch (e) {
             console.error('Failed to respond to swap request:', e);
         }
@@ -141,13 +135,17 @@ export default function ManagerChatScreen() {
     const { send } = useSocket(conversationId, addMessage, handleStatusUpdate);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/api/chat/messages/${conversationId}`)
-            .then(r => r.json())
-            .then(data => { if (Array.isArray(data)) setMessages(data); });
+        getMessages(conversationId)
+            .then(data => { if (Array.isArray(data)) setMessages(data); })
+            .catch(e => console.error('Failed to load messages:', e));
     }, [conversationId]);
 
     const sendMsg = () => {
         if (!text.trim()) return;
+        
+        sendMessage(conversationId, USER_ID, text.trim())
+            .catch(e => console.error('Failed to send text', e));
+
         send({ conversationId, senderId: USER_ID, content: text.trim(), type: 'TEXT' });
         setText('');
     };
