@@ -15,7 +15,8 @@ import {
 import { useRouter } from 'expo-router';
 import { getPendingRequests, withdrawLeaveRequest, LeaveRequest } from '@/src/services/leaveApi';
 
-const EMPLOYEE_ID = 1;
+// Employee ID — in the future this comes from your auth/login system
+const EMPLOYEE_ID = '00000000-0000-0000-0000-000000000000';
 
 export default function PendingRequests() {
     const router = useRouter();
@@ -49,7 +50,7 @@ export default function PendingRequests() {
     const handleWithdraw = (request: LeaveRequest) => {
         Alert.alert(
             'Withdraw Request',
-            `Withdraw leave request from ${formatDate(request.start_date)} to ${formatDate(request.end_date)}?`,
+            `Withdraw leave request from ${formatDate(request.startDate)} to ${formatDate(request.endDate)}?`,
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -115,9 +116,8 @@ export default function PendingRequests() {
                         <View style={styles.detailRow}>
                             <Text style={styles.calIcon}>📅</Text>
                             <View>
-                                <Text style={styles.leaveType}>{request.leave_type_name}</Text>
                                 <Text style={styles.leaveDates}>
-                                    {formatDate(request.start_date)} – {formatDate(request.end_date)}
+                                    {formatDate(request.startDate)} – {formatDate(request.endDate)}
                                 </Text>
                             </View>
                         </View>
