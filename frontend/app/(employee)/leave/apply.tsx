@@ -2,7 +2,7 @@
 // User fills in: Leave Type, Start Date, End Date, Full/Half day, Reason
 // Then taps "Apply Leave" to submit
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -17,18 +17,10 @@ import {
     Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { submitLeaveRequest } from '@/src/services/leaveApi';
+import { submitLeaveRequest, getLeaveTypes, LeaveType } from '@/src/services/leaveApi';
 
-// Hardcoded employee ID (replace with auth in production)
-const EMPLOYEE_ID = 1;
-
-// Leave types available — matches what's seeded in database.sql
-const LEAVE_TYPES = [
-    { id: 1, name: 'Annual Leave', total_days: 14 },
-    { id: 2, name: 'Sick Leave', total_days: 7 },
-    { id: 3, name: 'Casual Leave', total_days: 5 },
-    { id: 4, name: 'Maternity Leave', total_days: 90 },
-];
+// TODO: Replace with real employee ID from your auth/login system (usually a UUID)
+const EMPLOYEE_ID = '00000000-0000-0000-0000-000000000000';
 
 // Month names for date picker
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -39,10 +31,33 @@ for (let i = 1; i <= 31; i++) DAYS.push(i);
 
 const YEARS: number[] = [2025, 2026, 2027];
 
-type LeaveType = { id: number; name: string; total_days: number };
-
 export default function ApplyLeave() {
     const router = useRouter();
+
+    // ---- Leave types loaded from backend ----
+    const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+    const [loadingTypes, setLoadingTypes] = useState(true);
+
+    useEffect(() => {
+        // Fetch the real leave types from the backend when screen loads
+        const fetchLeaveTypes = async () => {
+            try {
+                const types = await getLeaveTypes();
+                setLeaveTypes(types);
+            } catch (error) {
+                // Backend offline — use fallback list so the form still works
+                setLeaveTypes([
+                    { id: '1', name: 'Annual Leave', totalDays: 14 },
+                    { id: '2', name: 'Sick Leave', totalDays: 7 },
+                    { id: '3', name: 'Casual Leave', totalDays: 5 },
+                    { id: '4', name: 'Maternity Leave', totalDays: 90 },
+                ]);
+            } finally {
+                setLoadingTypes(false);
+            }
+        };
+        fetchLeaveTypes();
+    }, []);
 
     // ---- Form state ----
     const [selectedLeaveType, setSelectedLeaveType] = useState<LeaveType | null>(null);
@@ -243,24 +258,28 @@ export default function ApplyLeave() {
                     {/* Inner white box — stopPropagation so taps don't close modal */}
                     <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
                         <Text style={styles.modalTitle}>Select Leave Type</Text>
-                        <FlatList
-                            data={LEAVE_TYPES}
-                            keyExtractor={(item) => item.id.toString()}
-                            scrollEnabled={false}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={styles.modalItem}
-                                    onPress={() => {
-                                        setSelectedLeaveType(item);
-                                        setShowLeaveTypePicker(false);
-                                    }}
-                                    activeOpacity={0.6}
-                                >
-                                    <Text style={styles.modalItemText}>{item.name}</Text>
-                                    <Text style={styles.modalItemDays}>{item.total_days} days/yr</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
+                        {loadingTypes ? (
+                            <ActivityIndicator color="#1a73e8" style={{ marginVertical: 20 }} />
+                        ) : (
+                            <FlatList
+                                data={leaveTypes}
+                                keyExtractor={(item) => item.id.toString()}
+                                scrollEnabled={false}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={styles.modalItem}
+                                        onPress={() => {
+                                            setSelectedLeaveType(item);
+                                            setShowLeaveTypePicker(false);
+                                        }}
+                                        activeOpacity={0.6}
+                                    >
+                                        <Text style={styles.modalItemText}>{item.name}</Text>
+                                        <Text style={styles.modalItemDays}>{item.totalDays} days/yr</Text>
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        )}
                     </Pressable>
                 </Pressable>
             </Modal>
