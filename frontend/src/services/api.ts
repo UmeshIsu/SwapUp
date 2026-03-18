@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Update this to your backend URL
 // Potential IPs: 192.168.8.1, 10.31.13.57
-const API_BASE_URL = 'http://10.0.2.2:5000/api';
+const API_BASE_URL = 'http://10.31.21.18:5000/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
