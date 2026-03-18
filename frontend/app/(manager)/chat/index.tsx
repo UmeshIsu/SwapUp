@@ -4,9 +4,10 @@ import {
     Image, ActivityIndicator, SafeAreaView, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { getConversations, getManagerSwapApprovals, respondToSwapRequest } from '@/src/services/chatService';
 
-const USER_ID = '1'; // TODO: replace with manager's auth context ID
+
 
 const fmt = (iso: string) => {
     const d = new Date(iso), h = d.getHours() % 12 || 12;
@@ -90,6 +91,8 @@ function ApprovalRow({ item, onRespond }: { item: any; onRespond: (id: string, s
 
 export default function ManagerChatInbox() {
     const router = useRouter();
+    const { user } = useAuth();
+    const userId = user?.id ?? '';
     const [tab, setTab] = useState<'msg' | 'swap'>('msg');
     const [convos, setConvos] = useState<any[]>([]);
     const [swaps, setSwaps] = useState<any[]>([]);
@@ -97,9 +100,10 @@ export default function ManagerChatInbox() {
     const [refreshing, setRefreshing] = useState(false);
 
     const load = useCallback(async () => {
+        if (!userId) return;
         try {
             const [c, s] = await Promise.all([
-                getConversations(USER_ID),
+                getConversations(userId),
                 getManagerSwapApprovals(),
             ]);
 
@@ -111,7 +115,7 @@ export default function ManagerChatInbox() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [userId]);
 
     const respond = async (id: string, status: string) => {
         try {

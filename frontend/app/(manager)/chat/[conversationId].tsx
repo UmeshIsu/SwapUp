@@ -7,8 +7,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSocket } from '@/src/hooks/useSocket';
 import { getMessages, respondToSwapRequest, sendMessage } from '@/src/services/chatService';
+import { useAuth } from '@/src/contexts/AuthContext';
 
-const USER_ID = '1';
+
 
 const fmt = (iso: string) => {
     const d = new Date(iso), h = d.getHours() % 12 || 12;
@@ -19,8 +20,8 @@ const Avatar = ({ uri }: { uri?: string }) =>
     uri ? <Image source={{ uri }} style={S.av} />
         : <View style={[S.av, { backgroundColor: '#D1D5DB' }]} />;
 
-function SwapCard({ msg }: { msg: any }) {
-    const isMe = msg.senderId === USER_ID;
+function SwapCard({ msg, userId }: { msg: any; userId: string }) {
+    const isMe = msg.senderId === userId;
     const sr = msg.swapRequest;
 
     const respond = async (status: string) => {
@@ -92,9 +93,9 @@ function SwapCard({ msg }: { msg: any }) {
     );
 }
 
-function Bubble({ msg }: { msg: any }) {
-    const isMe = msg.senderId === USER_ID;
-    if (msg.type === 'SWAP_REQUEST') return <SwapCard msg={msg} />;
+function Bubble({ msg, userId }: { msg: any; userId: string }) {
+    const isMe = msg.senderId === userId;
+    if (msg.type === 'SWAP_REQUEST') return <SwapCard msg={msg} userId={userId} />;
     return (
         <View style={[S.row, isMe && { justifyContent: 'flex-end' }]}>
             {!isMe && <Avatar uri={msg.senderAvatar} />}
@@ -114,6 +115,8 @@ export default function ManagerChatScreen() {
     const { conversationId, participantName, participantAvatar } =
         useLocalSearchParams<{ conversationId: string; participantName: string; participantAvatar: string }>();
     const router = useRouter();
+    const { user } = useAuth();
+    const userId = user?.id ?? '';
     const [messages, setMessages] = useState<any[]>([]);
     const [text, setText] = useState('');
     const listRef = useRef<any>(null);
@@ -143,10 +146,10 @@ export default function ManagerChatScreen() {
     const sendMsg = () => {
         if (!text.trim()) return;
         
-        sendMessage(conversationId, USER_ID, text.trim())
+        sendMessage(conversationId, userId, text.trim())
             .catch(e => console.error('Failed to send text', e));
 
-        send({ conversationId, senderId: USER_ID, content: text.trim(), type: 'TEXT' });
+        send({ conversationId, senderId: userId, content: text.trim(), type: 'TEXT' });
         setText('');
     };
 
@@ -162,7 +165,7 @@ export default function ManagerChatScreen() {
             </View>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <FlatList ref={listRef} data={messages} keyExtractor={(_, i) => i.toString()}
-                    renderItem={({ item }) => <Bubble msg={item} />}
+                    renderItem={({ item }) => <Bubble msg={item} userId={userId} />}
                     contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 12, gap: 10 }}
                     onContentSizeChange={() => listRef.current?.scrollToEnd()}
                 />
