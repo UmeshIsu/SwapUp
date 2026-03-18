@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    Image, ActivityIndicator, SafeAreaView, RefreshControl, Alert,
+    Image, ActivityIndicator, SafeAreaView, RefreshControl, Alert, TextInput,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { getConversations } from '@/src/services/chatService';
+import { getConversations, searchDepartmentUsers, createConversation } from '@/src/services/chatService';
 import { getIncomingSwapRequests, getMySwapRequests, respondToSwapRequest } from '@/src/services/swapService';
-import type { Conversation } from '@/src/services/chatService';
+import type { Conversation, DepartmentUser } from '@/src/services/chatService';
 import type { IncomingSwapRequest, MySwapRequest } from '@/src/services/swapService';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -181,6 +181,58 @@ export default function ChatScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
+    // ── Search state ──
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<DepartmentUser[]>([]);
+    const [searching, setSearching] = useState(false);
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // ── Debounced search ──
+    useEffect(() => {
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            setSearching(false);
+            return;
+        }
+        setSearching(true);
+        searchTimer.current = setTimeout(async () => {
+            try {
+                const results = await searchDepartmentUsers(
+                    searchQuery,
+                    user?.department ?? '',
+                    userId,
+                    user?.tenantId ?? '',
+                );
+                setSearchResults(results);
+            } catch (e) {
+                console.error('Search failed:', e);
+                setSearchResults([]);
+            } finally {
+                setSearching(false);
+            }
+        }, 300);
+        return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
+    }, [searchQuery]);
+
+    const handleSelectUser = async (selectedUser: DepartmentUser) => {
+        try {
+            const convo = await createConversation([userId, selectedUser.id]);
+            setSearchQuery('');
+            setSearchResults([]);
+            router.push({
+                pathname: '/(employee)/chat/[conversationId]' as any,
+                params: {
+                    conversationId: convo.id,
+                    participantName: selectedUser.name,
+                    participantAvatar: selectedUser.avatarUrl ?? '',
+                },
+            });
+        } catch (e) {
+            Alert.alert('Error', 'Failed to start conversation');
+        }
+    };
+
     const load = useCallback(async () => {
         if (!userId) return;
         try {
@@ -260,9 +312,61 @@ export default function ChatScreen() {
                 ))}
             </View>
 
+            {/* ── Search Bar (Messages tab only) ── */}
+            {tab === 'msg' && (
+                <View style={S.searchContainer}>
+                    <Ionicons name="search" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
+                    <TextInput
+                        style={S.searchInput}
+                        placeholder="Search employees & managers..."
+                        placeholderTextColor="#9CA3AF"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoCorrect={false}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
+                            <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+
+            {/* ── Search Results Overlay ── */}
+            {tab === 'msg' && searchQuery.trim().length > 0 && (
+                <View style={S.searchResultsContainer}>
+                    {searching ? (
+                        <ActivityIndicator style={{ paddingVertical: 20 }} color="#2563EB" />
+                    ) : searchResults.length === 0 ? (
+                        <Text style={S.searchEmpty}>No users found in your department</Text>
+                    ) : (
+                        <FlatList
+                            data={searchResults}
+                            keyExtractor={(u) => u.id}
+                            keyboardShouldPersistTaps="handled"
+                            renderItem={({ item: u }) => (
+                                <TouchableOpacity style={S.searchRow} onPress={() => handleSelectUser(u)} activeOpacity={0.7}>
+                                    <Avatar uri={u.avatarUrl} size={40} color={u.role === 'MANAGER' ? '#3949AB' : '#2563EB'} />
+                                    <View style={{ flex: 1, marginLeft: 12 }}>
+                                        <Text style={S.name}>{u.name}</Text>
+                                        <Text style={S.sub}>{u.email}</Text>
+                                    </View>
+                                    <View style={[S.roleBadge, u.role === 'MANAGER' ? S.roleBadgeManager : S.roleBadgeEmployee]}>
+                                        <Text style={[S.roleBadgeText, u.role === 'MANAGER' ? S.roleBadgeTextManager : S.roleBadgeTextEmployee]}>
+                                            {u.role === 'MANAGER' ? 'Manager' : 'Employee'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                            ItemSeparatorComponent={() => <View style={S.sep} />}
+                        />
+                    )}
+                </View>
+            )}
+
             {loading ? (
                 <ActivityIndicator style={{ flex: 1 }} color="#2563EB" size="large" />
-            ) : tab === 'msg' ? (
+            ) : tab === 'msg' && searchQuery.trim().length === 0 ? (
                 <FlatList
                     data={convos}
                     keyExtractor={(i) => i.id}
@@ -349,6 +453,51 @@ const S = StyleSheet.create({
     sep: { height: 1, backgroundColor: '#F3F4F6', marginLeft: 74 },
     avatarFb: { alignItems: 'center', justifyContent: 'center' },
     empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 80 },
+
+    // Search bar
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 16,
+        marginTop: 10,
+        marginBottom: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 14,
+        color: '#111',
+        padding: 0,
+    },
+    searchResultsContainer: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    searchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    searchEmpty: {
+        textAlign: 'center',
+        color: '#9CA3AF',
+        marginTop: 30,
+        fontSize: 14,
+    },
+    roleBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 12,
+    },
+    roleBadgeManager: { backgroundColor: '#EDE9FE' },
+    roleBadgeEmployee: { backgroundColor: '#DBEAFE' },
+    roleBadgeText: { fontSize: 11, fontWeight: '600' },
+    roleBadgeTextManager: { color: '#6D28D9' },
+    roleBadgeTextEmployee: { color: '#2563EB' },
 
     // Swap card
     swapCard: {

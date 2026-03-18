@@ -169,3 +169,31 @@ export const getManagerSwapApprovals = async (): Promise<SwapRequest[]> => {
     if (!response.ok) throw new Error('Failed to fetch manager approvals');
     return response.json();
 };
+
+// ─── Department User Search ──────────────────────────────────────────────────
+
+export interface DepartmentUser {
+    id: string;
+    name: string;
+    email: string;
+    role: 'EMPLOYEE' | 'MANAGER';
+    department: string;
+    avatarUrl: string | null;
+}
+
+/**
+ * Search employees/managers within the same department by name
+ */
+export const searchDepartmentUsers = async (
+    query: string,
+    department: string,
+    excludeUserId: string,
+    tenantId?: string,
+): Promise<DepartmentUser[]> => {
+    if (!query.trim()) return [];
+    const params = new URLSearchParams({ query, department, excludeUserId });
+    if (tenantId) params.append('tenantId', tenantId);
+    const response = await fetch(`${API_BASE_URL}/api/chat/users/search?${params}`);
+    if (!response.ok) throw new Error('Failed to search users');
+    return response.json();
+};
