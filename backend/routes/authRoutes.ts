@@ -5,10 +5,14 @@ import {
   verifyHotel, 
   sendVerificationCode, 
   verifyWorkerId,
-  verifyOtp 
+  verifyOtp,
+  getEmployees
 } from "../controllers/authController";
 
 const router: Router = express.Router();
+
+// GET /api/auth/employees
+router.get("/employees", getEmployees);
 
 /**
  * @route   POST /api/auth/verify-hotel
