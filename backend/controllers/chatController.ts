@@ -501,4 +501,42 @@ export const getManagerSwapApprovals = async (_req: Request, res: Response): Pro
     }
 };
 
+// ─── GET /api/chat/users/search?query=&department=&excludeUserId=&tenantId= ──
+// Search employees/managers within the same department AND tenant by name.
 
+export const searchDepartmentUsers = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const query = toString(req.query.query as string);
+        const department = toString(req.query.department as string);
+        const excludeUserId = toString(req.query.excludeUserId as string);
+        const tenantId = toString(req.query.tenantId as string);
+
+        if (!query || !department) {
+            res.json([]);
+            return;
+        }
+
+        const users = await prisma.user.findMany({
+            where: {
+                department: department as any,
+                name: { contains: query, mode: 'insensitive' },
+                ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
+                ...(tenantId ? { tenantId } : {}),
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                department: true,
+                avatarUrl: true,
+            },
+            orderBy: { name: 'asc' },
+            take: 20,
+        });
+
+        res.json(users);
+    } catch (e) {
+        res.status(500).json({ error: (e as Error).message });
+    }
+};
