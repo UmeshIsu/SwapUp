@@ -13,6 +13,13 @@ export default function ManagerLeaveLayout() {
                     headerTitleAlign: 'center',
                 }}
             />
+            <Stack.Screen
+                name="approved"
+                options={{
+                    title: 'Approved Leaves',
+                    headerTitleAlign: 'center',
+                }}
+            />
         </Stack>
     );
 }
