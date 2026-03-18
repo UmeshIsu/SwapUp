@@ -74,13 +74,15 @@ export default function PendingRequestsScreen() {
     // ─── Filtering Logic ───────────────────────────────────────────────────────
     const filteredRequests = requests.filter((req) => {
         if (activeTab === 'Pending') {
-            return req.status === 'PENDING' || (req.status === 'ACCEPTED' && req.managerStatus === 'AWAITING');
+            // PENDING = awaiting Employee B response
+            // ACCEPTED_BY_EMPLOYEE = awaiting Manager approval
+            return req.status === 'PENDING' || req.status === 'ACCEPTED_BY_EMPLOYEE';
         }
         if (activeTab === 'Approved') {
-            return req.status === 'ACCEPTED' && req.managerStatus === 'APPROVED';
+            return req.status === 'APPROVED_BY_MANAGER';
         }
         if (activeTab === 'Declined') {
-            return req.status === 'REJECTED' || req.managerStatus === 'DENIED';
+            return req.status === 'DECLINED_BY_EMPLOYEE' || req.status === 'REJECTED_BY_MANAGER';
         }
         return false;
     });
@@ -101,26 +103,26 @@ export default function PendingRequestsScreen() {
         const isApproved = activeTab === 'Approved';
         const isDeclined = activeTab === 'Declined';
 
-        let statusColor = '#EAA300'; // Default pending
+        let statusColor = '#EAA300';
         let statusText = 'Pending';
 
         if (isApproved) {
             statusColor = '#22C55E';
-            statusText = 'Approved';
+            statusText = 'Approved ✓';
         } else if (isDeclined) {
             statusColor = '#EF4444';
             statusText = 'Declined';
-        } else if (req.status === 'ACCEPTED' && req.managerStatus === 'AWAITING') {
-            statusColor = '#EAA300';
-            statusText = 'Manager Approval';
+        } else if (req.status === 'ACCEPTED_BY_EMPLOYEE') {
+            statusColor = '#F59E0B';
+            statusText = 'Awaiting Manager';
         }
 
         // Determine who declined it if in Declined tab
         let declineReason = '';
         if (isDeclined) {
-            if (req.status === 'REJECTED') {
-                declineReason = `Declined by ${req.target.name}`;
-            } else if (req.managerStatus === 'DENIED') {
+            if (req.status === 'DECLINED_BY_EMPLOYEE') {
+                declineReason = `Declined by ${req.target?.name ?? 'colleague'}`;
+            } else if (req.status === 'REJECTED_BY_MANAGER') {
                 declineReason = 'Declined by Manager';
             }
         }
