@@ -125,8 +125,8 @@ io.on(
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+const PORT = Number(process.env.PORT) || 5000;
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 SwapUp API + Socket.io running on port ${PORT}`);
 });
 
