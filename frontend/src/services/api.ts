@@ -71,7 +71,7 @@ export const authAPI = {
     getProfile: () => api.get('/auth/profile'),
     updateProfile: (data: { firstName?: string; lastName?: string; phone?: string }) =>
         api.put('/auth/profile', data),
-    getAllEmployees: () => api.get('/auth/employees'),
+    getAllEmployees: (params?: { department?: string }) => api.get('/auth/employees', { params }),
 };
 
 // Shift APIs

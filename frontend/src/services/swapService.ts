@@ -32,8 +32,7 @@ export interface MySwapRequest {
     target: { id: string; name: string };
     requesterShift: { date: string; startTime: string; endTime: string };
     targetShift: { date: string; startTime: string; endTime: string };
-    status: string;
-    managerStatus: string;
+    status: 'PENDING' | 'ACCEPTED_BY_EMPLOYEE' | 'DECLINED_BY_EMPLOYEE' | 'APPROVED_BY_MANAGER' | 'REJECTED_BY_MANAGER';
     lastMessage: string | null;
     lastMessageTime: string;
     createdAt: string;
