@@ -92,7 +92,7 @@ export const verifyHotel = async (req: Request<{}, {}, VerifyHotelBody>, res: Re
 export const sendVerificationCode = async (req: Request<{}, {}, OTPBody>, res: Response) => {
   try {
     const { target, type } = req.body;
-    
+
     // We only support Email for now using Supabase OTP
     if (type === 'EMAIL') {
       const { data, error } = await supabase.auth.signInWithOtp({
@@ -100,17 +100,17 @@ export const sendVerificationCode = async (req: Request<{}, {}, OTPBody>, res: R
       });
 
       if (error) {
-         console.error("Supabase OTP send error:", error.message);
-         return res.status(500).json({ error: "Failed to send verification email. Please check your Supabase limit." });
+        console.error("Supabase OTP send error:", error.message);
+        return res.status(500).json({ error: "Failed to send verification email. Please check your Supabase limit." });
       }
-      
+
       console.log(`[EMAIL] OTP sent to ${target}`);
       return res.status(200).json({ message: "Code sent" });
     } else {
-       // Phone fallback (not currently supported properly without Vonage/Twilio setup in Supabase)
-       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-       console.log(`[${type}] Code ${otp} mocked for ${target}`);
-       return res.status(200).json({ message: "Code mocked locally", debugOtp: otp });
+      // Phone fallback (not currently supported properly without Vonage/Twilio setup in Supabase)
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log(`[${type}] Code ${otp} mocked for ${target}`);
+      return res.status(200).json({ message: "Code mocked locally", debugOtp: otp });
     }
   } catch (error) {
     console.error("sendVerificationCode error:", error);
@@ -124,14 +124,14 @@ export const verifyOtp = async (req: Request<{}, {}, VerifyOtpBody>, res: Respon
   try {
     const { email, token } = req.body;
     const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'email'
+      email,
+      token,
+      type: 'email'
     });
 
     if (error) {
-       console.error("OTP verification failed:", error.message);
-       return res.status(400).json({ error: "Invalid or expired verification code." });
+      console.error("OTP verification failed:", error.message);
+      return res.status(400).json({ error: "Invalid or expired verification code." });
     }
 
     return res.status(200).json({ message: "Email verified successfully." });
@@ -172,8 +172,8 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       console.log("[SIGNUP] Validation Failed: Password regex failed");
-      return res.status(400).json({ 
-        error: "Password must be 8+ chars with a number, uppercase, and special character." 
+      return res.status(400).json({
+        error: "Password must be 8+ chars with a number, uppercase, and special character."
       });
     }
 
@@ -202,35 +202,35 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
         // User was likely created by the OTP step. Fetch and update them instead.
         const { data: existingList } = await supabase.auth.admin.listUsers();
         const existingUser = existingList.users.find((u: any) => u.email === email);
-        
+
         if (existingUser) {
-           const { data: updateData, error: updateError } = await supabase.auth.admin.updateUserById(existingUser.id, {
-              password,
-              user_metadata: {
-                name,
-                role: role.toUpperCase(),
-                worker_id: workerId,
-                phone,
-                tenant_id: tenantId,
-                avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
-              }
-           });
-           
-           if (updateError) {
-              return res.status(500).json({ error: `Supabase Update Error: ${updateError.message}` });
-           }
-           supabaseUserId = updateData.user.id;
+          const { data: updateData, error: updateError } = await supabase.auth.admin.updateUserById(existingUser.id, {
+            password,
+            user_metadata: {
+              name,
+              role: role.toUpperCase(),
+              worker_id: workerId,
+              phone,
+              tenant_id: tenantId,
+              avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+            }
+          });
+
+          if (updateError) {
+            return res.status(500).json({ error: `Supabase Update Error: ${updateError.message}` });
+          }
+          supabaseUserId = updateData.user.id;
         } else {
-           return res.status(400).json({ error: "Credentials already exist in Supabase but user not found." });
+          return res.status(400).json({ error: "Credentials already exist in Supabase but user not found." });
         }
       } else {
         console.error("Supabase user creation failed:", supaError.message);
         return res.status(500).json({ error: `Supabase Error: ${supaError.message}` });
       }
     } else {
-       if (supaData && supaData.user) {
-          supabaseUserId = supaData.user.id;
-       }
+      if (supaData && supaData.user) {
+        supabaseUserId = supaData.user.id;
+      }
     }
 
     // 4. Create User in Local Prisma DB
@@ -243,7 +243,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
         workerId: workerId || `MGR-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
         password: hashedPassword,
         tenantId,
-        role: role.toUpperCase() as "EMPLOYEE" | "MANAGER", 
+        role: role.toUpperCase() as "EMPLOYEE" | "MANAGER",
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
         plan: "Basic",
         department: mapDepartment(department),
@@ -289,8 +289,8 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     }
 
     if (error.code === 'P2002') {
-        console.error("[SIGNUP] Prisma P2002 Error (Unique constraint failed):", error.meta);
-        return res.status(400).json({ error: "Credentials already exist." });
+      console.error("[SIGNUP] Prisma P2002 Error (Unique constraint failed):", error.meta);
+      return res.status(400).json({ error: "Credentials already exist." });
     }
     return res.status(500).json({ error: error.message || "Internal server error." });
   }
@@ -303,7 +303,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password, role } = req.body; // Frontend sends selected role from splash
-    
+
     // Explicit null/undefined check for role before proceeding
     if (!role) {
       return res.status(400).json({ error: "Role is required to log in." });
@@ -312,13 +312,13 @@ export const login = async (req: Request, res: Response) => {
     // 1. Check against Supabase first
     console.log(`[LOGIN] Attempting login for ${email} with role ${role}`);
     const { data: supaData, error: supaError } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      email,
+      password
     });
-    
-    if(supaError || !supaData.user) {
-        console.error(`[LOGIN] Supabase auth failed for ${email}:`, supaError?.message);
-        return res.status(401).json({ error: "Invalid credentials" });
+
+    if (supaError || !supaData.user) {
+      console.error(`[LOGIN] Supabase auth failed for ${email}:`, supaError?.message);
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     console.log(`[LOGIN] Supabase auth success for ${email}`);
@@ -347,8 +347,8 @@ export const login = async (req: Request, res: Response) => {
     const tenant = await prisma.tenant.findUnique({ where: { id: user.tenantId } });
 
     console.log(`[LOGIN] Success for ${email} as ${user.role}`);
-    return res.status(200).json({ 
-      token, 
+    return res.status(200).json({
+      token,
       user: {
         id: user.id,
         name: user.name,
