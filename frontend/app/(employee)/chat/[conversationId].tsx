@@ -7,8 +7,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSocket } from '@/src/hooks/useSocket';
 import { getMessages, respondToSwapRequest, sendMessage } from '@/src/services/chatService';
+import { useAuth } from '@/src/contexts/AuthContext';
 
-const USER_ID = '1';
+
 
 const fmt = (iso: string) => {
     const d = new Date(iso), h = d.getHours() % 12 || 12;
@@ -20,8 +21,8 @@ const Av = ({ uri }: { uri?: string }) =>
         : <View style={[S.av, { backgroundColor: '#D1D5DB' }]} />;
 
 //  Swap Request Card 
-function SwapCard({ msg }: { msg: any }) {
-    const isMe = msg.senderId === USER_ID;
+function SwapCard({ msg, userId }: { msg: any; userId: string }) {
+    const isMe = msg.senderId === userId;
     const sr = msg.swapRequest;
 
     const respond = async (status: string) => {
@@ -98,9 +99,9 @@ function SwapCard({ msg }: { msg: any }) {
 }
 
 // Regular Message Bubble 
-function Bubble({ msg }: { msg: any }) {
-    const isMe = msg.senderId === USER_ID;
-    if (msg.type === 'SWAP_REQUEST') return <SwapCard msg={msg} />;
+function Bubble({ msg, userId }: { msg: any; userId: string }) {
+    const isMe = msg.senderId === userId;
+    if (msg.type === 'SWAP_REQUEST') return <SwapCard msg={msg} userId={userId} />;
     return (
         <View style={[S.row, isMe && { justifyContent: 'flex-end' }]}>
             {!isMe && <Av uri={msg.senderAvatar} />}
@@ -120,6 +121,8 @@ export default function ChatScreen() {
     const { conversationId, participantName, participantAvatar } =
         useLocalSearchParams<{ conversationId: string; participantName: string; participantAvatar: string }>();
     const router = useRouter();
+    const { user } = useAuth();
+    const userId = user?.id ?? '';
 
     const [messages, setMessages] = useState<any[]>([]);
     const [text, setText] = useState('');
@@ -152,10 +155,10 @@ export default function ChatScreen() {
         
         // Optimistic UI update handled by socket soon, 
         // but we can let chatService handle the backend call
-        sendMessage(conversationId, USER_ID, text.trim())
+        sendMessage(conversationId, userId, text.trim())
             .catch(e => console.error('Failed to send text', e));
 
-        send({ conversationId, senderId: USER_ID, content: text.trim(), type: 'TEXT' });
+        send({ conversationId, senderId: userId, content: text.trim(), type: 'TEXT' });
         setText('');
     };
 
@@ -178,7 +181,7 @@ export default function ChatScreen() {
                 <View style={S.dateLbl}><Text style={S.dateTxt}>Today</Text></View>
 
                 <FlatList ref={listRef} data={messages} keyExtractor={(_, i) => i.toString()}
-                    renderItem={({ item }) => <Bubble msg={item} />}
+                    renderItem={({ item }) => <Bubble msg={item} userId={userId} />}
                     contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 8, gap: 10 }}
                     onContentSizeChange={() => listRef.current?.scrollToEnd()}
                 />
