@@ -8,7 +8,7 @@ import {
     getAllLeaveRequests,
     approveLeaveRequest,
     declineLeaveRequest,
-} from '../controllers/leaveController.js';
+} from '../controllers/leaveController';
 
 const router = express.Router();
 
