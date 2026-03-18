@@ -14,7 +14,7 @@ export default function ManagerLayout() {
             <Tabs.Screen name="schedule/index" />
             <Tabs.Screen name="employeeDetails/index" />
             <Tabs.Screen name="chat/index" />
-            <Tabs.Screen name="leaveManagment/index" />
+            <Tabs.Screen name="leaveManagment" />
         </Tabs>
     );
 }

@@ -13,7 +13,7 @@ export default function EmployeeLayout() {
             <Tabs.Screen name="home" />
             <Tabs.Screen name="swap/initiate" />
             <Tabs.Screen name="chat" />
-            <Tabs.Screen name="leave/index" />
+            <Tabs.Screen name="leave" />
             <Tabs.Screen name="analysis/index" />
         </Tabs>
     );
