@@ -133,6 +133,72 @@ async function main() {
       await seedUser(i.toString(), 'EMPLOYEE', 'CHINESE');
     }
 
+    // --- Seed Leave Types ---
+    console.log('--- Seeding Leave Types ---');
+    const leaveTypesData = [
+      { name: 'Annual Leave', totalDays: 14 },
+      { name: 'Sick Leave', totalDays: 7 },
+      { name: 'Casual Leave', totalDays: 5 },
+      { name: 'Maternity Leave', totalDays: 90 },
+    ];
+    
+    const seededLeaveTypes = [];
+    for (const lt of leaveTypesData) {
+      let existing = await prisma.leaveType.findFirst({ where: { name: lt.name } });
+      if (!existing) {
+        existing = await prisma.leaveType.create({ data: lt });
+      } else {
+        existing = await prisma.leaveType.update({
+          where: { id: existing.id },
+          data: { totalDays: lt.totalDays }
+        });
+      }
+      seededLeaveTypes.push(existing);
+    }
+
+    // --- Seed Sample Leave Requests ---
+    console.log('--- Seeding Sample Leave Requests ---');
+    const employee1 = await prisma.user.findUnique({ where: { email: 'employee1_indian@hilton.com' } });
+    
+    if (employee1 && seededLeaveTypes.length > 0) {
+      const existingReqCount = await prisma.leaveRequest.count({ where: { employeeId: employee1.id } });
+      
+      if (existingReqCount === 0) {
+        const now = new Date();
+        const nextWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
+        const nextWeekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 9);
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 15);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 16);
+
+        await prisma.leaveRequest.create({
+          data: {
+            employeeId: employee1.id,
+            leaveTypeId: seededLeaveTypes[0].id, 
+            startDate: lastMonthStart,
+            endDate: lastMonthEnd,
+            dayType: 'full',
+            reason: 'Personal vacation',
+            status: 'approved'
+          }
+        });
+
+        await prisma.leaveRequest.create({
+          data: {
+            employeeId: employee1.id,
+            leaveTypeId: seededLeaveTypes[1].id, 
+            startDate: nextWeekStart,
+            endDate: nextWeekEnd,
+            dayType: 'full',
+            reason: 'Medical appointment',
+            status: 'pending'
+          }
+        });
+        console.log(`✅ Seeded 2 sample leave requests for ${employee1.name}`);
+      } else {
+        console.log(`ℹ️ Leave requests already exist for ${employee1.name}, skipping sample request seeding.`);
+      }
+    }
+
     console.log('✅ SEEDING COMPLETE: Database is ready.');
   } catch (error) {
     console.error('❌ FATAL SEED ERROR:', error);
