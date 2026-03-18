@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiCall } from '@/src/services/api';
 
 interface User {
     id: string;
@@ -24,33 +25,52 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const FALLBACK_USER: User = {
+    id: 'local-user',
+    name: 'Employee User',
+    email: 'employee@example.com',
+    role: 'EMPLOYEE',
+    workerId: 'EMP-001',
+    plan: 'Basic',
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>({
-        id: '4b465b9f-c953-46f1-b36a-c7fa3fcfac73',
-        name: 'Employee 1 (INDIAN)',
-        email: 'employee1_indian@hilton.com',
-        role: 'EMPLOYEE',
-        workerId: 'E-I-001',
-        plan: 'Premium',
-        phone: '+947721100001',
-        department: 'INDIAN',
-        availabilityPreferences: 'Monday to Friday, 9AM to 5PM'
-    });
-    const [token, setToken] = useState<string | null>('mock-token');
-    const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        setIsLoading(false);
-    }, []);
+        if (token) {
+            fetchProfile(token);
+        } else {
+            setUser((currentUser) => currentUser ?? FALLBACK_USER);
+            setIsLoading(false);
+        }
+    }, [token]);
+
+    const fetchProfile = async (activeToken: string) => {
+        setIsLoading(true);
+        try {
+            const data = await apiCall('/user/profile', { token: activeToken });
+            setUser(data?.user ?? FALLBACK_USER);
+        } catch (error) {
+            console.error('Failed to fetch profile:', error);
+            setUser((currentUser) => currentUser ?? FALLBACK_USER);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const login = (newToken: string, userData: User) => {
         setToken(newToken);
-        setUser(userData);
+        setUser(userData ?? FALLBACK_USER);
+        setIsLoading(false);
     };
 
     const logout = () => {
         setToken(null);
-        setUser(null);
+        setUser(FALLBACK_USER);
+        setIsLoading(false);
     };
 
     const updateUser = (userData: Partial<User>) => {

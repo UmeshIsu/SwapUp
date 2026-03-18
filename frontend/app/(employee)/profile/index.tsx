@@ -16,7 +16,7 @@ export default function ProfileScreen() {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
     const router = useRouter();
-    const { user, logout, updateUser, token } = useAuth();
+    const { user, logout, updateUser, token, isLoading } = useAuth();
 
     const { isDark, toggleTheme } = useAppTheme();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -81,8 +81,23 @@ export default function ProfileScreen() {
         setShowLogoutModal(true);
     };
 
+    if (isLoading) {
+        return (
+            <ThemedView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.tint} />
+            </ThemedView>
+        );
+    }
+
     if (!user) {
-        return null;
+        return (
+            <ThemedView style={styles.loadingContainer}>
+                <ThemedText>User not found. Please log in again.</ThemedText>
+                <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+                    <ThemedText style={styles.logoutText}>Logout</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        );
     }
 
     return (
@@ -232,7 +247,7 @@ export default function ProfileScreen() {
                 onConfirm={() => {
                     setShowLogoutModal(false);
                     logout();
-                    router.replace('/(employee)');
+                    router.replace('/(employee)/schedule');
                 }}
                 onCancel={() => setShowLogoutModal(false)}
             />
@@ -451,5 +466,10 @@ const styles = StyleSheet.create({
         color: '#FF5A5F',
         fontWeight: '600',
         fontSize: 16,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
