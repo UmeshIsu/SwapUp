@@ -4,7 +4,6 @@ import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-ico
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -40,7 +39,6 @@ export default function EmployeeHomeScreen() {
     const [leaveBalance, setLeaveBalance] = useState(0);
     const [weekShifts, setWeekShifts] = useState<Shift[]>([]);
     const [refreshing, setRefreshing] = useState(false);
-    const [isCheckingIn, setIsCheckingIn] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -89,19 +87,8 @@ export default function EmployeeHomeScreen() {
         setRefreshing(false);
     }, []);
 
-    const handleCheckIn = async () => {
-        if (!todayShift) return;
-
-        setIsCheckingIn(true);
-        try {
-            await shiftAPI.checkIn(todayShift.id);
-            Alert.alert('Success', 'Checked in successfully!');
-            loadData();
-        } catch (error: any) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to check in');
-        } finally {
-            setIsCheckingIn(false);
-        }
+    const handleCheckIn = () => {
+        router.push('/(employee)/check-in' as any);
     };
 
     const formatTime = (dateString: string) => {
@@ -187,7 +174,7 @@ export default function EmployeeHomeScreen() {
                 <TouchableOpacity
                     style={[styles.checkInButton, todayShift?.actualCheckIn && styles.checkedIn]}
                     onPress={handleCheckIn}
-                    disabled={!todayShift || !!todayShift.actualCheckIn || isCheckingIn}
+                    disabled={!!todayShift?.actualCheckIn}
                     activeOpacity={0.85}
                 >
                     <Text style={styles.checkInText}>
