@@ -6,9 +6,9 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// For physical device testing use your machine's LAN IP, e.g. 'http://192.168.1.XX:5000/api'
-// For Android emulator use 'http://10.0.2.2:5000/api'
-export const BASE_URL = 'http://10.31.21.18:5000/api';
+import { API_BASE_URL } from '../utils/config';
+
+export const BASE_URL = API_BASE_URL;
 
 // ---------------------------------------------------------------------------
 // Token helpers — reads from AsyncStorage (written by AuthContext on login)
