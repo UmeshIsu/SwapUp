@@ -179,7 +179,7 @@ export default function EmployeeHomeScreen() {
 
                 {/* Greeting */}
                 <View style={styles.greetingSection}>
-                    <Text style={styles.greeting}>Hello, {user?.firstName || 'User'} !</Text>
+                    <Text style={styles.greeting}>Hello, {user?.name || 'User'} !</Text>
                     <Text style={styles.subGreeting}>Have a nice day</Text>
                 </View>
 
@@ -303,7 +303,7 @@ export default function EmployeeHomeScreen() {
                 {/* Pending Swaps */}
                 <TouchableOpacity
                     style={styles.swapCard}
-                    onPress={() => router.push('/swap')}
+                    onPress={() => router.push('/(employee)/swap/pending-requests' as any)}
                     activeOpacity={0.7}
                 >
                     <View style={styles.swapLeft}>
@@ -406,18 +406,18 @@ const styles = StyleSheet.create({
     /* ---- Greeting ---- */
     greetingSection: {
         paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 18,
+        paddingTop: 6,
+        paddingBottom: 10,
         backgroundColor: '#FFFFFF',
     },
     greeting: {
-        fontSize: 32,
-        fontWeight: '800',
+        fontSize: 22,
+        fontWeight: '700',
         color: '#111827',
-        letterSpacing: 0.2,
+        letterSpacing: 0.1,
     },
     subGreeting: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#9CA3AF',
         marginTop: 2,
     },
@@ -426,10 +426,10 @@ const styles = StyleSheet.create({
     checkInButton: {
         backgroundColor: '#1373D0',
         marginHorizontal: 20,
-        paddingVertical: 18,
+        paddingVertical: 14,
         borderRadius: 12,
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
     },
     checkedIn: {
         backgroundColor: '#10B981',
@@ -483,9 +483,9 @@ const styles = StyleSheet.create({
     todayShiftCard: {
         backgroundColor: '#EEF4FB',
         marginHorizontal: 20,
-        padding: 16,
+        padding: 10,
         borderRadius: 12,
-        marginBottom: 14,
+        marginBottom: 10,
     },
     sectionTitle: {
         fontSize: 13,
@@ -515,9 +515,9 @@ const styles = StyleSheet.create({
     weekShiftCard: {
         backgroundColor: '#EEF4FB',
         marginHorizontal: 20,
-        padding: 16,
+        padding: 10,
         borderRadius: 12,
-        marginBottom: 14,
+        marginBottom: 10,
     },
     weekHeader: {
         flexDirection: 'row',
@@ -605,12 +605,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     leavesCount: {
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: '800',
         color: '#111827',
     },
     leavesLabel: {
-        fontSize: 15,
+        fontSize: 17,
         fontWeight: '600',
         color: '#1F2937',
         flex: 1,
@@ -648,14 +648,14 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     swapTitle: {
-        fontSize: 15,
+        fontSize: 17,
         fontWeight: '700',
         color: '#111827',
         marginBottom: 2,
     },
     swapSubtitle: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: '#a4aab4ff',
     },
     swapRight: {
         flexDirection: 'row',
