@@ -22,13 +22,6 @@ export const createSwapRequest = async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        const reqDate = new Date(reqShift.date).toDateString();
-        const tgtDate = new Date(targetShift.date).toDateString();
-        if (reqDate !== tgtDate) {
-            res.status(400).json({ error: 'Both shifts must be on the same date' });
-            return;
-        }
-
         const existing = await prisma.swapRequest.findFirst({
             where: {
                 requesterId,

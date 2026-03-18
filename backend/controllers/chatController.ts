@@ -475,37 +475,30 @@ export const getManagerSwapApprovals = async (_req: Request, res: Response): Pro
                 }
             },
             include: {
+                requester: { select: { id: true, name: true, avatarUrl: true } },
+                target: { select: { id: true, name: true, avatarUrl: true } },
                 requesterShift: true,
                 targetShift: true,
-                target: true,
-                message: {
-                    include: {
-                        sender: true,
-                        conversation: { include: { participants: { include: { user: true } } } },
-                    },
-                },
             },
             orderBy: { createdAt: 'desc' },
-        }) as SwapWithFullDetails[];
-
-        const result = swaps.map((sr: any) => {
-            const recipient = sr.message?.conversation.participants.find(
-                (p: any) => p.userId !== sr.message!.senderId,
-            )?.user;
-            return {
-                id: sr.id,
-                senderName: sr.message?.sender.name ?? 'Unknown',
-                senderAvatar: sr.message?.sender.avatarUrl ?? null,
-                recipientName: recipient?.name ?? 'Unknown',
-                proposedShift: `${sr.requesterShift.date.toISOString().split('T')[0]} ${sr.requesterShift.type ?? ''}`.trim(),
-                requestedShift: `${sr.targetShift.date.toISOString().split('T')[0]} ${sr.targetShift.type ?? ''}`.trim(),
-                status: sr.status,
-                createdAt: sr.createdAt.toISOString(),
-            };
         });
+
+        const result = swaps.map((sr: any) => ({
+            id: sr.id,
+            senderName: sr.requester?.name ?? 'Unknown',
+            senderAvatar: sr.requester?.avatarUrl ?? null,
+            recipientName: sr.target?.name ?? 'Unknown',
+            recipientAvatar: sr.target?.avatarUrl ?? null,
+            proposedShift: `${sr.requesterShift.date.toISOString().split('T')[0]} ${sr.requesterShift.type ?? ''}`.trim(),
+            requestedShift: `${sr.targetShift.date.toISOString().split('T')[0]} ${sr.targetShift.type ?? ''}`.trim(),
+            status: sr.status,
+            createdAt: sr.createdAt.toISOString(),
+        }));
 
         res.json(result);
     } catch (e) {
         res.status(500).json({ error: (e as Error).message });
     }
 };
+
+

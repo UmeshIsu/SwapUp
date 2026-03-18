@@ -39,6 +39,38 @@ function mapDepartment(dept?: string): "INDIAN" | "CHINESE" {
 
 // --- Controller Functions ---
 
+/**
+ * Get all employees in a specific department
+ */
+export const getEmployees = async (req: Request, res: Response) => {
+  try {
+    const { department } = req.query;
+    if (!department) {
+      return res.status(400).json({ error: "Department query parameter is required." });
+    }
+
+    const employees = await prisma.user.findMany({
+      where: {
+        role: "EMPLOYEE",
+        department: department as any,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatarUrl: true,
+        department: true,
+      },
+    });
+
+    return res.status(200).json(employees);
+  } catch (error) {
+    console.error("getEmployees error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 /** * Step 1: Verify Hotel 
  */
 export const verifyHotel = async (req: Request<{}, {}, VerifyHotelBody>, res: Response) => {
@@ -219,16 +251,28 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     });
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, employeeId: user.workerId, name: user.name, department: user.department, role: user.role, email: user.email },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: "7d" }
     );
+
+    // Fetch tenant name for the home screen
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
 
     console.log(`[SIGNUP] Success! User created: ${user.id}`);
     return res.status(201).json({
       message: `${role} account created successfully`,
       token,
-      user: { id: user.id, name: user.name, role: user.role }
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        tenantId: user.tenantId,
+        hotelName: tenant?.companyName || '',
+        workerId: user.workerId,
+      }
     });
 
   } catch (error: any) {
@@ -294,15 +338,27 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, employeeId: user.workerId, name: user.name, department: user.department, role: user.role, email: user.email },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: "7d" }
     );
 
+    // Fetch tenant name for the home screen
+    const tenant = await prisma.tenant.findUnique({ where: { id: user.tenantId } });
+
     console.log(`[LOGIN] Success for ${email} as ${user.role}`);
     return res.status(200).json({ 
       token, 
-      user: { id: user.id, name: user.name, role: user.role } 
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        tenantId: user.tenantId,
+        hotelName: tenant?.companyName || '',
+        workerId: user.workerId,
+      }
     });
   } catch (error) {
     console.error(`[LOGIN] Catch-all error for ${req.body.email}:`, error);
