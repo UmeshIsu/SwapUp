@@ -1,6 +1,5 @@
 import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 
 import { ThemedText } from '@/src/components/themed-text';
 import { ThemedView } from '@/src/components/themed-view';

@@ -3,7 +3,6 @@ import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/src/components/themed-text';
-import { ThemedView } from '@/src/components/themed-view';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { CustomModal } from '@/src/components/ui/CustomModal';
 import { Colors } from '@/src/constants/theme';

@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { ThemedText } from '@/src/components/themed-text';
-import { ThemedView } from '@/src/components/themed-view';
+import { StyleSheet } from 'react-native';
+import { ThemedText } from '../../src/components/themed-text';
+import { ThemedView } from '../../src/components/themed-view';
 
 export default function ManagerDashboardScreen() {
     return (

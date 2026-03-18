@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
 import { ThemedText } from '@/src/components/themed-text';
-import { ThemedView } from '@/src/components/themed-view';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Colors } from '@/src/constants/theme';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
@@ -12,7 +10,6 @@ import { CustomModal } from '@/src/components/ui/CustomModal';
 export default function PrivacySettingsScreen() {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
-    const router = useRouter();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     return (
