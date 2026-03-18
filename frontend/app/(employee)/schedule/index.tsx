@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { ThemedText } from '@/src/components/themed-text';
-import { ThemedView } from '@/src/components/themed-view';
-import { Colors } from '@/src/constants/theme';
-import { useAuth } from '@/src/context/AuthContext';
-import { useColorScheme } from '@/src/hooks/use-color-scheme';
-import { apiCall } from '@/src/services/api';
+import { ThemedText } from '../../../src/components/themed-text';
+import { ThemedView } from '../../../src/components/themed-view';
+import { Colors } from '../../../src/constants/theme';
+import { useAuth } from '../../../src/context/AuthContext';
+import { useColorScheme } from '../../../src/hooks/use-color-scheme';
+import { apiCall } from '../../../src/services/api';
 
 type Shift = {
     id: string;
