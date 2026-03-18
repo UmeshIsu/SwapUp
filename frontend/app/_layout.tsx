@@ -1,3 +1,7 @@
+// _layout.tsx - Root navigation layout
+// This is the top-level navigator that wraps all screens in the app
+// It registers both the (employee) and (manager) groups
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
