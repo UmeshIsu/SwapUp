@@ -6,12 +6,15 @@ import socketService from '@/src/services/socketService';
 interface User {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    name: string;
+    firstName?: string;
+    lastName?: string;
     role: 'EMPLOYEE' | 'MANAGER';
+    department?: string;
     phone?: string;
     workerId?: string;
     hotelName?: string;
+    tenantId?: string;
 }
 
 interface AuthContextType {
