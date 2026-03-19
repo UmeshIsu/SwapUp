@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Update this to your backend URL
 // Potential IPs: 192.168.8.1, 10.31.13.57
-const API_BASE_URL = 'http://10.0.2.2:5000/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -77,7 +77,7 @@ export const authAPI = {
 // Shift APIs
 export const shiftAPI = {
     getMyShifts: (params?: { startDate?: string; endDate?: string }) =>
-        api.get('/shifts/my', { params }),
+        api.get('/shifts/my-shifts', { params }),
     getTodayShift: () => api.get('/shifts/today'),
     getAllShifts: (params?: { startDate?: string; endDate?: string; assignedToId?: string }) =>
         api.get('/shifts', { params }),
