@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { authAPI, shiftAPI } from '../../../src/services/api';
+import { useEffect } from 'react';
 
 // Day names (fixed order Mon–Sun)
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -43,53 +45,8 @@ function generateEmpId() {
     return String(empIdCounter++);
 }
 
-const INITIAL_ROWS: ShiftRow[] = [
-    {
-        id: '1',
-        startTime: '01:00 AM',
-        endTime: '02:00 AM',
-        employees: [
-            { id: 'e1', name: 'Dulaj', color: '#e74c3c' },
-            { id: 'e2', name: 'Umesh', color: '#3498db' },
-        ],
-        task: 'Setup',
-    },
-    {
-        id: '2',
-        startTime: '02:00 AM',
-        endTime: '03:00 AM',
-        employees: [],
-        task: '',
-    },
-    {
-        id: '3',
-        startTime: '03:00 AM',
-        endTime: '04:00 AM',
-        employees: [],
-        task: '',
-    },
-    {
-        id: '4',
-        startTime: '04:00 AM',
-        endTime: '05:00 AM',
-        employees: [{ id: 'e3', name: 'Esala', color: '#2ecc71' }],
-        task: '',
-    },
-    {
-        id: '5',
-        startTime: '05:00 AM',
-        endTime: '06:00 AM',
-        employees: [],
-        task: '',
-    },
-    {
-        id: '6',
-        startTime: '06:00 AM',
-        endTime: '07:00 AM',
-        employees: [{ id: 'e4', name: 'Vishwa', color: '#f39c12' }],
-        task: '',
-    },
-];
+// Initial empty state for newly created rosters
+const EMPTY_DAY_ROWS: ShiftRow[] = [];
 
 export default function CreateRosterScreen() {
     const router = useRouter();
@@ -124,7 +81,29 @@ export default function CreateRosterScreen() {
     })();
 
     const [selectedDayIdx, setSelectedDayIdx] = useState(defaultDayIdx);
-    const [rows, setRows] = useState<ShiftRow[]>(INITIAL_ROWS);
+    
+    // Store the full week's schedule
+    const [weekSchedule, setWeekSchedule] = useState<Record<number, ShiftRow[]>>(() => {
+        return [0, 1, 2, 3, 4, 5, 6].reduce((acc, i) => ({ ...acc, [i]: [] }), {});
+    });
+
+    // Current rows being edited for the selected day
+    const [rows, setRows] = useState<ShiftRow[]>([]);
+
+    // Sync rows with weekSchedule when selectedDayIdx changes
+    useEffect(() => {
+        // First, if there are existing rows, they're handled by the onPress setter 
+        // to avoid race conditions or lost state.
+    }, [selectedDayIdx]);
+
+    const handleDayChange = (newIdx: number) => {
+        // Save current rows to the previous day index
+        setWeekSchedule(prev => ({ ...prev, [selectedDayIdx]: rows }));
+        // Switch to new day
+        setSelectedDayIdx(newIdx);
+        // Load rows for the new day
+        setRows(weekSchedule[newIdx] || []);
+    };
 
     // Edit time modal state
     const [timeModalVisible, setTimeModalVisible] = useState(false);
@@ -142,6 +121,22 @@ export default function CreateRosterScreen() {
     const [addEmpModalVisible, setAddEmpModalVisible] = useState(false);
     const [addEmpRowId, setAddEmpRowId] = useState<string | null>(null);
     const [addEmpName, setAddEmpName] = useState('');
+
+    const [availableEmployees, setAvailableEmployees] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                const response = await authAPI.getAllEmployees();
+                setAvailableEmployees(response.data);
+            } catch (error) {
+                console.error("Failed to fetch employees:", error);
+                Alert.alert("Error", "Failed to load employees for this hotel.");
+            }
+        };
+        fetchEmployees();
+    }, []);
 
     const weekRangeLabel = params.weekLabel ?? weekDates[0].name + ' ' + weekDates[0].date + ' – ' + weekDates[6].name + ' ' + weekDates[6].date;
 
@@ -168,11 +163,11 @@ export default function CreateRosterScreen() {
         setAddEmpModalVisible(true);
     };
 
-    const confirmAddEmployee = () => {
-        if (!addEmpName.trim() || !addEmpRowId) return;
+    const confirmAddEmployee = (emp: any) => {
+        if (!addEmpRowId) return;
         const newEmp: ShiftEmployee = {
-            id: generateEmpId(),
-            name: addEmpName.trim(),
+            id: emp.id,
+            name: emp.name,
             color: EMPLOYEE_COLORS[Math.floor(Math.random() * EMPLOYEE_COLORS.length)],
         };
         setRows((prev: ShiftRow[]) =>
@@ -229,8 +224,68 @@ export default function CreateRosterScreen() {
     };
 
     // --- Publish ---
-    const handlePublish = () => {
-        router.push('/(manager)/rosterCreation/published');
+    const handlePublish = async () => {
+        try {
+            setIsLoading(true);
+            
+            // Final sync of current rows to weekSchedule
+            const finalWeekSchedule = { ...weekSchedule, [selectedDayIdx]: rows };
+            
+            const shiftsToSave: any[] = [];
+            
+            Object.entries(finalWeekSchedule).forEach(([dayIdx, dayRows]) => {
+                const idx = Number(dayIdx);
+                const selectedDate = weekDates[idx].fullDate;
+                
+                // Use local date string (YYYY-MM-DD) instead of toISOString() which shifts timezone
+                const year = selectedDate.getFullYear();
+                const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                const day = String(selectedDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
+
+                dayRows.forEach(row => {
+                    row.employees.forEach(emp => {
+                        const parseTime = (timeStr: string) => {
+                            const [time, modifier] = timeStr.trim().split(' ');
+                            let [hours, minutes] = time.split(':').map(Number);
+                            if (modifier === 'PM' && hours < 12) hours += 12;
+                            if (modifier === 'AM' && hours === 12) hours = 0;
+                            
+                            // Create a date object for the specific day at the given hours/minutes in local time
+                            const d = new Date(selectedDate);
+                            d.setHours(hours, minutes, 0, 0);
+                            return d.toISOString();
+                        };
+
+                        shiftsToSave.push({
+                            date: dateStr,
+                            startTime: parseTime(row.startTime),
+                            endTime: parseTime(row.endTime),
+                            employeeId: emp.id,
+                            instructions: row.task,
+                            type: 'Standard',
+                        });
+                    });
+                });
+            });
+
+            if (shiftsToSave.length === 0) {
+                Alert.alert("No Shifts", "Please add at least one shift before publishing.");
+                return;
+            }
+
+            console.log(`Publishing ${shiftsToSave.length} shifts...`);
+            await shiftAPI.createBulkShifts(shiftsToSave);
+            Alert.alert("Success", "Roster published successfully!", [
+                { text: "OK", onPress: () => router.push('/(manager)/home' as any) }
+            ]);
+        } catch (error: any) {
+            console.error("Publish error:", error);
+            const errorMsg = error.response?.data?.error || "An error occurred while publishing.";
+            Alert.alert("Publish Failed", errorMsg);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -254,7 +309,7 @@ export default function CreateRosterScreen() {
                         <TouchableOpacity
                             key={idx}
                             style={[styles.dayCell, selectedDayIdx === idx && styles.dayCellSelected]}
-                            onPress={() => setSelectedDayIdx(idx)}
+                            onPress={() => handleDayChange(idx)}
                         >
                             <Text style={[styles.dayName, selectedDayIdx === idx && styles.daySel]}>{day.name}</Text>
                             <Text style={[styles.dayNum, selectedDayIdx === idx && styles.daySel]}>{day.date}</Text>
@@ -352,25 +407,6 @@ export default function CreateRosterScreen() {
                 </TouchableOpacity>
             </ScrollView>
 
-            {/* Bottom Nav */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(manager)/rosterCreation')}>
-                    <Ionicons name="home" size={24} color="#aaa" />
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.navItem, styles.navActive]}>
-                    <MaterialIcons name="calendar-today" size={24} color="#1565C0" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="people" size={24} color="#aaa" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <Ionicons name="chatbubble-ellipses" size={24} color="#aaa" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <MaterialIcons name="swap-horiz" size={24} color="#aaa" />
-                </TouchableOpacity>
-            </View>
-
             {/* Edit Time Modal */}
             <Modal visible={timeModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
@@ -441,27 +477,34 @@ export default function CreateRosterScreen() {
                 </View>
             </Modal>
 
-            {/* Add Employee Modal */}
+            {/* Add Employee Modal (Selection List) */}
             <Modal visible={addEmpModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalBox}>
-                        <Text style={styles.modalTitle}>Add Employee</Text>
-                        <TextInput
-                            style={styles.modalInput}
-                            value={addEmpName}
-                            onChangeText={setAddEmpName}
-                            placeholder="Enter employee name"
-                            placeholderTextColor="#aaa"
-                            autoFocus
-                        />
-                        <View style={styles.modalBtns}>
-                            <TouchableOpacity style={styles.modalCancel} onPress={() => setAddEmpModalVisible(false)}>
-                                <Text style={styles.modalCancelTxt}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.modalConfirm} onPress={confirmAddEmployee}>
-                                <Text style={styles.modalConfirmTxt}>Add</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <Text style={styles.modalTitle}>Select Employee</Text>
+                        <ScrollView style={{ maxHeight: 300 }}>
+                            {availableEmployees.map((emp) => (
+                                <TouchableOpacity 
+                                    key={emp.id} 
+                                    style={styles.empSelectItem} 
+                                    onPress={() => confirmAddEmployee(emp)}
+                                >
+                                    <View style={[styles.empAvatar, { backgroundColor: '#1565C0', width: 24, height: 24, borderRadius: 12 }]}>
+                                        <Ionicons name="person" size={14} color="#fff" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.empSelectName}>{emp.name}</Text>
+                                        <Text style={styles.empSelectDept}>{emp.department}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                            {availableEmployees.length === 0 && (
+                                <Text style={styles.noEmpInfo}>No employees found for this hotel.</Text>
+                            )}
+                        </ScrollView>
+                        <TouchableOpacity style={[styles.modalCancel, { marginTop: 12 }]} onPress={() => setAddEmpModalVisible(false)}>
+                            <Text style={styles.modalCancelTxt}>Cancel</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
@@ -561,14 +604,6 @@ const styles = StyleSheet.create({
     },
     publishText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
-    // Bottom Nav
-    bottomNav: {
-        flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#eee',
-        backgroundColor: '#fff', paddingVertical: 10,
-    },
-    navItem: { flex: 1, alignItems: 'center', paddingVertical: 4 },
-    navActive: {},
-
     // Modal
     modalOverlay: {
         flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
@@ -598,4 +633,26 @@ const styles = StyleSheet.create({
     modalConfirmTxt: { color: '#fff', fontWeight: '700' },
     deleteEmpBtn: { marginTop: 12, alignItems: 'center' },
     deleteEmpTxt: { color: '#e74c3c', fontWeight: '600', fontSize: 13 },
+    empSelectItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        gap: 12,
+    },
+    empSelectName: {
+        fontSize: 15,
+        color: '#1a1a1a',
+        fontWeight: '600',
+    },
+    empSelectDept: {
+        fontSize: 12,
+        color: '#666',
+    },
+    noEmpInfo: {
+        textAlign: 'center',
+        color: '#888',
+        paddingVertical: 20,
+    },
 });
