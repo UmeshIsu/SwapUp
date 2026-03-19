@@ -10,8 +10,11 @@ import {
     respondSwapRequest,
     getManagerSwapApprovals,
 } from '../controllers/chatController';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 router.get('/conversations/:userId', getConversations);
 router.post('/conversations', getOrCreateConversation);
