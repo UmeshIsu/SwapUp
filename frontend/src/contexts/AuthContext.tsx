@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             setSelectedRole(userData.role);
         } catch (error: any) {
-            throw new Error(error.response?.data?.error || error.response?.data?.message || 'Login failed');
+            throw new Error(error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed');
         }
     };
 
