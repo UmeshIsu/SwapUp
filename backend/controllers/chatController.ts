@@ -187,13 +187,13 @@ export const getOrCreateConversation = async (
     }
 };
 
-// ─── GET /api/chat/users?tenantId=xxx ─────────────────────────────────────────
+// GET /api/chat/users?tenantId
 // List all users (optionally filtered by tenantId) for starting new chats.
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
         const { tenantId, role, department } = req.user as any;
-        
+
         const where: any = {};
         if (tenantId) {
             where.tenantId = tenantId;
@@ -225,7 +225,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// ─── GET /api/chat/sent-swap-requests/:userId ─────────────────────────────────
+// GET /api/chat/sent-swap-requests/:userId 
 
 export const getSentSwapRequests = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -267,7 +267,7 @@ export const getSentSwapRequests = async (req: Request, res: Response): Promise<
     }
 };
 
-// ─── GET /api/chat/incoming-swap-requests/:userId ─────────────────────────────
+// GET /api/chat/incoming-swap-requests/:userId
 // Swap requests where this user is the TARGET (someone asked them to swap).
 
 export const getIncomingSwapRequests = async (req: Request, res: Response): Promise<void> => {
@@ -305,7 +305,7 @@ export const getIncomingSwapRequests = async (req: Request, res: Response): Prom
     }
 };
 
-// ─── GET /api/chat/messages/:conversationId ───────────────────────────────────
+// GET /api/chat/messages/:conversationId 
 
 export const getMessages = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -343,7 +343,7 @@ export const getMessages = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-// ─── POST /api/chat/messages ──────────────────────────────────────────────────
+// POST /api/chat/messages 
 
 export const sendMessage = async (
     req: Request<object, object, SendMessageBody>,
@@ -367,7 +367,7 @@ export const sendMessage = async (
     }
 };
 
-// ─── PATCH /api/chat/swap-requests/:id ───────────────────────────────────────
+// PATCH /api/chat/swap-requests/:id 
 
 export const respondSwapRequest = async (
     req: Request<{ id: string }, object, RespondSwapRequestBody>,
