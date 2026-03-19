@@ -16,7 +16,7 @@ export default function PublishedScreen() {
         <SafeAreaView style={styles.container}>
             {/* Back button */}
             <View style={styles.topBar}>
-                <TouchableOpacity onPress={() => router.push('/(manager)/rosterCreation')}>
+                <TouchableOpacity onPress={() => router.push('/home' as any)}>
                     <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
                 </TouchableOpacity>
             </View>
