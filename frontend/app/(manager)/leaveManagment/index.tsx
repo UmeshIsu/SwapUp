@@ -94,7 +94,7 @@ export default function ManagerLeaveDashboard() {
                     <Text style={styles.backArrow}>←</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Leave Requests</Text>
-                <div style={{ width: 40 }} />
+                <View style={{ width: 40 }} />
             </View>
 
             {/* Tab Bar */}
