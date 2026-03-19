@@ -31,7 +31,7 @@ export default function RoleSelectionScreen() {
 
     const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
         setSelectedRole(role);
-        router.push('/login' as any);
+        router.push('/login');
     };
 
     return (
