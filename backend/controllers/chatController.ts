@@ -192,8 +192,18 @@ export const getOrCreateConversation = async (
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const tenantId = toString(req.query.tenantId as string);
-        const where = tenantId ? { tenantId } : {};
+        const { tenantId, role, department } = req.user as any;
+        
+        const where: any = {};
+        if (tenantId) {
+            where.tenantId = tenantId;
+        }
+
+        // If requester is a Manager, they should only see employees in their department
+        if (role === 'MANAGER' && department) {
+            where.department = department;
+            where.role = 'EMPLOYEE'; // Managers usually chat with employees
+        }
 
         const users = await prisma.user.findMany({
             where,
