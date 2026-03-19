@@ -1,11 +1,13 @@
 import express, { Router } from "express";
+import { authMiddleware } from "../middleware/authMiddleware";
 import { 
   signup, 
   login, 
   verifyHotel, 
   sendVerificationCode, 
   verifyWorkerId,
-  verifyOtp 
+  verifyOtp,
+  getAllEmployees 
 } from "../controllers/authController";
 
 const router: Router = express.Router();
@@ -54,5 +56,12 @@ router.post("/register", signup);
  * is logging into the correct interface (Manager vs Employee).
  */
 router.post("/login", login);
+
+
+/**
+ * @route   GET /api/auth/employees
+ * @desc    Get all employees for the manager's hotel
+ */
+router.get("/employees", authMiddleware, getAllEmployees);
 
 export default router;
