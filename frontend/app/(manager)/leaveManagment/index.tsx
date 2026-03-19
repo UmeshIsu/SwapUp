@@ -12,12 +12,15 @@ import {
     StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getAllLeaveRequests, approveLeaveRequest, declineLeaveRequest, LeaveRequest } from '@/src/services/leaveApi';
+import { getManagerLeaveRequests, approveLeaveRequest, declineLeaveRequest, LeaveRequest } from '@/src/services/leaveApi';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 type Tab = 'Pending' | 'Approved' | 'Declined';
 
 export default function ManagerLeaveDashboard() {
     const router = useRouter();
+    const { user } = useAuth();
+    const MANAGER_ID = user?.id || '';
     const [activeTab, setActiveTab] = useState<Tab>('Pending');
     const [requests, setRequests] = useState<LeaveRequest[]>([]);
     const [loading, setLoading] = useState(false);
@@ -29,7 +32,7 @@ export default function ManagerLeaveDashboard() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const data = await getAllLeaveRequests();
+            const data = await getManagerLeaveRequests(MANAGER_ID);
             setRequests(data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -94,7 +97,7 @@ export default function ManagerLeaveDashboard() {
                     <Text style={styles.backArrow}>←</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Leave Requests</Text>
-                <div style={{ width: 40 }} />
+                <View style={{ width: 40 }} />
             </View>
 
             {/* Tab Bar */}

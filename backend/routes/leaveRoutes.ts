@@ -5,7 +5,8 @@ import {
     createLeaveRequest,
     getPendingRequests,
     withdrawLeaveRequest,
-    getAllLeaveRequests,
+    getMyRequests,
+    getManagerLeaveRequests,
     approveLeaveRequest,
     declineLeaveRequest,
 } from '../controllers/leaveController';
@@ -17,10 +18,11 @@ router.get('/types', getLeaveTypes);
 router.get('/summary/:employeeId', getLeaveSummary);
 router.post('/', createLeaveRequest);
 router.get('/pending/:employeeId', getPendingRequests);
+router.get('/my-requests/:employeeId', getMyRequests);
 router.delete('/:id/withdraw', withdrawLeaveRequest);
 
 // --- Manager Routes ---
-router.get('/manager', getAllLeaveRequests);
+router.get('/manager/:managerId', getManagerLeaveRequests);
 router.patch('/:id/approve', approveLeaveRequest);
 router.patch('/:id/decline', declineLeaveRequest);
 

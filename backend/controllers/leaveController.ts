@@ -6,9 +6,25 @@ import prisma from '../prisma/prismaClient';
  */
 export const getLeaveTypes = async (req: Request, res: Response) => {
     try {
-        const types = await prisma.leaveType.findMany({
+        let types = await prisma.leaveType.findMany({
             orderBy: { createdAt: 'asc' }
         });
+
+        // Automatically seed standard leave types if the database is empty
+        if (types.length === 0) {
+            await prisma.leaveType.createMany({
+                data: [
+                    { name: 'Annual Leave', totalDays: 14 },
+                    { name: 'Sick Leave', totalDays: 7 },
+                    { name: 'Casual Leave', totalDays: 5 },
+                    { name: 'Maternity Leave', totalDays: 90 },
+                ]
+            });
+            types = await prisma.leaveType.findMany({
+                orderBy: { createdAt: 'asc' }
+            });
+        }
+
         res.json(types);
     } catch (error: any) {
         console.error('Error getting leave types:', error.message);
@@ -192,14 +208,24 @@ export const withdrawLeaveRequest = async (req: Request, res: Response) => {
         console.error('Error withdrawing request:', error.message);
         res.status(500).json({ message: 'Failed to withdraw the request' });
     }
-};
+}
 
 /**
- * Manager's view: list absolutely everything so they can see history and current tasks.
+ * Employee's view: get ALL of their own requests (pending + approved + declined)
+ * so they can track the status of each one.
  */
-export const getAllLeaveRequests = async (req: Request, res: Response) => {
+export const getMyRequests = async (req: Request, res: Response) => {
+    const { employeeId } = req.params;
+
+    if (!employeeId || typeof employeeId !== 'string') {
+        return res.status(400).json({ message: 'A valid Employee ID is required' });
+    }
+
     try {
-        const allRequests = await prisma.leaveRequest.findMany({
+        const myRequests = await prisma.leaveRequest.findMany({
+            where: {
+                employeeId: employeeId,
+            },
             include: {
                 leaveType: true,
                 employee: {
@@ -212,7 +238,64 @@ export const getAllLeaveRequests = async (req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        // Match the legacy format so we don't break the frontend lists
+        const formatted = myRequests.map((r: any) => ({
+            ...r,
+            leave_type_name: r.leaveType.name,
+            employee_name: r.employee.name,
+            employee_role: r.employee.role
+        }));
+
+        res.json(formatted);
+    } catch (error: any) {
+        console.error('Error getting employee requests:', error.message);
+        res.status(500).json({ message: 'Could not load your leave requests' });
+    }
+};
+
+/**
+ * Manager's view: only shows requests from employees in the same department.
+ * Looks up the manager's department first, then filters accordingly.
+ */
+export const getManagerLeaveRequests = async (req: Request, res: Response) => {
+    const { managerId } = req.params;
+
+    if (!managerId || typeof managerId !== 'string') {
+        return res.status(400).json({ message: 'A valid Manager ID is required' });
+    }
+
+    try {
+        // First find what department this manager belongs to
+        const manager = await prisma.user.findUnique({
+            where: { id: managerId },
+            select: { department: true }
+        });
+
+        if (!manager) {
+            return res.status(404).json({ message: 'Manager not found' });
+        }
+
+        // Now get all leave requests from employees in that same department
+        // If the manager has NO department assigned, fallback to showing all requests
+        const whereClause = manager.department ? {
+            employee: {
+                department: manager.department
+            }
+        } : {};
+
+        const allRequests = await prisma.leaveRequest.findMany({
+            where: whereClause,
+            include: {
+                leaveType: true,
+                employee: {
+                    select: {
+                        name: true,
+                        role: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
         const formatted = allRequests.map((r: any) => ({
             ...r,
             leave_type_name: r.leaveType.name,
@@ -222,7 +305,7 @@ export const getAllLeaveRequests = async (req: Request, res: Response) => {
 
         res.json(formatted);
     } catch (error: any) {
-        console.error('Error getting all leave requests:', error.message);
+        console.error('Error getting manager leave requests:', error.message);
         res.status(500).json({ message: 'Could not load leave requests for management' });
     }
 };

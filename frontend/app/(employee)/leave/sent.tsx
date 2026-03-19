@@ -72,9 +72,9 @@ export default function LeaveSent() {
             {/* ---- Action Buttons ---- */}
             <TouchableOpacity
                 style={styles.viewPendingButton}
-                onPress={() => router.replace('/(employee)/leave/pending')}
+                onPress={() => router.replace('/(employee)/leave/requestStatus' as any)}
             >
-                <Text style={styles.viewPendingText}>View Pending Requests</Text>
+                <Text style={styles.viewPendingText}>View Request Status</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

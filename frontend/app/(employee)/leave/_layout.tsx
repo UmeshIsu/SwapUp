@@ -23,7 +23,15 @@ export default function LeaveLayout() {
                     headerTitleAlign: 'center',
                 }}
             />
-            {/* Screen 3: Pending Leave Requests */}
+            {/* Screen 3: Request Status (Pending/Approved/Declined tabs) */}
+            <Stack.Screen
+                name="requestStatus"
+                options={{
+                    title: 'Request Status',
+                    headerTitleAlign: 'center',
+                }}
+            />
+            {/* Screen 4: Pending Leave Requests (legacy) */}
             <Stack.Screen
                 name="pending"
                 options={{
@@ -31,7 +39,7 @@ export default function LeaveLayout() {
                     headerTitleAlign: 'center',
                 }}
             />
-            {/* Screen 4: Leave Request Sent confirmation */}
+            {/* Screen 5: Leave Request Sent confirmation */}
             <Stack.Screen
                 name="sent"
                 options={{
@@ -43,3 +51,4 @@ export default function LeaveLayout() {
         </Stack>
     );
 }
+

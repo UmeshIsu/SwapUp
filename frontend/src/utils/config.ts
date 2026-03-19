@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-const LAN_IP = '10.31.21.18';
+const LAN_IP = '10.31.17.85';
 const EMULATOR_IP = '10.0.2.2';
 
 export const getBaseUrl = (): string => {
@@ -9,13 +9,13 @@ export const getBaseUrl = (): string => {
     if (Constants.isDevice) {
         return `http://${LAN_IP}:5000`;
     }
-    
+
     // If it's an emulator/simulator, use the standard loopback
     // 10.0.2.2 is for Android emulator, localhost is usually fine for iOS simulator
     if (Platform.OS === 'android') {
-         return `http://${EMULATOR_IP}:5000`;
+        return `http://${EMULATOR_IP}:5000`;
     }
-    
+
     return `http://${LAN_IP}:5000`;
 };
 

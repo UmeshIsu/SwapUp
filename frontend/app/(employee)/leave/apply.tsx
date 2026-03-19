@@ -18,9 +18,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { submitLeaveRequest, getLeaveTypes, LeaveType } from '@/src/services/leaveApi';
-
-// TODO: Replace with real employee ID from your auth/login system (usually a UUID)
-const EMPLOYEE_ID = '00000000-0000-0000-0000-000000000000';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 // Month names for date picker
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -33,25 +31,25 @@ const YEARS: number[] = [2025, 2026, 2027];
 
 export default function ApplyLeave() {
     const router = useRouter();
+    const { user } = useAuth();
+    const EMPLOYEE_ID = user?.id || '';
 
     // ---- Leave types loaded from backend ----
     const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
     const [loadingTypes, setLoadingTypes] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
         // Fetch the real leave types from the backend when screen loads
         const fetchLeaveTypes = async () => {
             try {
                 const types = await getLeaveTypes();
-                setLeaveTypes(types);
+                if (types && types.length > 0) {
+                    setLeaveTypes(types);
+                }
             } catch (error) {
-                // Backend offline — use fallback list so the form still works
-                setLeaveTypes([
-                    { id: '1', name: 'Annual Leave', totalDays: 14 },
-                    { id: '2', name: 'Sick Leave', totalDays: 7 },
-                    { id: '3', name: 'Casual Leave', totalDays: 5 },
-                    { id: '4', name: 'Maternity Leave', totalDays: 90 },
-                ]);
+                console.error('Failed to load leave types:', error);
+                setFetchError(true);
             } finally {
                 setLoadingTypes(false);
             }
@@ -110,6 +108,7 @@ export default function ApplyLeave() {
 
     const handleApplyLeave = async () => {
         // Validate all required fields
+        if (!EMPLOYEE_ID) { Alert.alert('Error', 'You must be logged in to apply for leave'); return; }
         if (!selectedLeaveType) { Alert.alert('Missing', 'Please select a leave type'); return; }
         if (!startDate) { Alert.alert('Missing', 'Please select a start date'); return; }
         if (!endDate) { Alert.alert('Missing', 'Please select an end date'); return; }
@@ -119,7 +118,6 @@ export default function ApplyLeave() {
 
         setSubmitting(true);
         try {
-            // Try to save to backend (works when backend is running)
             await submitLeaveRequest({
                 employeeId: EMPLOYEE_ID,
                 leaveTypeId: selectedLeaveType.id,
@@ -128,20 +126,23 @@ export default function ApplyLeave() {
                 dayType,
                 reason,
             });
-        } catch (error) {
-            // Backend not running — still navigate to confirmation screen below
-        }
-        setSubmitting(false);
 
-        // Always go to confirmation (sent) screen
-        router.replace({
-            pathname: '/(employee)/leave/sent',
-            params: {
-                leaveTypeName: selectedLeaveType.name,
-                startDate,
-                endDate,
-            },
-        });
+            setSubmitting(false);
+
+            // Only go to confirmation if request actually succeeded
+            router.replace({
+                pathname: '/(employee)/leave/sent',
+                params: {
+                    leaveTypeName: selectedLeaveType.name,
+                    startDate,
+                    endDate,
+                },
+            });
+        } catch (error: any) {
+            setSubmitting(false);
+            Alert.alert('Error', error?.message || 'Could not submit your leave request. Please try again.');
+            return;
+        }
     };
 
     return (
@@ -260,6 +261,15 @@ export default function ApplyLeave() {
                         <Text style={styles.modalTitle}>Select Leave Type</Text>
                         {loadingTypes ? (
                             <ActivityIndicator color="#1a73e8" style={{ marginVertical: 20 }} />
+                        ) : fetchError || leaveTypes.length === 0 ? (
+                            <View style={{ padding: 25, alignItems: 'center' }}>
+                                <Text style={{ color: '#d32f2f', textAlign: 'center', fontSize: 14 }}>
+                                    Could not connect to the backend server.
+                                </Text>
+                                <Text style={{ color: '#666', textAlign: 'center', fontSize: 12, marginTop: 8 }}>
+                                    Please verify your local network connection, and ensure EXPO_PUBLIC_API_URL is correctly set in your .env file with your PC's IP address.
+                                </Text>
+                            </View>
                         ) : (
                             <FlatList
                                 data={leaveTypes}

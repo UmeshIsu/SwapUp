@@ -14,12 +14,12 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getPendingRequests, withdrawLeaveRequest, LeaveRequest } from '@/src/services/leaveApi';
-
-// Employee ID — in the future this comes from your auth/login system
-const EMPLOYEE_ID = '00000000-0000-0000-0000-000000000000';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 export default function PendingRequests() {
     const router = useRouter();
+    const { user } = useAuth();
+    const EMPLOYEE_ID = user?.id || '';
 
     // Empty list — fills automatically when backend is connected
     const [requests, setRequests] = useState<LeaveRequest[]>([]);

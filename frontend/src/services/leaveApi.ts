@@ -2,9 +2,7 @@
 // This file handles all the API calls to the backend
 // We use fetch() which is built into React Native
 
-// Reads the base URL from your .env file (EXPO_PUBLIC_API_URL)
-// Change the value in .env to match your local IP when testing on a real phone
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.100:5000/api';
+import { API_BASE_URL as BASE_URL } from '../utils/config';
 
 // Type definitions - these describe the shape of data we get from the backend
 export type LeaveType = {
@@ -46,9 +44,21 @@ export type LeaveRequest = {
 // Get all leave types from backend
 // -----------------------------------------------
 export const getLeaveTypes = async (): Promise<LeaveType[]> => {
-    const response = await fetch(`${BASE_URL}/leaves/types`);
-    if (!response.ok) throw new Error('Failed to fetch leave types');
-    return response.json();
+    // 5-second timeout to prevent infinite hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    try {
+        const response = await fetch(`${BASE_URL}/leaves/types`, {
+            signal: controller.signal as any
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error('Failed to fetch leave types');
+        return await response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
 };
 
 // -----------------------------------------------
@@ -102,11 +112,21 @@ export const withdrawLeaveRequest = async (leaveId: string): Promise<{ message: 
 };
 
 // -----------------------------------------------
-// Manager: Get all leave requests
+// Get ALL leave requests for the current employee
+// (pending + approved + declined — for Request Status screen)
 // -----------------------------------------------
-export const getAllLeaveRequests = async (): Promise<LeaveRequest[]> => {
-    const response = await fetch(`${BASE_URL}/leaves/manager`);
-    if (!response.ok) throw new Error('Failed to fetch all leave requests');
+export const getMyRequests = async (employeeId: string): Promise<LeaveRequest[]> => {
+    const response = await fetch(`${BASE_URL}/leaves/my-requests/${employeeId}`);
+    if (!response.ok) throw new Error('Failed to fetch your requests');
+    return response.json();
+};
+
+// -----------------------------------------------
+// Manager: Get leave requests filtered by department
+// -----------------------------------------------
+export const getManagerLeaveRequests = async (managerId: string): Promise<LeaveRequest[]> => {
+    const response = await fetch(`${BASE_URL}/leaves/manager/${managerId}`);
+    if (!response.ok) throw new Error('Failed to fetch leave requests');
     return response.json();
 };
 

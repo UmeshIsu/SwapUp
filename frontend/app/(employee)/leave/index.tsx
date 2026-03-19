@@ -16,9 +16,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getLeaveSummary, getPendingRequests, LeaveSummary } from '@/src/services/leaveApi';
-
-// Employee ID — in the future this comes from your auth/login system
-const EMPLOYEE_ID = '00000000-0000-0000-0000-000000000000';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 // All zeros until employee data loads from the database
 const ZERO_SUMMARY: LeaveSummary = {
@@ -34,6 +32,8 @@ const ZERO_SUMMARY: LeaveSummary = {
 
 export default function LeaveDashboard() {
     const router = useRouter();
+    const { user } = useAuth();
+    const EMPLOYEE_ID = user?.id || '';
 
     // Start with all zeros — no spinner, content is visible immediately
     const [summary, setSummary] = useState<LeaveSummary>(ZERO_SUMMARY);
@@ -111,10 +111,10 @@ export default function LeaveDashboard() {
             {/* ---- Button: View Pending Requests ---- */}
             <TouchableOpacity
                 style={styles.pendingButton}
-                onPress={() => router.push('/(employee)/leave/pending' as any)}
+                onPress={() => router.push('/(employee)/leave/requestStatus' as any)}
                 activeOpacity={0.8}
             >
-                <Text style={styles.pendingButtonText}>View Pending Requests</Text>
+                <Text style={styles.pendingButtonText}>Request Status</Text>
                 {pendingCount > 0 && (
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>{pendingCount}</Text>
