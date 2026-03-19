@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { postCheckIn } from '@/src/api/attendance';
+import { postCheckIn } from '@/src/services/attendanceService';
 import { useAuth } from '@/src/contexts/AuthContext';
 
 type ScreenState = 'idle' | 'locating' | 'sending' | 'approved' | 'rejected' | 'error';
@@ -69,7 +69,7 @@ function RadarPulse() {
 // ---------------------------------------------------------------------------
 export default function CheckInScreen() {
     const router = useRouter();
-    const { session } = useAuth();
+    const { user, token } = useAuth();
     const [state, setState] = useState<ScreenState>('idle');
     const [rejectReason, setRejectReason] = useState('');
     const [checkedInAt, setCheckedInAt] = useState('');
@@ -96,11 +96,11 @@ export default function CheckInScreen() {
             // Step 3: send to backend
             setState('sending');
             const result = await postCheckIn(
-                session?.user.id ?? 'anonymous',
+                user?.id ?? 'anonymous',
                 latitude,
                 longitude,
                 accuracy ?? 999,
-                session?.access_token ?? ''
+                token ?? ''
             );
 
             if (result.status === 'APPROVED') {
