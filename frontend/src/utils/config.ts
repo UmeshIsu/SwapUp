@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-const LAN_IP = '10.31.17.85';
+const LAN_IP = '192.168.1.24';
 const EMULATOR_IP = '10.0.2.2';
 
 export const getBaseUrl = (): string => {
