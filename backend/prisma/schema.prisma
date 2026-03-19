@@ -97,12 +97,13 @@ model Shift {
   createdBy    String   @db.Uuid
 
   // --- NEW FIELDS ADDED ---
-  instructions String?
-  type         String?  // Morning, Afternoon, Night
-  location     String?
-  role         String?  // Shift-specific role
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt // Added to resolve errors if existing data is modified
+  instructions  String?
+  type          String?   // Morning, Afternoon, Night
+  location      String?
+  role          String?   // Shift-specific role
+  actualCheckIn DateTime? // Set by the check-in endpoint (server UTC time)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt // Added to resolve errors if existing data is modified
 
   // --- EXISTING RELATIONS ---
   employee     User     @relation("EmployeeShifts", fields: [employeeId], references: [id], onDelete: Cascade)
