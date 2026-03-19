@@ -33,7 +33,7 @@ export default function ScheduleScreen() {
                 {/* + New Button */}
                 <TouchableOpacity
                     style={styles.newButton}
-                    onPress={() => router.push('/(manager)/rosterCreation/week-select')}
+                    onPress={() => router.push('/(manager)/rosterCreation/week-select' as any)}
                 >
                     <Text style={styles.newButtonText}>+ New</Text>
                 </TouchableOpacity>
@@ -42,7 +42,7 @@ export default function ScheduleScreen() {
             {/* Bottom Nav */}
             <View style={styles.bottomNavContainer}>
                 <View style={styles.bottomNav}>
-                    <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(manager)/rosterCreation')}>
+                    <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(manager)/home' as any)}>
                         <Ionicons name="home" size={26} color="#9E9E9E" />
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.navItem, styles.navActive]}>
