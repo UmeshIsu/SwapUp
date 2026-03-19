@@ -1,15 +1,15 @@
-// -------------------------------------------------------
+
 // apiClient.ts
 // Base fetch wrapper — attaches token & base URL for all service calls
-// -------------------------------------------------------
+
 
 // For physical device testing use your machine's LAN IP, e.g. 'http://192.168.1.XX:5000/api'
 // For Android emulator use 'http://10.0.2.2:5000/api'
-export const BASE_URL = 'http://10.0.2.2:5000/api';
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
 
-// ---------------------------------------------------------------------------
+
 // Token provider — replace these with your auth storage (e.g. SecureStore)
-// ---------------------------------------------------------------------------
+
 let _token: string | null = null;
 
 export const setAuthToken = (token: string | null) => {
@@ -18,10 +18,10 @@ export const setAuthToken = (token: string | null) => {
 
 export const getAuthToken = (): string | null => _token;
 
-// ---------------------------------------------------------------------------
+
 // Dev auth — auto-login as E-C-001 (TEMPORARY)
 // Call this once on app startup before making any API calls.
-// ---------------------------------------------------------------------------
+
 let _devAuthPromise: Promise<void> | null = null;
 
 export async function initDevAuth(workerId = 'E-C-001'): Promise<void> {
@@ -53,9 +53,9 @@ export async function initDevAuth(workerId = 'E-C-001'): Promise<void> {
     return _devAuthPromise;
 }
 
-// ---------------------------------------------------------------------------
+
 // Core request helper
-// ---------------------------------------------------------------------------
+
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
 export async function apiRequest<T>(
