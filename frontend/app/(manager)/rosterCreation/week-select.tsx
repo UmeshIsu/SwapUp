@@ -9,7 +9,7 @@ import {
     Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,7 +139,7 @@ export default function WeekSelectScreen() {
                     style={styles.confirmButton}
                     onPress={() =>
                         router.push({
-                            pathname: '/(manager)/rosterCreation/create-roster',
+                            pathname: '/rosterCreation/create-roster',
                             params: {
                                 weekLabel: WEEKS[selected].label,
                                 weekStartISO: WEEKS[selected].weekStartISO,
@@ -149,28 +149,6 @@ export default function WeekSelectScreen() {
                 >
                     <Text style={styles.confirmText}>Confirm Week  →</Text>
                 </TouchableOpacity>
-            </View>
-
-            {/* Bottom Nav */}
-            <View style={styles.bottomNavContainer}>
-                <View style={styles.bottomNav}>
-                    <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(manager)/rosterCreation')}>
-                        <Ionicons name="home" size={26} color="#9E9E9E" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.navItem, styles.navActive]}>
-                        <View style={styles.activeIndicator} />
-                        <MaterialIcons name="calendar-today" size={24} color="#000" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Ionicons name="people" size={26} color="#9E9E9E" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Ionicons name="chatbubble-ellipses" size={26} color="#9E9E9E" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <MaterialCommunityIcons name="account-search-outline" size={28} color="#9E9E9E" />
-                    </TouchableOpacity>
-                </View>
             </View>
         </SafeAreaView>
     );
@@ -216,21 +194,4 @@ const styles = StyleSheet.create({
         shadowColor: '#1976D2', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
     },
     confirmText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-    bottomNavContainer: {
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 20, borderTopRightRadius: 20,
-        shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: -5 }, elevation: 15,
-    },
-    bottomNav: {
-        flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
-        paddingVertical: 15, paddingHorizontal: 10,
-        paddingBottom: Platform.OS === 'ios' ? 30 : 15,
-    },
-    navItem: { alignItems: 'center', justifyContent: 'center', height: 40, width: 50 },
-    navActive: { position: 'relative' },
-    activeIndicator: {
-        position: 'absolute', backgroundColor: '#E3F2FD',
-        width: 60, height: 60, borderRadius: 20, zIndex: -1,
-    },
 });
