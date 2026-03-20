@@ -12,6 +12,7 @@ import devLoginRoutes from './routes/devLogin';
 import authRoutes from './routes/authRoutes';
 import leaveRoutes from './routes/leaveRoutes';
 import attendanceRoutes from './routes/attendance';
+import rosterRoutes from './routes/rosterRoutes';
 
 // ─── Typed Socket.IO event maps ───────────────────────────────────────────────
 
