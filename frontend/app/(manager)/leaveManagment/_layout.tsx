@@ -9,8 +9,7 @@ export default function ManagerLeaveLayout() {
             <Stack.Screen
                 name="index"
                 options={{
-                    title: 'Leave Requests',
-                    headerTitleAlign: 'center',
+                    headerShown: false,
                 }}
             />
             <Stack.Screen
