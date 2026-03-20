@@ -96,6 +96,7 @@ export const shiftAPI = {
     checkOut: (id: string) => api.put(`/shifts/${id}/check-out`),
     exportToICS: (params?: { startDate?: string; endDate?: string }) =>
         api.get('/shifts/export', { params, responseType: 'text' }),
+    getManagerDashboardStats: () => api.get('/shifts/manager-dashboard-stats'),
 };
 
 // Swap Request APIs

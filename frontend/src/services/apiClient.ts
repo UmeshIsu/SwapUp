@@ -3,12 +3,21 @@
 // Base fetch wrapper — attaches token & base URL for all service calls
 
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { API_BASE_URL } from '../utils/config';
+
+export const BASE_URL = API_BASE_URL;
+
+// ---------------------------------------------------------------------------
+// Token helpers — reads from AsyncStorage (written by AuthContext on login)
+// ---------------------------------------------------------------------------
 // For physical device testing use your machine's LAN IP, e.g. 'http://192.168.1.XX:5000/api'
 // For Android emulator use 'http://10.0.2.2:5000/api'
-export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
+//export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
 
 
-// Token provider — replace these with your auth storage (e.g. SecureStore)
+// Token provider — reads from AsyncStorage (set by AuthContext on login)
 
 let _token: string | null = null;
 
@@ -16,7 +25,20 @@ export const setAuthToken = (token: string | null) => {
     _token = token;
 };
 
-export const getAuthToken = (): string | null => _token;
+export const getAuthToken = async (): Promise<string | null> => {
+    // First check in-memory cache
+    if (_token) return _token;
+    // Fall back to AsyncStorage (set by AuthContext on login)
+    try {
+        const storedToken = await AsyncStorage.getItem('authToken');
+        if (storedToken) {
+            _token = storedToken; // cache it in memory
+        }
+        return storedToken;
+    } catch {
+        return null;
+    }
+};
 
 
 // Dev auth — auto-login as E-C-001 (TEMPORARY)
