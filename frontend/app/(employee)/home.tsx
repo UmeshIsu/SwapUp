@@ -66,7 +66,7 @@ export default function EmployeeHomeScreen() {
         if (announcementsRes) setAnnouncements(announcementsRes.data.announcements.slice(0, 3));
         if (swapsRes) setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
         if (leaveRes) setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
-        if (weekRes) setWeekShifts(weekRes.data.shifts || []);
+        if (weekRes) setWeekShifts(Array.isArray(weekRes.data) ? weekRes.data : weekRes.data.shifts || []);
     };
 
     const getWeekStart = () => {

@@ -6,7 +6,7 @@
 
 import { apiRequest } from './apiClient';
 
-export interface CheckInResult {
+export interface CheckInResponse {
     status: 'APPROVED' | 'REJECTED';
     checkedInAt?: string; // ISO string — only when APPROVED
     distanceM?: number;
@@ -20,20 +20,20 @@ export interface CheckInResult {
  * @param lat      - latitude from expo-location
  * @param lng      - longitude from expo-location
  * @param accuracy - GPS accuracy in metres (passed for logging)
- * @param _token   - kept for API parity with the provided code; not used directly
- *                   (the actual JWT is read from AsyncStorage by apiClient)
+ * @param token    - Kept for compatibility with the component's signature, though apiClient handles tokens
  */
 export async function postCheckIn(
     userId: string,
     lat: number,
     lng: number,
     accuracy: number,
-    _token: string
-): Promise<CheckInResult> {
-    return apiRequest<CheckInResult>('POST', '/attendance/check-in', {
+    token: string
+): Promise<CheckInResponse> {
+    return apiRequest<CheckInResponse>('POST', '/attendance/check-in', {
         userId,
         lat,
         lng,
         accuracy,
+        token,
     });
 }

@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import { authMiddleware } from "../middleware/authMiddleware";
 import { 
   signup, 
   login, 
@@ -6,13 +7,10 @@ import {
   sendVerificationCode, 
   verifyWorkerId,
   verifyOtp,
-  getEmployees
+  getAllEmployees
 } from "../controllers/authController";
 
 const router: Router = express.Router();
-
-// GET /api/auth/employees
-router.get("/employees", getEmployees);
 
 /**
  * @route   POST /api/auth/verify-hotel
@@ -58,5 +56,12 @@ router.post("/register", signup);
  * is logging into the correct interface (Manager vs Employee).
  */
 router.post("/login", login);
+
+
+/**
+ * @route   GET /api/auth/employees
+ * @desc    Get all employees for the manager's hotel
+ */
+router.get("/employees", authMiddleware, getAllEmployees);
 
 export default router;

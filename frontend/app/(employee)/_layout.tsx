@@ -11,7 +11,13 @@ export default function EmployeeLayout() {
             }}
         >
             <Tabs.Screen name="home" />
-            <Tabs.Screen name="swap/initiate" />
+            <Tabs.Screen name="schedule/index" />
+            <Tabs.Screen 
+                name="swap/initiate" 
+                options={{
+                    href: null,
+                }}
+            />
             <Tabs.Screen name="chat" />
             <Tabs.Screen name="leave" />
             <Tabs.Screen name="analysis/index" />

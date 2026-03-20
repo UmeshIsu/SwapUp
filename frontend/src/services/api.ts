@@ -58,13 +58,13 @@ export const authAPI = {
     login: (data: { email: string; password: string; role?: string }) =>
         api.post('/auth/login', data),
 
-    verifyHotel: (hotelName: string) => 
+    verifyHotel: (hotelName: string) =>
         api.post('/auth/verify-hotel', { hotelName }),
 
-    sendCode: (target: string, type: 'EMAIL' | 'PHONE') => 
+    sendCode: (target: string, type: 'EMAIL' | 'PHONE') =>
         api.post('/auth/send-code', { target, type }),
-        
-    verifyOtp: (email: string, token: string) => 
+
+    verifyOtp: (email: string, token: string) =>
         api.post('/auth/verify-otp', { email, token }),
 
     getProfile: () => api.get('/auth/profile'),
@@ -76,7 +76,7 @@ export const authAPI = {
 // Shift APIs
 export const shiftAPI = {
     getMyShifts: (params?: { startDate?: string; endDate?: string }) =>
-        api.get('/shifts/my', { params }),
+        api.get('/shifts/my-shifts', { params }),
     getTodayShift: () => api.get('/shifts/today'),
     getAllShifts: (params?: { startDate?: string; endDate?: string; assignedToId?: string }) =>
         api.get('/shifts', { params }),

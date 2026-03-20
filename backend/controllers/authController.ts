@@ -251,8 +251,8 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     });
 
     const token = jwt.sign(
-      { id: user.id, employeeId: user.workerId, name: user.name, department: user.department, role: user.role, email: user.email },
-      process.env.JWT_SECRET || "your-secret-key",
+      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department },
+      process.env.JWT_SECRET || "swapup_jwt_secret_key",
       { expiresIn: "7d" }
     );
 
@@ -338,8 +338,8 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, employeeId: user.workerId, name: user.name, department: user.department, role: user.role, email: user.email },
-      process.env.JWT_SECRET || "your-secret-key",
+      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department },
+      process.env.JWT_SECRET || "swapup_jwt_secret_key",
       { expiresIn: "7d" }
     );
 
@@ -362,6 +362,45 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error(`[LOGIN] Catch-all error for ${req.body.email}:`, error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Get all employees for the same hotel (tenant)
+ */
+export const getAllEmployees = async (req: Request, res: Response) => {
+  try {
+    const { tenantId, role, department } = req.user as any;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: "Tenant ID not found in token." });
+    }
+
+    const whereClause: any = {
+      tenantId,
+      role: "EMPLOYEE",
+    };
+
+    // If requester is a Manager, filter by their department
+    if (role === "MANAGER" && department) {
+      whereClause.department = department;
+    }
+
+    const employees = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        department: true,
+        avatarUrl: true,
+      },
+    });
+
+    return res.status(200).json(employees);
+  } catch (error) {
+    console.error("getAllEmployees error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

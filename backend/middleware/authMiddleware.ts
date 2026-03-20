@@ -5,11 +5,12 @@ import jwt from 'jsonwebtoken';
 
 export interface AuthPayload {
     id: string;
-    employeeId: string;
-    name: string;
-    department: string;
+    employeeId?: string; // Optional if not always present in token
+    name?: string;
+    department?: string;
     role: string;
     email?: string;
+    tenantId: string;
 }
 
 // Extend Express Request to include user
@@ -26,7 +27,7 @@ export interface AuthRequest extends Request {
     user: AuthPayload;
 }
 
-// ─── Auth Middleware (used by chat routes) ─────────────────────────────────────
+// Auth Middleware (used by chat routes) 
 
 export const authMiddleware = (
     req: Request,
@@ -49,12 +50,13 @@ export const authMiddleware = (
         ) as AuthPayload;
         req.user = decoded;
         next();
-    } catch {
+    } catch (error) {
+        console.error('JWT Verification Error:', error);
         res.status(401).json({ error: 'Invalid or expired token' });
     }
 };
 
-// ─── Protect Middleware (used by auth routes) ─────────────────────────────────
+// Protect Middleware (used by auth routes)
 
 export const protect = (req: Request, res: Response, next: NextFunction) => {
     let token;
@@ -79,7 +81,7 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-// ─── Role-based Authorization ─────────────────────────────────────────────────
+// Role-based Authorization
 
 export const authorize = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
