@@ -113,3 +113,48 @@ export const postCheckIn = async (req: Request, res: Response): Promise<void> =>
         res.status(500).json({ error: 'Internal server error during check-in' });
     }
 };
+
+// ---------------------------------------------------------------------------
+// POST /api/attendance/check-out
+// ---------------------------------------------------------------------------
+export const postCheckOut = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setUTCHours(23, 59, 59, 999);
+
+        const attendance = await prisma.attendance.findFirst({
+            where: {
+                userId,
+                status: 'APPROVED',
+                checkedInAt: { gte: todayStart, lte: todayEnd },
+            },
+        });
+
+        if (!attendance) {
+            res.status(404).json({ error: 'No approved check-in found for today' });
+            return;
+        }
+
+        if (attendance.checkedOutAt) {
+            res.status(400).json({ error: 'You have already checked out today.' });
+            return;
+        }
+
+        const updated = await prisma.attendance.update({
+            where: { id: attendance.id },
+            data: { checkedOutAt: new Date() },
+        });
+
+        res.json({
+            status: 'CHECKED_OUT',
+            checkedOutAt: updated.checkedOutAt!.toISOString(),
+        });
+    } catch (error) {
+        console.error('[attendance] postCheckOut error:', error);
+        res.status(500).json({ error: 'Internal server error during check-out' });
+    }
+};
