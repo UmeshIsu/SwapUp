@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
 import { ThemedText } from "@/src/components/themed-text";
-import { colors } from "@/src/constants/colors";
+import { useColors } from "@/src/constants/colors";
 
 interface BarChartProps {
     labels: string[];
@@ -11,7 +11,8 @@ interface BarChartProps {
 }
 
 export default function BarChart({ labels, values, style, height = 150 }: BarChartProps) {
-    const maxValue = Math.max(...values, 1); // Avoid division by zero
+    const c = useColors();
+    const maxValue = Math.max(...values, 1);
 
     return (
         <View style={[styles.container, { height }, style]}>
@@ -19,10 +20,10 @@ export default function BarChart({ labels, values, style, height = 150 }: BarCha
                 const barHeightPercent = (val / maxValue) * 100;
                 return (
                     <View key={index} style={styles.barColumn}>
-                        <View style={styles.barBackground}>
-                            <View style={[styles.barFill, { height: `${barHeightPercent}%` }]} />
+                        <View style={[styles.barBackground, { backgroundColor: c.soft }]}>
+                            <View style={[styles.barFill, { height: `${barHeightPercent}%`, backgroundColor: c.primary }]} />
                         </View>
-                        <ThemedText style={styles.label}>{labels[index]}</ThemedText>
+                        <ThemedText style={[styles.label, { color: c.muted }]}>{labels[index]}</ThemedText>
                     </View>
                 );
             })}
@@ -44,19 +45,16 @@ const styles = StyleSheet.create({
     barBackground: {
         width: 24,
         flex: 1,
-        backgroundColor: colors.soft,
         borderRadius: 4,
         justifyContent: "flex-end",
         overflow: "hidden",
     },
     barFill: {
         width: "100%",
-        backgroundColor: colors.primary,
         borderRadius: 4,
     },
     label: {
         marginTop: 8,
         fontSize: 12,
-        color: colors.muted,
     },
 });
