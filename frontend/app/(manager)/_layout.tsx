@@ -15,6 +15,11 @@ export default function ManagerLayout() {
             <Tabs.Screen name="employeeDetails/index" />
             <Tabs.Screen name="chat/index" />
             <Tabs.Screen name="leaveManagment" />
+            
+            {/* Added from merge */}
+            <Tabs.Screen name="managerDashboard/index" options={{ href: null }} />
+            <Tabs.Screen name="export-report" options={{ href: null }} />
+            <Tabs.Screen name="roleManagement/index" options={{ href: null }} />
         </Tabs>
     );
 }

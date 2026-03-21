@@ -12,8 +12,8 @@ export default function EmployeeLayout() {
         >
             <Tabs.Screen name="home" />
             <Tabs.Screen name="schedule/index" />
-            <Tabs.Screen 
-                name="swap/initiate" 
+            <Tabs.Screen
+                name="swap/initiate"
                 options={{
                     href: null,
                 }}
@@ -21,6 +21,7 @@ export default function EmployeeLayout() {
             <Tabs.Screen name="chat" />
             <Tabs.Screen name="leave" />
             <Tabs.Screen name="analysis/index" />
+            <Tabs.Screen name="check-in" options={{ href: null }} />
         </Tabs>
     );
 }
