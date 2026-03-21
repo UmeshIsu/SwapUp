@@ -100,7 +100,41 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
             }
         });
 
-        // ── 5. Build response lists ────────────────────────────────────────
+        // ── 5. Fatigue alerts — checked in > 24 h ago with no check-out ────
+        //const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+        const fatigueAttendances = await prisma.attendance.findMany({
+            where: {
+                status: 'APPROVED',
+                checkedOutAt: null,
+                checkedInAt: { lt: fiveMinutesAgo },
+                user: {
+                    department: department as any,
+                    tenantId,
+                    role: 'EMPLOYEE',
+                },
+            },
+            include: {
+                user: { select: { id: true, name: true, avatarUrl: true } },
+            },
+        });
+
+        const fatigueAlerts = fatigueAttendances.map(a => {
+            const hoursWorked = Math.round(
+                (now.getTime() - new Date(a.checkedInAt).getTime()) / (1000 * 60 * 60)
+            );
+            return {
+                id: a.user.id,
+                name: a.user.name,
+                avatarUrl: a.user.avatarUrl,
+                checkedInAt: a.checkedInAt,
+                hoursWorked,
+                message: `Warning: ${a.user.name} is working more than 24 hours. Please let them take a rest`,
+            };
+        });
+
+        // ── 6. Build response lists ────────────────────────────────────────
 
         const onDuty: any[] = [];
         const lateCheckIns: any[] = [];
@@ -154,9 +188,11 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
             lateCount: lateCheckIns.length,
             absenteeCount: absentees.length,
             totalScheduled: scheduledMap.size,
+            fatigueAlertCount: fatigueAlerts.length,
             onDuty,
             lateCheckIns,
             absentees,
+            fatigueAlerts,
         });
     } catch (error) {
         console.error('getManagerDashboardStats error:', error);
