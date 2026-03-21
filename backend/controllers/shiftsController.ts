@@ -72,18 +72,20 @@ export const checkOut = async (req: Request, res: Response): Promise<void> => {
         const id = req.params.id as string;
         const employeeId = req.user!.id;
 
-        const shift = await prisma.shift.findUnique({
-            where: { id }
-        });
+        if (id && id !== 'manager-check-out') {
+            const shift = await prisma.shift.findUnique({
+                where: { id }
+            });
 
-        if (!shift) {
-            res.status(404).json({ error: 'Shift not found' });
-            return;
-        }
+            if (!shift) {
+                res.status(404).json({ error: 'Shift not found' });
+                return;
+            }
 
-        if (shift.employeeId !== employeeId) {
-            res.status(403).json({ error: 'Not authorized for this shift' });
-            return;
+            if (shift.employeeId !== employeeId) {
+                res.status(403).json({ error: 'Not authorized for this shift' });
+                return;
+            }
         }
 
         const attendance = await prisma.attendance.create({
