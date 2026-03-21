@@ -1,3 +1,4 @@
+
 import express, { Router } from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { 
@@ -63,5 +64,6 @@ router.post("/login", login);
  * @desc    Get all employees for the manager's hotel
  */
 router.get("/employees", authMiddleware, getAllEmployees);
+
 
 export default router;

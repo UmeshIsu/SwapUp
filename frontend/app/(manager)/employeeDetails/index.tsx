@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    FlatList, 
-    TextInput, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    TextInput,
     ActivityIndicator,
     Image,
     RefreshControl
@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { authAPI } from '@/src/services/api';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 interface Employee {
     id: string;
@@ -29,6 +31,8 @@ export default function ManagerEmployeesScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     const fetchEmployees = async () => {
         try {
@@ -56,36 +60,35 @@ export default function ManagerEmployeesScreen() {
         fetchEmployees();
     }, [user?.department]);
 
-    const filteredEmployees = employees.filter((emp) => 
+    const filteredEmployees = employees.filter((emp) =>
         emp.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const renderEmployee = ({ item }: { item: Employee }) => (
-        <View style={styles.employeeCard}>
-            <Image 
-                source={{ uri: item.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=random` }} 
+        <View style={[styles.employeeCard, { borderBottomColor: theme.border }]}>
+            <Image
+                source={{ uri: item.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=random` }}
                 style={styles.avatar}
             />
             <View style={styles.employeeInfo}>
-                <Text style={styles.employeeName}>{item.name}</Text>
-                {/* Displaying 'Waiter' as per design, but could be dynamic if backend supported specialized titles */}
-                <Text style={styles.employeeRole}>Waiter</Text> 
+                <Text style={[styles.employeeName, { color: theme.text }]}>{item.name}</Text>
+                <Text style={[styles.employeeRole, { color: theme.textSecondary }]}>Waiter</Text>
             </View>
         </View>
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
             <View style={styles.headerContainer}>
-                <Text style={styles.headerTitle}>Employee</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Employee</Text>
             </View>
 
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+            <View style={[styles.searchContainer, { backgroundColor: theme.inputBg }]}>
+                <Ionicons name="search" size={20} color={theme.textMuted} style={styles.searchIcon} />
                 <TextInput
-                    style={styles.searchInput}
+                    style={[styles.searchInput, { color: theme.text }]}
                     placeholder="Search employees.."
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />

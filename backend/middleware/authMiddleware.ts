@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 
 export interface AuthPayload {
     id: string;
+    userId: string; // Added for compatibility with feature branch
     employeeId?: string; // Optional if not always present in token
     name?: string;
     department?: string;
@@ -48,6 +49,11 @@ export const authMiddleware = (
             token,
             process.env.JWT_SECRET || 'swapup_jwt_secret_key'
         ) as AuthPayload;
+        
+        // Map fields so both DEV branch (`id`) and FEATURE branch (`userId`) controllers work.
+        decoded.id = decoded.id || (decoded as any).userId;
+        decoded.userId = decoded.id;
+        
         req.user = decoded;
         next();
     } catch (error) {
@@ -68,6 +74,11 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
                 token,
                 process.env.JWT_SECRET || 'swapup_jwt_secret_key'
             ) as AuthPayload;
+            
+            // Map fields so both DEV branch (`id`) and FEATURE branch (`userId`) controllers work.
+            decoded.id = decoded.id || (decoded as any).userId;
+            decoded.userId = decoded.id;
+
             req.user = decoded;
             next();
         } catch (error) {
@@ -93,3 +104,4 @@ export const authorize = (...roles: string[]) => {
         next();
     };
 };
+

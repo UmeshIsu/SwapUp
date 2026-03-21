@@ -161,4 +161,27 @@ export const chatAPI = {
     getUnreadCount: () => api.get('/chat/unread'),
 };
 
+/**
+ * Adapter for incoming feature/-employee-profile components
+ * Provides a 'fetch'-like apiCall interface backed by the robust dev axios instance.
+ */
+export const apiCall = async (endpoint: string, options: any = {}) => {
+    const { method = 'GET', body, ...rest } = options;
+        
+    try {
+        const response = await api({
+            url: endpoint,
+            method: method.toLowerCase(),
+            data: body,
+            // Axios interceptor handles Authorization token automatically
+            headers: rest.headers,
+        });
+        return response.data;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
+        console.error(`API Error (${endpoint}):`, errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
 export default api;

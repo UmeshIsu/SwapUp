@@ -13,8 +13,11 @@ export default function ManagerLayout() {
             <Tabs.Screen name="home" />
             <Tabs.Screen name="schedule/index" />
             <Tabs.Screen name="employeeDetails/index" />
-            <Tabs.Screen name="chat/index" />
+            <Tabs.Screen name="chat" />
             <Tabs.Screen name="leaveManagment" />
+            <Tabs.Screen name="profile" options={{ href: null }} />
+            <Tabs.Screen name="userProfile" options={{ href: null }} />
         </Tabs>
     );
 }
+

@@ -2,6 +2,8 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 const ACTIVE_COLOR = '#1373D0';
 const ACTIVE_BG = 'rgba(19, 115, 208, 0.24)';
@@ -11,20 +13,26 @@ const TAB_ICONS: Record<string, { light: any; dark: any }> = {
     // ── Employee tabs ──────────────────────────────────────────────────────────
     'home': { light: require('@/assets/images/ETaskBar/HomeLight.png'), dark: require('@/assets/images/ETaskBar/HomeDark.png') },
     'chat': { light: require('@/assets/images/ETaskBar/EChatLight.png'), dark: require('@/assets/images/ETaskBar/EChatDark.png') },
+    'chat/index': { light: require('@/assets/images/ETaskBar/EChatLight.png'), dark: require('@/assets/images/ETaskBar/EChatDark.png') },
     'leave': { light: require('@/assets/images/ETaskBar/LeaveLight.png'), dark: require('@/assets/images/ETaskBar/LeaveDark.png') },
     'analysis/index': { light: require('@/assets/images/ETaskBar/EReportLight.png'), dark: require('@/assets/images/ETaskBar/EReportDark.png') },
+    'analysis': { light: require('@/assets/images/ETaskBar/EReportLight.png'), dark: require('@/assets/images/ETaskBar/EReportDark.png') },
 
-    // ── Manager-only tabs ──────────────────────────────────────────────────────
+    // ── Manager/Shared tabs ────────────────────────────────────────────────────
     'schedule/index': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
+    'schedule': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
     'employeeDetails/index': { light: require('@/assets/images/ETaskBar/EmployeesLight.png'), dark: require('@/assets/images/ETaskBar/EmployeesDark.png') },
+    'employeeDetails': { light: require('@/assets/images/ETaskBar/EmployeesLight.png'), dark: require('@/assets/images/ETaskBar/EmployeesDark.png') },
     'leaveManagment': { light: require('@/assets/images/ETaskBar/LeaveLight.png'), dark: require('@/assets/images/ETaskBar/LeaveDark.png') },
 };
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     return (
-        <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8), backgroundColor: theme.surface }]}>
             {state.routes.map((route, index) => {
                 const { options } = descriptors[route.key];
                 const isFocused = state.index === index;
@@ -90,7 +98,6 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        backgroundColor: '#F5F5F5',
         paddingTop: 8,
         paddingHorizontal: 10,
         borderTopWidth: 0,
