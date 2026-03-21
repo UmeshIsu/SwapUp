@@ -13,6 +13,7 @@ import authRoutes from './routes/authRoutes';
 import leaveRoutes from './routes/leaveRoutes';
 import attendanceRoutes from './routes/attendance';
 import rosterRoutes from './routes/rosterRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
 
 // ─── Typed Socket.IO event maps ───────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ app.use('/api/swap-requests', swapRequestRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api', devLoginRoutes);
 
 // 404 handler

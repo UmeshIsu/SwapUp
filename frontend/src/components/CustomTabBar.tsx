@@ -12,7 +12,7 @@ const TAB_ICONS: Record<string, { light: any; dark: any }> = {
     'home': { light: require('@/assets/images/ETaskBar/HomeLight.png'), dark: require('@/assets/images/ETaskBar/HomeDark.png') },
     'chat': { light: require('@/assets/images/ETaskBar/EChatLight.png'), dark: require('@/assets/images/ETaskBar/EChatDark.png') },
     'leave': { light: require('@/assets/images/ETaskBar/LeaveLight.png'), dark: require('@/assets/images/ETaskBar/LeaveDark.png') },
-    'analysis/index': { light: require('@/assets/images/ETaskBar/EReportLight.png'), dark: require('@/assets/images/ETaskBar/EReportDark.png') },
+    'analysis': { light: require('@/assets/images/ETaskBar/EReportLight.png'), dark: require('@/assets/images/ETaskBar/EReportDark.png') },
 
     // ── Manager-only tabs ──────────────────────────────────────────────────────
     'schedule/index': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
