@@ -65,3 +65,40 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ error: 'Failed to fetch colleagues' });
     }
 };
+
+// PUT /api/shifts/:id/check-out
+export const checkOut = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const id = req.params.id as string;
+        const employeeId = req.user!.id;
+
+        const shift = await prisma.shift.findUnique({
+            where: { id }
+        });
+
+        if (!shift) {
+            res.status(404).json({ error: 'Shift not found' });
+            return;
+        }
+
+        if (shift.employeeId !== employeeId) {
+            res.status(403).json({ error: 'Not authorized for this shift' });
+            return;
+        }
+
+        const attendance = await prisma.attendance.create({
+            data: {
+                userId: employeeId,
+                status: 'CHECKOUT',
+                lat: req.body.lat || 0,
+                lng: req.body.lng || 0,
+                accuracy: req.body.accuracy || 0,
+                rejectReason: id
+            }
+        });
+
+        res.json({ message: 'Checked out successfully', attendance });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to process checkout' });
+    }
+};
