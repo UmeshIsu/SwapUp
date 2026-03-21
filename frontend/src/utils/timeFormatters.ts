@@ -14,3 +14,4 @@ export const isSameDay = (d1: Date, d2: Date) => d1.toDateString() === d2.toDate
 export const isFuture = (d: Date) => d.getTime() > Date.now();
 export const isPast = (d: Date) => d.getTime() < Date.now();
 export const getMonthName = (d: Date) => d.toLocaleString('default', { month: 'long' });
+export const getShortMonth = (d: Date) => d.toLocaleString('default', { month: 'short' });
