@@ -127,6 +127,7 @@ model Attendance {
   lat          Float
   lng          Float
   accuracy     Float
+  checkedOutAt DateTime? // null = still working; set on checkout
   status       String   // "APPROVED" | "REJECTED"
   rejectReason String?
 
