@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { ThemedText } from '@/src/components/themed-text';
-import { colors } from '@/src/constants/colors';
+import { useColors } from '@/src/constants/colors';
 
 interface SegmentedToggleProps {
     value: string;
@@ -16,18 +16,26 @@ export const SegmentedToggle: React.FC<SegmentedToggleProps> = ({
     onChange,
     style,
 }) => {
+    const c = useColors();
     return (
-        <View style={[styles.container, style]}>
+        <View style={[styles.container, { backgroundColor: c.segmentBg }, style]}>
             {options.map((option) => {
                 const isActive = value === option;
                 return (
                     <TouchableOpacity
                         key={option}
-                        style={[styles.segment, isActive && styles.activeSegment]}
+                        style={[
+                            styles.segment,
+                            isActive && [styles.activeSegment, { backgroundColor: c.segmentActiveBg }],
+                        ]}
                         onPress={() => onChange(option)}
                     >
                         <ThemedText
-                            style={[styles.text, isActive && styles.activeText]}
+                            style={[
+                                styles.text,
+                                { color: c.muted },
+                                isActive && [styles.activeText, { color: c.primary }],
+                            ]}
                         >
                             {option}
                         </ThemedText>
@@ -41,7 +49,6 @@ export const SegmentedToggle: React.FC<SegmentedToggleProps> = ({
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        backgroundColor: '#E9ECEF',
         borderRadius: 8,
         padding: 2,
     },
@@ -51,8 +58,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     activeSegment: {
-        backgroundColor: colors.white,
-        shadowColor: colors.black,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
@@ -60,10 +66,8 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 12,
-        color: colors.muted,
     },
     activeText: {
-        color: colors.primary,
         fontWeight: '600',
     },
 });

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
 import { ThemedText } from "@/src/components/themed-text";
-import { colors } from "@/src/constants/colors";
+import { useColors } from "@/src/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 
 interface WarningBannerProps {
@@ -10,10 +10,11 @@ interface WarningBannerProps {
 }
 
 export default function WarningBanner({ text, style }: WarningBannerProps) {
+    const c = useColors();
     return (
-        <View style={[styles.container, style]}>
-            <Ionicons name="warning" size={20} color={colors.warning || "#F59E0B"} style={styles.icon} />
-            <ThemedText style={styles.text}>{text}</ThemedText>
+        <View style={[styles.container, { backgroundColor: c.warning + "20" }, style]}>
+            <Ionicons name="warning" size={20} color={c.warning} style={styles.icon} />
+            <ThemedText style={[styles.text, { color: c.text }]}>{text}</ThemedText>
         </View>
     );
 }
@@ -21,7 +22,6 @@ export default function WarningBanner({ text, style }: WarningBannerProps) {
 const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
-        backgroundColor: (colors.warning || "#F59E0B") + "20", // 20% opacity
         padding: 12,
         borderRadius: 8,
         alignItems: "flex-start",
@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
     },
     text: {
         flex: 1,
-        color: colors.dark,
         fontSize: 14,
         lineHeight: 20,
     },
