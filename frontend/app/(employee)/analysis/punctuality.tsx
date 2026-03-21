@@ -1,19 +1,69 @@
-import React, { useMemo, useState } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/src/components/layout/Screen";
 import HeaderBar from "@/src/components/layout/HeaderBar";
-import Card from "@/src/components/ui/Card";
+import Card from "@/src/components/ui/card";
 import MiniSparkline from "@/src/components/Charts/MiniSparkline";
 import { ThemedText } from "@/src/components/themed-text";
 import { colors } from "@/src/constants/colors";
-import { monthOptions, mockPunctuality } from "@/src/data/mock";
+import { monthOptions } from "@/src/data/mock";
 import HeaderSimple from "@/src/components/layout/HeaderSimple";
+import { fetchPunctualityDetails, PunctualityDetails } from "@/src/services/analyticsService";
 
 export default function PunctualityScreen() {
     const [month, setMonth] = useState(monthOptions[0].value);
+    const [data, setData] = useState<PunctualityDetails | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const data = useMemo(() => mockPunctuality[month] ?? mockPunctuality[monthOptions[0].value], [month]);
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setError(null);
+        fetchPunctualityDetails(month)
+            .then(res => { if (!cancelled) setData(res); })
+            .catch(err => { if (!cancelled) setError(err.message); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [month]);
+
+    // Derive month labels for comparison
+    const comparisonLabels = useMemo(() => {
+        const [y, m] = month.split('-').map(Number);
+        const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const prev1 = m === 1 ? 12 : m - 1;
+        const prev2 = m <= 2 ? 12 + m - 2 : m - 2;
+        return {
+            current: names[m - 1],
+            prevMonth: names[prev1 - 1],
+            twoMonthsAgo: names[prev2 - 1],
+        };
+    }, [month]);
+
+    if (loading) {
+        return (
+            <Screen>
+                <HeaderSimple title="Punctuality Analysis" />
+                <View style={styles.centered}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <ThemedText style={styles.loadingText}>Loading...</ThemedText>
+                </View>
+            </Screen>
+        );
+    }
+
+    if (error || !data) {
+        return (
+            <Screen>
+                <HeaderSimple title="Punctuality Analysis" />
+                <View style={styles.centered}>
+                    <Ionicons name="alert-circle" size={48} color={colors.danger} />
+                    <ThemedText style={styles.errorText}>{error || 'No data available'}</ThemedText>
+                </View>
+            </Screen>
+        );
+    }
 
     return (
         <Screen>
@@ -27,18 +77,19 @@ export default function PunctualityScreen() {
                 <Card>
                     <View style={styles.cardHeader}>
                         <Card.Title>Weekly Punctuality Trend</Card.Title>
-                        <TouchableOpacity>
-                            <Ionicons name="share-outline" size={20} color={colors.text} />
-                        </TouchableOpacity>
-                        <ThemedText style={styles.trendText}><Ionicons name="trending-up" size={14} /> +2% vs Sep</ThemedText>
+                        <ThemedText style={styles.trendText}>
+                            <Ionicons name={data.comparison.current >= data.comparison.prevMonth ? "trending-up" : "trending-down"} size={14} />{' '}
+                            {data.comparison.current >= data.comparison.prevMonth ? '+' : ''}
+                            {Math.round((data.comparison.current - data.comparison.prevMonth) * 10) / 10}% vs {comparisonLabels.prevMonth}
+                        </ThemedText>
                     </View>
                     <View style={{ marginTop: 20 }}>
                         <MiniSparkline values={data.weekTrend} />
                         <View style={styles.chartLabels}>
                             <ThemedText style={styles.chartLabel}>Week 1</ThemedText>
-                            <ThemedText style={styles.chartLabel}>Week 1</ThemedText>
-                            <ThemedText style={styles.chartLabel}>Week 1</ThemedText>
-                            <ThemedText style={styles.chartLabel}>Week 1</ThemedText>
+                            <ThemedText style={styles.chartLabel}>Week 2</ThemedText>
+                            <ThemedText style={styles.chartLabel}>Week 3</ThemedText>
+                            <ThemedText style={styles.chartLabel}>Week 4</ThemedText>
                         </View>
                     </View>
                 </Card>
@@ -47,34 +98,41 @@ export default function PunctualityScreen() {
                     <ThemedText style={styles.sectionTitle}>Punctuality Events ({data.events.length})</ThemedText>
                 </View>
 
-                {data.events.map((e: any) => (
-                    <Card key={e.id} style={styles.eventCard}>
-                        <View style={styles.eventRow}>
-                            <View style={styles.iconCircle}>
-                                <Ionicons name="time" size={20} color="#F59E0B" />
-                            </View>
-                            <View style={styles.eventInfo}>
-                                <ThemedText style={styles.eventTitle}>{e.title}</ThemedText>
-                                <ThemedText style={styles.eventSubtitle}>{e.subtitle} ({e.badge})</ThemedText>
-                            </View>
-                        </View>
+                {data.events.length === 0 ? (
+                    <Card style={styles.eventCard}>
+                        <ThemedText style={styles.emptyText}>No late check-ins this month. Great work!</ThemedText>
                     </Card>
-                ))}
+                ) : (
+                    data.events.map((e: any) => (
+                        <Card key={e.id} style={styles.eventCard}>
+                            <View style={styles.eventRow}>
+                                <View style={styles.iconCircle}>
+                                    <Ionicons name="time" size={20} color="#F59E0B" />
+                                </View>
+                                <View style={styles.eventInfo}>
+                                    <ThemedText style={styles.eventTitle}>{e.title}</ThemedText>
+                                    <ThemedText style={styles.eventSubtitle}>{e.subtitle} ({e.badge})</ThemedText>
+                                </View>
+                            </View>
+                        </Card>
+                    ))
+                )}
 
+                {/* 3-Month Comparison */}
                 <Card>
-                    <Card.Title>Comparison</Card.Title>
+                    <Card.Title>3-Month Comparison</Card.Title>
                     <View style={styles.comparisonGrid}>
                         <View style={styles.compareItem}>
-                            <ThemedText style={styles.compareValue}>{data.comparison.you}%</ThemedText>
-                            <ThemedText style={styles.compareLabel}>Your Rate</ThemedText>
+                            <ThemedText style={styles.compareValue}>{data.comparison.twoMonthsAgo}%</ThemedText>
+                            <ThemedText style={styles.compareLabel}>{comparisonLabels.twoMonthsAgo}</ThemedText>
                         </View>
                         <View style={styles.compareItem}>
-                            <ThemedText style={styles.compareValue}>{data.comparison.prev}%</ThemedText>
-                            <ThemedText style={styles.compareLabel}>Previous Month</ThemedText>
+                            <ThemedText style={styles.compareValue}>{data.comparison.prevMonth}%</ThemedText>
+                            <ThemedText style={styles.compareLabel}>{comparisonLabels.prevMonth}</ThemedText>
                         </View>
-                        <View style={styles.compareItem}>
-                            <ThemedText style={styles.compareValue}>{data.comparison.dept}%</ThemedText>
-                            <ThemedText style={styles.compareLabel}>Dept. Average</ThemedText>
+                        <View style={[styles.compareItem, styles.compareItemActive]}>
+                            <ThemedText style={[styles.compareValue, { color: colors.primary }]}>{data.comparison.current}%</ThemedText>
+                            <ThemedText style={[styles.compareLabel, { color: colors.primary, fontWeight: '700' }]}>{comparisonLabels.current} (Current)</ThemedText>
                         </View>
                     </View>
                 </Card>
@@ -85,7 +143,9 @@ export default function PunctualityScreen() {
                         <ThemedText style={styles.tipsTitle}>Tips for Improvement</ThemedText>
                     </View>
                     <ThemedText style={styles.tipsText}>
-                        Try to set your alarm 15 minutes earlier to ensure you have enough time for your morning routine.
+                        {data.lateCount === 0
+                            ? "Excellent punctuality! Keep up the great work and maintain your routine."
+                            : "Try to set your alarm 15 minutes earlier to ensure you have enough time for your morning routine."}
                     </ThemedText>
                 </Card>
             </View>
@@ -100,6 +160,28 @@ const styles = StyleSheet.create({
     },
     content: {
         gap: 12,
+    },
+    centered: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 40,
+        gap: 12,
+    },
+    loadingText: {
+        fontSize: 14,
+        color: colors.muted,
+    },
+    errorText: {
+        fontSize: 14,
+        color: colors.danger,
+        textAlign: "center",
+    },
+    emptyText: {
+        fontSize: 13,
+        color: colors.muted,
+        textAlign: "center",
+        padding: 10,
     },
     cardHeader: {
         flexDirection: "row",
@@ -163,6 +245,11 @@ const styles = StyleSheet.create({
     compareItem: {
         alignItems: "center",
         flex: 1,
+        padding: 12,
+        borderRadius: 8,
+    },
+    compareItemActive: {
+        backgroundColor: colors.soft,
     },
     compareValue: {
         fontSize: 18,
@@ -178,6 +265,7 @@ const styles = StyleSheet.create({
     tipsCard: {
         backgroundColor: colors.soft,
         borderColor: colors.primary + "30",
+        marginBottom: 20,
     },
     tipsHeader: {
         flexDirection: "row",
