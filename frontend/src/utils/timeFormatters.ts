@@ -9,3 +9,4 @@ export const parseDateString = (str: string) => new Date(str);
 export const getDayStart = (d: Date) => new Date(d.setHours(0,0,0,0));
 export const getDayEnd = (d: Date) => new Date(d.setHours(23,59,59,999));
 export const addDays = (d: Date, days: number) => new Date(d.getTime() + days * 86400000);
+export const subDays = (d: Date, days: number) => new Date(d.getTime() - days * 86400000);
