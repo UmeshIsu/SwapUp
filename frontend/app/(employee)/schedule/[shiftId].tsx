@@ -5,7 +5,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/src/components/themed-text';
 import { ThemedView } from '@/src/components/themed-view';
 import { Colors } from '@/src/constants/theme';
-import { useAuth } from '@/src/context/AuthContext';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { apiCall } from '@/src/services/api';
 
