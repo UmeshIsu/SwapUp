@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, TouchableOpacity, Switch, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Switch, View, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/src/components/themed-text';
@@ -7,12 +7,14 @@ import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Colors } from '@/src/constants/theme';
 import { useAppTheme } from '@/src/context/ThemeContext';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 export default function SettingsScreen() {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
     const { isDark, toggleTheme } = useAppTheme();
     const router = useRouter();
+    const { logout } = useAuth();
 
     const settingsItems = [
         { label: 'Change Password', route: '/(manager)/profile/settings/change-password', icon: 'lock' },
@@ -20,6 +22,23 @@ export default function SettingsScreen() {
         { label: 'Notification Settings', route: '/(manager)/profile/settings/notifications', icon: 'bell' },
         { label: 'Language', route: '/(manager)/profile/settings/language', icon: 'globe' },
     ];
+
+    const handleLogout = () => {
+        Alert.alert(
+            'Log Out',
+            'Are you sure you want to log out?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Log Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await logout();
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -50,6 +69,20 @@ export default function SettingsScreen() {
                     <IconSymbol name="chevron.right" size={20} color={theme.icon} />
                 </TouchableOpacity>
             ))}
+
+            {/* Logout Button */}
+            <TouchableOpacity
+                style={[styles.item, styles.logoutItem]}
+                onPress={handleLogout}
+                activeOpacity={0.7}
+            >
+                <View style={[styles.iconContainer, { backgroundColor: '#FDECEA' }]}>
+                    <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color="#D32F2F" />
+                </View>
+                <ThemedText style={[styles.label, { color: '#D32F2F' }]}>Log Out</ThemedText>
+                <View style={{ flex: 1 }} />
+                <IconSymbol name="chevron.right" size={20} color="#D32F2F" />
+            </TouchableOpacity>
         </ScrollView>
     );
 }
@@ -80,5 +113,8 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         fontWeight: '500',
+    },
+    logoutItem: {
+        marginTop: 10,
     },
 });

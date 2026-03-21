@@ -8,7 +8,7 @@ import { Colors } from '@/src/constants/theme';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { apiCall } from '@/src/services/api';
-import { useAuth } from '@/src/context/AuthContext';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 export default function ChangePasswordScreen() {
     const colorScheme = useColorScheme();
