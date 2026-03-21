@@ -9,7 +9,7 @@ import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Colors } from '@/src/constants/theme';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { useAppTheme } from '@/src/context/ThemeContext';
-import { useAuth } from '@/src/context/AuthContext';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { apiCall } from '@/src/services/api';
 
 export default function ProfileScreen() {
@@ -93,7 +93,7 @@ export default function ProfileScreen() {
         return (
             <ThemedView style={styles.loadingContainer}>
                 <ThemedText>User not found. Please log in again.</ThemedText>
-                <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+                <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
                     <ThemedText style={styles.logoutText}>Logout</ThemedText>
                 </TouchableOpacity>
             </ThemedView>
@@ -244,10 +244,9 @@ export default function ProfileScreen() {
                 icon="rectangle.portrait.and.arrow.right"
                 confirmText="Yes, Log Out"
                 cancelText="Cancel"
-                onConfirm={() => {
+                onConfirm={async () => {
                     setShowLogoutModal(false);
-                    logout();
-                    router.replace('/(employee)/schedule');
+                    await logout();
                 }}
                 onCancel={() => setShowLogoutModal(false)}
             />
