@@ -10,3 +10,4 @@ export const getDayStart = (d: Date) => new Date(d.setHours(0,0,0,0));
 export const getDayEnd = (d: Date) => new Date(d.setHours(23,59,59,999));
 export const addDays = (d: Date, days: number) => new Date(d.getTime() + days * 86400000);
 export const subDays = (d: Date, days: number) => new Date(d.getTime() - days * 86400000);
+export const isSameDay = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
