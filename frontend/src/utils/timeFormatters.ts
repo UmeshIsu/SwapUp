@@ -13,3 +13,4 @@ export const subDays = (d: Date, days: number) => new Date(d.getTime() - days * 
 export const isSameDay = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
 export const isFuture = (d: Date) => d.getTime() > Date.now();
 export const isPast = (d: Date) => d.getTime() < Date.now();
+export const getMonthName = (d: Date) => d.toLocaleString('default', { month: 'long' });
