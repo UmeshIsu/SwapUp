@@ -22,6 +22,7 @@ interface Shift {
     location?: string;
     shiftRole?: string;
     actualCheckIn?: string;
+    actualCheckOut?: string;
 }
 
 interface Announcement {
@@ -41,6 +42,7 @@ export default function EmployeeHomeScreen() {
     const [weekShifts, setWeekShifts] = useState<Shift[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [isCheckingIn, setIsCheckingIn] = useState(false);
+    const [isCheckedOut, setIsCheckedOut] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -64,7 +66,12 @@ export default function EmployeeHomeScreen() {
             })),
         ]);
 
-        if (shiftRes) setTodayShift(shiftRes.data.shift);
+        if (shiftRes) {
+            setTodayShift(shiftRes.data.shift);
+            if (shiftRes.data.shift?.actualCheckOut) {
+                setIsCheckedOut(true);
+            }
+        }
         if (announcementsRes) setAnnouncements(announcementsRes.data.announcements.slice(0, 3));
         if (swapsRes) setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
         if (leaveRes) setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
@@ -99,6 +106,21 @@ export default function EmployeeHomeScreen() {
             loadData();
         } catch (error: any) {
             Alert.alert('Error', error.response?.data?.message || 'Failed to check in');
+        } finally {
+            setIsCheckingIn(false);
+        }
+    };
+
+    const handleCheckOut = async () => {
+        if (!todayShift) return;
+
+        setIsCheckingIn(true);
+        try {
+            await shiftAPI.checkOut(todayShift.id);
+            Alert.alert('Success', 'Checked out successfully!');
+            setIsCheckedOut(true);
+        } catch (error: any) {
+            Alert.alert('Error', error.response?.data?.message || 'Failed to check out');
         } finally {
             setIsCheckingIn(false);
         }
@@ -183,17 +205,34 @@ export default function EmployeeHomeScreen() {
                     <Text style={styles.subGreeting}>Have a nice day</Text>
                 </View>
 
-                {/* Check In Button */}
-                <TouchableOpacity
-                    style={[styles.checkInButton, todayShift?.actualCheckIn && styles.checkedIn]}
-                    onPress={handleCheckIn}
-                    disabled={!todayShift || !!todayShift.actualCheckIn || isCheckingIn}
-                    activeOpacity={0.85}
-                >
-                    <Text style={styles.checkInText}>
-                        {todayShift?.actualCheckIn ? 'Checked In ✓' : 'Check in'}
-                    </Text>
-                </TouchableOpacity>
+                {/* Check In / Out Button */}
+                {!todayShift?.actualCheckIn ? (
+                    <TouchableOpacity
+                        style={[styles.checkInButton]}
+                        onPress={handleCheckIn}
+                        disabled={!todayShift || isCheckingIn}
+                        activeOpacity={0.85}
+                    >
+                        <Text style={styles.checkInText}>Check in</Text>
+                    </TouchableOpacity>
+                ) : !isCheckedOut ? (
+                    <TouchableOpacity
+                        style={[styles.checkInButton, styles.checkOutStyle]}
+                        onPress={handleCheckOut}
+                        disabled={isCheckingIn}
+                        activeOpacity={0.85}
+                    >
+                        <Text style={styles.checkInText}>Check out</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={[styles.checkInButton, styles.checkedIn]}
+                        disabled={true}
+                        activeOpacity={1}
+                    >
+                        <Text style={styles.checkInText}>Checked out ✓</Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* Announcement */}
                 <View style={styles.announcementCard}>
@@ -433,6 +472,9 @@ const styles = StyleSheet.create({
     },
     checkedIn: {
         backgroundColor: '#10B981',
+    },
+    checkOutStyle: {
+        backgroundColor: '#F5A623',
     },
     checkInText: {
         color: '#fff',
