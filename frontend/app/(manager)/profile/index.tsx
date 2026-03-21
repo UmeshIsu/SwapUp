@@ -9,7 +9,7 @@ import { CustomModal } from '@/src/components/ui/CustomModal';
 import { Colors } from '@/src/constants/theme';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { useAppTheme } from '@/src/context/ThemeContext';
-import { useAuth } from '@/src/context/AuthContext';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { apiCall } from '@/src/services/api';
 
 export default function ProfileScreen() {
@@ -78,7 +78,14 @@ export default function ProfileScreen() {
     };
 
     if (!user) {
-        return null;
+        return (
+            <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ThemedText>User not found. Please log in again.</ThemedText>
+                <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
+                    <ThemedText style={styles.logoutText}>Logout</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        );
     }
 
     return (
@@ -210,10 +217,9 @@ export default function ProfileScreen() {
                 title="Log Out"
                 icon="rectangle.portrait.and.arrow.right.fill"
                 confirmText="Yes, Log Out"
-                onConfirm={() => {
+                onConfirm={async () => {
                     setIsLogoutModalVisible(false);
-                    logout();
-                    router.replace('/(manager)' as any);
+                    await logout();
                 }}
                 onCancel={() => setIsLogoutModalVisible(false)}
             />
