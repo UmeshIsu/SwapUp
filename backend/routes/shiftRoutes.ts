@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getMyShifts, getShiftById } from "../controllers/shiftController";
-import authMiddleware from "../middleware/authMiddleware";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = Router();
 
