@@ -6,7 +6,7 @@ import HeaderBar from "@/src/components/layout/HeaderBar";
 import Card from "@/src/components/ui/card";
 import MiniSparkline from "@/src/components/Charts/MiniSparkline";
 import { ThemedText } from "@/src/components/themed-text";
-import { colors } from "@/src/constants/colors";
+import { useColors } from "@/src/constants/colors";
 import { monthOptions } from "@/src/data/mock";
 import HeaderSimple from "@/src/components/layout/HeaderSimple";
 import { fetchAbsenteeDetails, AbsenteeDetails } from "@/src/services/analyticsService";
@@ -16,6 +16,7 @@ export default function AbsenteeScreen() {
     const [data, setData] = useState<AbsenteeDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const c = useColors();
 
     useEffect(() => {
         let cancelled = false;
@@ -33,8 +34,8 @@ export default function AbsenteeScreen() {
             <Screen>
                 <HeaderSimple title="Absentee Rate Details" />
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <ThemedText style={styles.loadingText}>Loading...</ThemedText>
+                    <ActivityIndicator size="large" color={c.primary} />
+                    <ThemedText style={[styles.loadingText, { color: c.muted }]}>Loading...</ThemedText>
                 </View>
             </Screen>
         );
@@ -45,8 +46,8 @@ export default function AbsenteeScreen() {
             <Screen>
                 <HeaderSimple title="Absentee Rate Details" />
                 <View style={styles.centered}>
-                    <Ionicons name="alert-circle" size={48} color={colors.danger} />
-                    <ThemedText style={styles.errorText}>{error || 'No data available'}</ThemedText>
+                    <Ionicons name="alert-circle" size={48} color={c.danger} />
+                    <ThemedText style={[styles.errorText, { color: c.danger }]}>{error || 'No data available'}</ThemedText>
                 </View>
             </Screen>
         );
@@ -63,12 +64,12 @@ export default function AbsenteeScreen() {
             <View style={styles.content}>
                 <View style={styles.statsRow}>
                     <Card style={styles.statCard}>
-                        <ThemedText style={styles.statLabel}>Absent Days</ThemedText>
-                        <ThemedText style={styles.statValue}>{data.absentDays}</ThemedText>
+                        <ThemedText style={[styles.statLabel, { color: c.muted }]}>Absent Days</ThemedText>
+                        <ThemedText style={[styles.statValue, { color: c.danger }]}>{data.absentDays}</ThemedText>
                     </Card>
                     <Card style={styles.statCard}>
-                        <ThemedText style={styles.statLabel}>Absent Rate</ThemedText>
-                        <ThemedText style={[styles.statValue, { color: colors.danger }]}>{data.absentRate}%</ThemedText>
+                        <ThemedText style={[styles.statLabel, { color: c.muted }]}>Absent Rate</ThemedText>
+                        <ThemedText style={[styles.statValue, { color: c.danger }]}>{data.absentRate}%</ThemedText>
                     </Card>
                 </View>
 
@@ -80,27 +81,27 @@ export default function AbsenteeScreen() {
                         <MiniSparkline values={data.last4Months} variant="bars" />
                         <View style={styles.chartLabels}>
                             {data.last4MonthLabels.map((label: string, i: number) => (
-                                <ThemedText key={i} style={styles.chartLabel}>{label}</ThemedText>
+                                <ThemedText key={i} style={[styles.chartLabel, { color: c.muted }]}>{label}</ThemedText>
                             ))}
                         </View>
                     </View>
                 </Card>
 
                 <View style={styles.sectionHeader}>
-                    <ThemedText style={styles.sectionTitle}>Absent Records for {data.label}</ThemedText>
+                    <ThemedText style={[styles.sectionTitle, { color: c.text }]}>Absent Records for {data.label}</ThemedText>
                 </View>
 
                 {data.records.length === 0 ? (
-                    <Card><ThemedText style={styles.emptyText}>No absences recorded for this month.</ThemedText></Card>
+                    <Card><ThemedText style={[styles.emptyText, { color: c.muted }]}>No absences recorded for this month.</ThemedText></Card>
                 ) : (
                     data.records.map((r: any) => (
                         <Card key={r.id} style={styles.recordCard}>
                             <TouchableOpacity style={styles.recordRow}>
                                 <View style={styles.recordInfo}>
                                     <ThemedText style={styles.recordDate}>{r.date}</ThemedText>
-                                    <ThemedText style={styles.recordReason}>Reason: {r.reason}</ThemedText>
+                                    <ThemedText style={[styles.recordReason, { color: c.muted }]}>Reason: {r.reason}</ThemedText>
                                 </View>
-                                <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+                                <Ionicons name="chevron-forward" size={18} color={c.muted} />
                             </TouchableOpacity>
                         </Card>
                     ))
@@ -130,12 +131,12 @@ export default function AbsenteeScreen() {
                     </View>
                 </Card>
 
-                <Card style={styles.tipsCard}>
+                <Card style={[styles.tipsCard, { backgroundColor: c.soft, borderColor: c.primary + "30" }]}>
                     <View style={styles.tipsHeader}>
-                        <Ionicons name="bulb-outline" size={20} color={colors.primary} />
-                        <ThemedText style={styles.tipsTitle}>Tips for Improvement</ThemedText>
+                        <Ionicons name="bulb-outline" size={20} color={c.primary} />
+                        <ThemedText style={[styles.tipsTitle, { color: c.primary }]}>Tips for Improvement</ThemedText>
                     </View>
-                    <ThemedText style={styles.tipsText}>
+                    <ThemedText style={[styles.tipsText, { color: c.muted }]}>
                         {data.absentDays === 0
                             ? "Perfect attendance! You're doing great."
                             : "Consider scheduling non-urgent appointments outside of work hours to minimize unplanned absences."}
@@ -163,11 +164,9 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 14,
-        color: colors.muted,
     },
     errorText: {
         fontSize: 14,
-        color: colors.danger,
         textAlign: "center",
     },
     statsRow: {
@@ -180,13 +179,11 @@ const styles = StyleSheet.create({
     },
     statLabel: {
         fontSize: 12,
-        color: colors.muted,
         marginBottom: 4,
     },
     statValue: {
         fontSize: 24,
         fontWeight: "800",
-        color: colors.danger,
     },
     cardHeader: {
         flexDirection: "row",
@@ -200,7 +197,6 @@ const styles = StyleSheet.create({
     },
     chartLabel: {
         fontSize: 10,
-        color: colors.muted,
     },
     sectionHeader: {
         marginTop: 8,
@@ -208,7 +204,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: colors.text,
     },
     recordCard: {
         padding: 12,
@@ -227,12 +222,10 @@ const styles = StyleSheet.create({
     },
     recordReason: {
         fontSize: 12,
-        color: colors.muted,
         marginTop: 2,
     },
     emptyText: {
         fontSize: 13,
-        color: colors.muted,
         textAlign: "center",
         padding: 10,
     },
@@ -240,8 +233,6 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     tipsCard: {
-        backgroundColor: colors.soft,
-        borderColor: colors.primary + "30",
         marginBottom: 20,
     },
     tipsHeader: {
@@ -253,11 +244,9 @@ const styles = StyleSheet.create({
     tipsTitle: {
         fontSize: 14,
         fontWeight: "700",
-        color: colors.primary,
     },
     tipsText: {
         fontSize: 13,
-        color: colors.muted,
         lineHeight: 18,
     },
 });

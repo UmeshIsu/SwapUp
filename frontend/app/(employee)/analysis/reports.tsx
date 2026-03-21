@@ -9,13 +9,14 @@ import { ThemedView } from '@/src/components/themed-view';
 import { ThemedText } from '@/src/components/themed-text';
 import Card from '@/src/components/ui/card';
 import Button from '@/src/components/ui/Button';
-import { colors } from '@/src/constants/colors';
+import { useColors } from '@/src/constants/colors';
 import { monthOptions } from '@/src/data/mock';
 import { BASE_URL, getAuthToken } from '@/src/services/apiClient';
 
 export default function ReportsScreen() {
     const [month, setMonth] = useState(monthOptions[0].value);
     const [loading, setLoading] = useState(false);
+    const c = useColors();
 
     const handleExport = async () => {
         try {
@@ -23,7 +24,6 @@ export default function ReportsScreen() {
             const token = await getAuthToken();
             const url = `${BASE_URL}/analytics/export?month=${month}`;
 
-            // Download CSV file
             const fileUri = `${FileSystem.documentDirectory}analytics-${month}.csv`;
             const result = await FileSystem.downloadAsync(url, fileUri, {
                 headers: {
@@ -36,7 +36,6 @@ export default function ReportsScreen() {
                 return;
             }
 
-            // Check if sharing is available
             const isAvailable = await Sharing.isAvailableAsync();
             if (isAvailable) {
                 await Sharing.shareAsync(result.uri, {
@@ -60,7 +59,7 @@ export default function ReportsScreen() {
     const monthLabel = `${monthNames[m - 1]} ${y}`;
 
     return (
-        <ThemedView style={styles.container}>
+        <ThemedView style={[styles.container, { backgroundColor: c.bg }]}>
             <HeaderSimple title="Export Reports" />
 
             <View style={styles.headerRow}>
@@ -69,26 +68,26 @@ export default function ReportsScreen() {
 
             <View style={styles.content}>
                 <Card style={styles.exportCard}>
-                    <View style={styles.exportIcon}>
-                        <Ionicons name="document-text-outline" size={48} color={colors.primary} />
+                    <View style={[styles.exportIcon, { backgroundColor: c.soft }]}>
+                        <Ionicons name="document-text-outline" size={48} color={c.primary} />
                     </View>
-                    <ThemedText style={styles.exportTitle}>Monthly Attendance Report</ThemedText>
-                    <ThemedText style={styles.exportSubtitle}>
+                    <ThemedText style={[styles.exportTitle, { color: c.text }]}>Monthly Attendance Report</ThemedText>
+                    <ThemedText style={[styles.exportSubtitle, { color: c.muted }]}>
                         Export your attendance data for {monthLabel} as a CSV file. The report includes:
                     </ThemedText>
 
                     <View style={styles.featureList}>
                         <View style={styles.featureItem}>
-                            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                            <ThemedText style={styles.featureText}>Shift schedules & check-in/out times</ThemedText>
+                            <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                            <ThemedText style={[styles.featureText, { color: c.text }]}>Shift schedules & check-in/out times</ThemedText>
                         </View>
                         <View style={styles.featureItem}>
-                            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                            <ThemedText style={styles.featureText}>Punctuality status (On Time / Late / Absent)</ThemedText>
+                            <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                            <ThemedText style={[styles.featureText, { color: c.text }]}>Punctuality status (On Time / Late / Absent)</ThemedText>
                         </View>
                         <View style={styles.featureItem}>
-                            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                            <ThemedText style={styles.featureText}>Overtime hours per shift</ThemedText>
+                            <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                            <ThemedText style={[styles.featureText, { color: c.text }]}>Overtime hours per shift</ThemedText>
                         </View>
                     </View>
 
@@ -98,14 +97,14 @@ export default function ReportsScreen() {
                         style={styles.exportBtn}
                     />
                     {loading && (
-                        <ActivityIndicator style={{ marginTop: 12 }} color={colors.primary} />
+                        <ActivityIndicator style={{ marginTop: 12 }} color={c.primary} />
                     )}
                 </Card>
 
-                <Card style={styles.infoCard}>
+                <Card style={[styles.infoCard, { backgroundColor: c.soft, borderColor: c.primary + '20' }]}>
                     <View style={styles.infoRow}>
-                        <Ionicons name="information-circle-outline" size={20} color={colors.primary} />
-                        <ThemedText style={styles.infoText}>
+                        <Ionicons name="information-circle-outline" size={20} color={c.primary} />
+                        <ThemedText style={[styles.infoText, { color: c.muted }]}>
                             The exported file can be opened in Excel, Google Sheets, or any spreadsheet application.
                         </ThemedText>
                     </View>
@@ -118,7 +117,6 @@ export default function ReportsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.bg,
     },
     headerRow: {
         marginTop: -10,
@@ -138,7 +136,6 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: colors.soft,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
@@ -146,13 +143,11 @@ const styles = StyleSheet.create({
     exportTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: colors.text,
         textAlign: 'center',
         marginBottom: 8,
     },
     exportSubtitle: {
         fontSize: 14,
-        color: colors.muted,
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: 16,
@@ -169,16 +164,12 @@ const styles = StyleSheet.create({
     },
     featureText: {
         fontSize: 13,
-        color: colors.text,
     },
     exportBtn: {
         width: '100%',
         borderRadius: 10,
     },
-    infoCard: {
-        backgroundColor: colors.soft,
-        borderColor: colors.primary + '20',
-    },
+    infoCard: {},
     infoRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -187,7 +178,6 @@ const styles = StyleSheet.create({
     infoText: {
         flex: 1,
         fontSize: 13,
-        color: colors.muted,
         lineHeight: 18,
     },
 });

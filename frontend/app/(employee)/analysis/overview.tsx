@@ -9,7 +9,7 @@ import SegmentedToggle from "@/src/components/ui/SegmentedToggle";
 import BarChart from "@/src/components/Charts/BarChart";
 import WarningBanner from "@/src/components/ui/WarningBanner";
 import { ThemedText } from "@/src/components/themed-text";
-import { colors } from "@/src/constants/colors";
+import { useColors } from "@/src/constants/colors";
 import { monthOptions } from "@/src/data/mock";
 import { fetchOvertimeDetails, OvertimeDetails } from "@/src/services/analyticsService";
 
@@ -19,6 +19,7 @@ export default function OverviewScreen() {
     const [data, setData] = useState<OvertimeDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const c = useColors();
 
     useEffect(() => {
         let cancelled = false;
@@ -36,8 +37,8 @@ export default function OverviewScreen() {
             <Screen>
                 <HeaderSimple title="My Hours Overview" />
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <ThemedText style={styles.loadingText}>Loading...</ThemedText>
+                    <ActivityIndicator size="large" color={c.primary} />
+                    <ThemedText style={[styles.loadingText, { color: c.muted }]}>Loading...</ThemedText>
                 </View>
             </Screen>
         );
@@ -48,8 +49,8 @@ export default function OverviewScreen() {
             <Screen>
                 <HeaderSimple title="My Hours Overview" />
                 <View style={styles.centered}>
-                    <Ionicons name="alert-circle" size={48} color={colors.danger} />
-                    <ThemedText style={styles.errorText}>{error || 'No data available'}</ThemedText>
+                    <Ionicons name="alert-circle" size={48} color={c.danger} />
+                    <ThemedText style={[styles.errorText, { color: c.danger }]}>{error || 'No data available'}</ThemedText>
                 </View>
             </Screen>
         );
@@ -95,16 +96,16 @@ export default function OverviewScreen() {
                 {/* Overtime Logs */}
                 {data.logs.length > 0 && (
                     <>
-                        <ThemedText style={styles.sectionTitle}>Overtime Sessions ({data.logs.length})</ThemedText>
+                        <ThemedText style={[styles.sectionTitle, { color: c.text }]}>Overtime Sessions ({data.logs.length})</ThemedText>
                         {data.logs.map((log: any) => (
                             <Card key={log.id} style={styles.logCard}>
                                 <View style={styles.logRow}>
-                                    <View style={styles.logIcon}>
+                                    <View style={[styles.logIcon, { backgroundColor: c.iconCircleBg }]}>
                                         <Ionicons name="time-outline" size={20} color="#F59E0B" />
                                     </View>
                                     <View style={styles.logInfo}>
-                                        <ThemedText style={styles.logDate}>{log.date}</ThemedText>
-                                        <ThemedText style={styles.logTime}>{log.timeRange}</ThemedText>
+                                        <ThemedText style={[styles.logDate, { color: c.text }]}>{log.date}</ThemedText>
+                                        <ThemedText style={[styles.logTime, { color: c.muted }]}>{log.timeRange}</ThemedText>
                                     </View>
                                     <ThemedText style={styles.logDuration}>{log.duration}</ThemedText>
                                 </View>
@@ -131,17 +132,14 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 14,
-        color: colors.muted,
     },
     errorText: {
         fontSize: 14,
-        color: colors.danger,
         textAlign: "center",
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: colors.text,
         marginTop: 4,
     },
     logCard: {
@@ -156,7 +154,6 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: "#FEF3C7",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -166,11 +163,9 @@ const styles = StyleSheet.create({
     logDate: {
         fontSize: 14,
         fontWeight: "600",
-        color: colors.text,
     },
     logTime: {
         fontSize: 12,
-        color: colors.muted,
         marginTop: 2,
     },
     logDuration: {

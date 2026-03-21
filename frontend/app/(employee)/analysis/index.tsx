@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "@/src/components/themed-text";
 import { ThemedView } from "@/src/components/themed-view";
-import { colors } from "../../../src/constants/colors";
+import { useColors } from "../../../src/constants/colors";
 import HeaderBar from "@/src/components/layout/HeaderBar";
 import { monthOptions } from "@/src/data/mock";
 import { useEffect, useState } from "react";
@@ -17,6 +17,7 @@ export default function AnalysisIndex() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const c = useColors();
 
     useEffect(() => {
         let cancelled = false;
@@ -34,20 +35,20 @@ export default function AnalysisIndex() {
         : 0;
 
     return (
-        <ScrollView style={styles.container}>
-            <ThemedView style={styles.header}>
+        <ScrollView style={[styles.container, { backgroundColor: c.bg }]}>
+            <ThemedView style={[styles.header, { backgroundColor: c.cardBg, borderBottomColor: c.border }]}>
                 <HeaderBar title="Monthly Analytical Reports" monthValue={month} onMonthChange={setMonth} />
             </ThemedView>
 
             {loading ? (
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <ThemedText style={styles.loadingText}>Loading analytics...</ThemedText>
+                    <ActivityIndicator size="large" color={c.primary} />
+                    <ThemedText style={[styles.loadingText, { color: c.muted }]}>Loading analytics...</ThemedText>
                 </View>
             ) : error ? (
                 <View style={styles.centered}>
-                    <Ionicons name="alert-circle" size={48} color={colors.danger} />
-                    <ThemedText style={styles.errorText}>{error}</ThemedText>
+                    <Ionicons name="alert-circle" size={48} color={c.danger} />
+                    <ThemedText style={[styles.errorText, { color: c.danger }]}>{error}</ThemedText>
                 </View>
             ) : data ? (
                 <View style={styles.content}>
@@ -55,13 +56,13 @@ export default function AnalysisIndex() {
                     <Card style={styles.reportCard}>
                         <View style={styles.cardHeader}>
                             <View>
-                                <ThemedText style={styles.cardLabel}>Punctuality Rate <Ionicons name="information-circle-outline" size={14} color={colors.muted} /></ThemedText>
-                                <ThemedText style={styles.cardValue}>{data.punctualityRate} %</ThemedText>
-                                <ThemedText style={styles.cardSub}>{data.lateCount} late check-in{data.lateCount !== 1 ? 's' : ''} this month</ThemedText>
+                                <ThemedText style={[styles.cardLabel, { color: c.text }]}>Punctuality Rate <Ionicons name="information-circle-outline" size={14} color={c.muted} /></ThemedText>
+                                <ThemedText style={[styles.cardValue, { color: c.success }]}>{data.punctualityRate} %</ThemedText>
+                                <ThemedText style={[styles.cardSub, { color: c.muted }]}>{data.lateCount} late check-in{data.lateCount !== 1 ? 's' : ''} this month</ThemedText>
                             </View>
                             <View style={styles.visualContainer}>
-                                <View style={styles.dummyCircle}>
-                                    <View style={[styles.dummyCircleFill, { borderRightColor: colors.success, borderTopColor: colors.success }]} />
+                                <View style={[styles.dummyCircle, { borderColor: c.soft }]}>
+                                    <View style={[styles.dummyCircleFill, { borderRightColor: c.success, borderTopColor: c.success }]} />
                                 </View>
                             </View>
                         </View>
@@ -76,15 +77,15 @@ export default function AnalysisIndex() {
                     <Card style={styles.reportCard}>
                         <View style={styles.cardHeader}>
                             <View>
-                                <ThemedText style={styles.cardLabel}>Absentee Rate <Ionicons name="information-circle-outline" size={14} color={colors.muted} /></ThemedText>
-                                <ThemedText style={[styles.cardValue, { color: colors.danger }]}>{data.absenteeRate}%</ThemedText>
-                                <ThemedText style={styles.cardSub}>{data.absentCount} absent this month</ThemedText>
+                                <ThemedText style={[styles.cardLabel, { color: c.text }]}>Absentee Rate <Ionicons name="information-circle-outline" size={14} color={c.muted} /></ThemedText>
+                                <ThemedText style={[styles.cardValue, { color: c.danger }]}>{data.absenteeRate}%</ThemedText>
+                                <ThemedText style={[styles.cardSub, { color: c.muted }]}>{data.absentCount} absent this month</ThemedText>
                             </View>
                             <View style={styles.visualContainer}>
-                                <View style={styles.iconCircle}>
-                                    <Ionicons name="calendar" size={32} color={colors.danger} />
-                                    <View style={styles.checkBadge}>
-                                        <Ionicons name="checkmark" size={12} color={colors.white} />
+                                <View style={[styles.iconCircle, { backgroundColor: c.iconCircleDangerBg }]}>
+                                    <Ionicons name="calendar" size={32} color={c.danger} />
+                                    <View style={[styles.checkBadge, { backgroundColor: c.success, borderColor: c.cardBg }]}>
+                                        <Ionicons name="checkmark" size={12} color="#FFF" />
                                     </View>
                                 </View>
                             </View>
@@ -100,15 +101,15 @@ export default function AnalysisIndex() {
                     <Card style={styles.reportCard}>
                         <View style={styles.cardHeader}>
                             <View>
-                                <ThemedText style={styles.cardLabel}>Overtime Tracking <Ionicons name="information-circle-outline" size={14} color={colors.muted} /></ThemedText>
-                                <ThemedText style={[styles.cardValue, { color: "#F59E0B" }]}>{data.overtimeHours} <ThemedText style={styles.unit}>hrs</ThemedText></ThemedText>
-                                <ThemedText style={styles.cardSub}>Total for the month</ThemedText>
+                                <ThemedText style={[styles.cardLabel, { color: c.text }]}>Overtime Tracking <Ionicons name="information-circle-outline" size={14} color={c.muted} /></ThemedText>
+                                <ThemedText style={[styles.cardValue, { color: "#F59E0B" }]}>{data.overtimeHours} <ThemedText style={[styles.unit, { color: c.muted }]}>hrs</ThemedText></ThemedText>
+                                <ThemedText style={[styles.cardSub, { color: c.muted }]}>Total for the month</ThemedText>
                             </View>
                             <View style={styles.visualContainer}>
                                 <View style={styles.barGraphic}>
-                                    <View style={[styles.bar, { height: 10, opacity: 0.3 }]} />
-                                    <View style={[styles.bar, { height: 20, opacity: 0.5 }]} />
-                                    <View style={[styles.bar, { height: 15, opacity: 0.4 }]} />
+                                    <View style={[styles.bar, { height: 10, opacity: 0.3, backgroundColor: c.muted }]} />
+                                    <View style={[styles.bar, { height: 20, opacity: 0.5, backgroundColor: c.muted }]} />
+                                    <View style={[styles.bar, { height: 15, opacity: 0.4, backgroundColor: c.muted }]} />
                                     <View style={[styles.bar, { height: 25, backgroundColor: "#F59E0B" }]} />
                                 </View>
                             </View>
@@ -124,11 +125,11 @@ export default function AnalysisIndex() {
                     <Card style={styles.reportCard}>
                         <View style={styles.cardHeader}>
                             <View>
-                                <ThemedText style={styles.cardLabel}>Export Reports <Ionicons name="download-outline" size={14} color={colors.muted} /></ThemedText>
-                                <ThemedText style={styles.cardSub}>Download your monthly attendance report</ThemedText>
+                                <ThemedText style={[styles.cardLabel, { color: c.text }]}>Export Reports <Ionicons name="download-outline" size={14} color={c.muted} /></ThemedText>
+                                <ThemedText style={[styles.cardSub, { color: c.muted }]}>Download your monthly attendance report</ThemedText>
                             </View>
                             <View style={styles.visualContainer}>
-                                <Ionicons name="document-text" size={36} color={colors.primary} />
+                                <Ionicons name="document-text" size={36} color={c.primary} />
                             </View>
                         </View>
                         <Button
@@ -146,13 +147,10 @@ export default function AnalysisIndex() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#f8f9fa",
     },
     header: {
         padding: 24,
-        backgroundColor: colors.white,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
     },
     content: {
         padding: 16,
@@ -167,11 +165,9 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 14,
-        color: colors.muted,
     },
     errorText: {
         fontSize: 14,
-        color: colors.danger,
         textAlign: "center",
     },
     reportCard: {
@@ -185,28 +181,23 @@ const styles = StyleSheet.create({
     cardLabel: {
         fontSize: 14,
         fontWeight: "600",
-        color: colors.text,
         marginBottom: 10,
     },
     cardValue: {
         fontSize: 32,
         fontWeight: "800",
-        color: colors.success,
     },
     unit: {
         fontSize: 18,
         fontWeight: "600",
-        color: colors.muted,
     },
     trendUp: {
         fontSize: 12,
-        color: colors.success,
         fontWeight: "600",
         marginTop: 4,
     },
     cardSub: {
         fontSize: 12,
-        color: colors.muted,
         marginTop: 4,
     },
     visualContainer: {
@@ -220,7 +211,6 @@ const styles = StyleSheet.create({
         height: 60,
         borderRadius: 30,
         borderWidth: 6,
-        borderColor: colors.soft,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -237,7 +227,6 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: "#FEE2E2",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -245,14 +234,12 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: 0,
         right: 0,
-        backgroundColor: colors.success,
         width: 20,
         height: 20,
         borderRadius: 10,
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 2,
-        borderColor: colors.white,
     },
     barGraphic: {
         flexDirection: "row",
@@ -261,7 +248,6 @@ const styles = StyleSheet.create({
     },
     bar: {
         width: 8,
-        backgroundColor: colors.muted,
         borderRadius: 4,
     },
     viewDetailsBtn: {

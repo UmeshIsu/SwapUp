@@ -6,7 +6,7 @@ import HeaderBar from "@/src/components/layout/HeaderBar";
 import Card from "@/src/components/ui/card";
 import MiniSparkline from "@/src/components/Charts/MiniSparkline";
 import { ThemedText } from "@/src/components/themed-text";
-import { colors } from "@/src/constants/colors";
+import { useColors } from "@/src/constants/colors";
 import { monthOptions } from "@/src/data/mock";
 import HeaderSimple from "@/src/components/layout/HeaderSimple";
 import { fetchPunctualityDetails, PunctualityDetails } from "@/src/services/analyticsService";
@@ -16,6 +16,7 @@ export default function PunctualityScreen() {
     const [data, setData] = useState<PunctualityDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const c = useColors();
 
     useEffect(() => {
         let cancelled = false;
@@ -28,7 +29,6 @@ export default function PunctualityScreen() {
         return () => { cancelled = true; };
     }, [month]);
 
-    // Derive month labels for comparison
     const comparisonLabels = useMemo(() => {
         const [y, m] = month.split('-').map(Number);
         const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -46,8 +46,8 @@ export default function PunctualityScreen() {
             <Screen>
                 <HeaderSimple title="Punctuality Analysis" />
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <ThemedText style={styles.loadingText}>Loading...</ThemedText>
+                    <ActivityIndicator size="large" color={c.primary} />
+                    <ThemedText style={[styles.loadingText, { color: c.muted }]}>Loading...</ThemedText>
                 </View>
             </Screen>
         );
@@ -58,8 +58,8 @@ export default function PunctualityScreen() {
             <Screen>
                 <HeaderSimple title="Punctuality Analysis" />
                 <View style={styles.centered}>
-                    <Ionicons name="alert-circle" size={48} color={colors.danger} />
-                    <ThemedText style={styles.errorText}>{error || 'No data available'}</ThemedText>
+                    <Ionicons name="alert-circle" size={48} color={c.danger} />
+                    <ThemedText style={[styles.errorText, { color: c.danger }]}>{error || 'No data available'}</ThemedText>
                 </View>
             </Screen>
         );
@@ -77,7 +77,7 @@ export default function PunctualityScreen() {
                 <Card>
                     <View style={styles.cardHeader}>
                         <Card.Title>Weekly Punctuality Trend</Card.Title>
-                        <ThemedText style={styles.trendText}>
+                        <ThemedText style={[styles.trendText, { color: c.success }]}>
                             <Ionicons name={data.comparison.current >= data.comparison.prevMonth ? "trending-up" : "trending-down"} size={14} />{' '}
                             {data.comparison.current >= data.comparison.prevMonth ? '+' : ''}
                             {Math.round((data.comparison.current - data.comparison.prevMonth) * 10) / 10}% vs {comparisonLabels.prevMonth}
@@ -86,32 +86,32 @@ export default function PunctualityScreen() {
                     <View style={{ marginTop: 20 }}>
                         <MiniSparkline values={data.weekTrend} />
                         <View style={styles.chartLabels}>
-                            <ThemedText style={styles.chartLabel}>Week 1</ThemedText>
-                            <ThemedText style={styles.chartLabel}>Week 2</ThemedText>
-                            <ThemedText style={styles.chartLabel}>Week 3</ThemedText>
-                            <ThemedText style={styles.chartLabel}>Week 4</ThemedText>
+                            <ThemedText style={[styles.chartLabel, { color: c.muted }]}>Week 1</ThemedText>
+                            <ThemedText style={[styles.chartLabel, { color: c.muted }]}>Week 2</ThemedText>
+                            <ThemedText style={[styles.chartLabel, { color: c.muted }]}>Week 3</ThemedText>
+                            <ThemedText style={[styles.chartLabel, { color: c.muted }]}>Week 4</ThemedText>
                         </View>
                     </View>
                 </Card>
 
                 <View style={styles.sectionHeader}>
-                    <ThemedText style={styles.sectionTitle}>Punctuality Events ({data.events.length})</ThemedText>
+                    <ThemedText style={[styles.sectionTitle, { color: c.text }]}>Punctuality Events ({data.events.length})</ThemedText>
                 </View>
 
                 {data.events.length === 0 ? (
                     <Card style={styles.eventCard}>
-                        <ThemedText style={styles.emptyText}>No late check-ins this month. Great work!</ThemedText>
+                        <ThemedText style={[styles.emptyText, { color: c.muted }]}>No late check-ins this month. Great work!</ThemedText>
                     </Card>
                 ) : (
                     data.events.map((e: any) => (
                         <Card key={e.id} style={styles.eventCard}>
                             <View style={styles.eventRow}>
-                                <View style={styles.iconCircle}>
+                                <View style={[styles.iconCircle, { backgroundColor: c.iconCircleBg }]}>
                                     <Ionicons name="time" size={20} color="#F59E0B" />
                                 </View>
                                 <View style={styles.eventInfo}>
                                     <ThemedText style={styles.eventTitle}>{e.title}</ThemedText>
-                                    <ThemedText style={styles.eventSubtitle}>{e.subtitle} ({e.badge})</ThemedText>
+                                    <ThemedText style={[styles.eventSubtitle, { color: c.muted }]}>{e.subtitle} ({e.badge})</ThemedText>
                                 </View>
                             </View>
                         </Card>
@@ -123,26 +123,26 @@ export default function PunctualityScreen() {
                     <Card.Title>3-Month Comparison</Card.Title>
                     <View style={styles.comparisonGrid}>
                         <View style={styles.compareItem}>
-                            <ThemedText style={styles.compareValue}>{data.comparison.twoMonthsAgo}%</ThemedText>
-                            <ThemedText style={styles.compareLabel}>{comparisonLabels.twoMonthsAgo}</ThemedText>
+                            <ThemedText style={[styles.compareValue, { color: c.success }]}>{data.comparison.twoMonthsAgo}%</ThemedText>
+                            <ThemedText style={[styles.compareLabel, { color: c.muted }]}>{comparisonLabels.twoMonthsAgo}</ThemedText>
                         </View>
                         <View style={styles.compareItem}>
-                            <ThemedText style={styles.compareValue}>{data.comparison.prevMonth}%</ThemedText>
-                            <ThemedText style={styles.compareLabel}>{comparisonLabels.prevMonth}</ThemedText>
+                            <ThemedText style={[styles.compareValue, { color: c.success }]}>{data.comparison.prevMonth}%</ThemedText>
+                            <ThemedText style={[styles.compareLabel, { color: c.muted }]}>{comparisonLabels.prevMonth}</ThemedText>
                         </View>
-                        <View style={[styles.compareItem, styles.compareItemActive]}>
-                            <ThemedText style={[styles.compareValue, { color: colors.primary }]}>{data.comparison.current}%</ThemedText>
-                            <ThemedText style={[styles.compareLabel, { color: colors.primary, fontWeight: '700' }]}>{comparisonLabels.current} (Current)</ThemedText>
+                        <View style={[styles.compareItem, styles.compareItemActive, { backgroundColor: c.soft }]}>
+                            <ThemedText style={[styles.compareValue, { color: c.primary }]}>{data.comparison.current}%</ThemedText>
+                            <ThemedText style={[styles.compareLabel, { color: c.primary, fontWeight: '700' }]}>{comparisonLabels.current} (Current)</ThemedText>
                         </View>
                     </View>
                 </Card>
 
-                <Card style={styles.tipsCard}>
+                <Card style={[styles.tipsCard, { backgroundColor: c.soft, borderColor: c.primary + "30" }]}>
                     <View style={styles.tipsHeader}>
-                        <Ionicons name="bulb-outline" size={20} color={colors.primary} />
-                        <ThemedText style={styles.tipsTitle}>Tips for Improvement</ThemedText>
+                        <Ionicons name="bulb-outline" size={20} color={c.primary} />
+                        <ThemedText style={[styles.tipsTitle, { color: c.primary }]}>Tips for Improvement</ThemedText>
                     </View>
-                    <ThemedText style={styles.tipsText}>
+                    <ThemedText style={[styles.tipsText, { color: c.muted }]}>
                         {data.lateCount === 0
                             ? "Excellent punctuality! Keep up the great work and maintain your routine."
                             : "Try to set your alarm 15 minutes earlier to ensure you have enough time for your morning routine."}
@@ -170,16 +170,13 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 14,
-        color: colors.muted,
     },
     errorText: {
         fontSize: 14,
-        color: colors.danger,
         textAlign: "center",
     },
     emptyText: {
         fontSize: 13,
-        color: colors.muted,
         textAlign: "center",
         padding: 10,
     },
@@ -190,7 +187,6 @@ const styles = StyleSheet.create({
     },
     trendText: {
         fontSize: 10,
-        color: colors.success,
         fontWeight: "600",
     },
     chartLabels: {
@@ -200,7 +196,6 @@ const styles = StyleSheet.create({
     },
     chartLabel: {
         fontSize: 10,
-        color: colors.muted,
     },
     sectionHeader: {
         marginTop: 8,
@@ -208,7 +203,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: colors.text,
     },
     eventCard: {
         padding: 12,
@@ -222,7 +216,6 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: "#FEF3C7",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -235,7 +228,6 @@ const styles = StyleSheet.create({
     },
     eventSubtitle: {
         fontSize: 12,
-        color: colors.muted,
     },
     comparisonGrid: {
         flexDirection: "row",
@@ -248,23 +240,17 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 8,
     },
-    compareItemActive: {
-        backgroundColor: colors.soft,
-    },
+    compareItemActive: {},
     compareValue: {
         fontSize: 18,
         fontWeight: "800",
-        color: colors.success,
     },
     compareLabel: {
         fontSize: 10,
-        color: colors.muted,
         marginTop: 4,
         textAlign: "center",
     },
     tipsCard: {
-        backgroundColor: colors.soft,
-        borderColor: colors.primary + "30",
         marginBottom: 20,
     },
     tipsHeader: {
@@ -276,11 +262,9 @@ const styles = StyleSheet.create({
     tipsTitle: {
         fontSize: 14,
         fontWeight: "700",
-        color: colors.primary,
     },
     tipsText: {
         fontSize: 13,
-        color: colors.muted,
         lineHeight: 18,
     },
 });
