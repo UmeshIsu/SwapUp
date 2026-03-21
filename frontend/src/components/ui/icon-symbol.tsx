@@ -1,12 +1,12 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
+import { SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+type IconMapping = Record<string, ComponentProps<typeof MaterialIcons>['name']>;
+type IconSymbolName = string;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -16,8 +16,38 @@ type IconSymbolName = keyof typeof MAPPING;
 const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
+  'calendar.fill': 'calendar-month',
+  'chat.fill': 'chat-bubble',
+  'person.badge.fill': 'badge',
+  'chart.bar.fill': 'bar-chart',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
+  'chevron.down': 'expand-more',
+  'chevron.up': 'expand-less',
+  'bell.fill': 'notifications',
+  'bell': 'notifications',
+  'bubble.left.fill': 'chat-bubble',
+  'megaphone.fill': 'campaign',
+  'shield.fill': 'shield',
+  'exclamationmark.triangle.fill': 'warning',
+  'lock.shield': 'security',
+  'questionmark.circle': 'help',
+  'person.text.rectangle': 'badge',
+  'envelope': 'email',
+  'envelope.fill': 'email',
+  'phone': 'phone',
+  'lock': 'lock',
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
+  'checkmark': 'check',
+  'clock.fill': 'access-time',
+  'clock': 'access-time',
+  'moon.fill': 'dark-mode',
+  'globe': 'language',
+  'mappin.circle.fill': 'location-on',
+  'person.fill': 'person',
+  'arrow.left.arrow.right': 'swap-horiz',
 } as IconMapping;
 
 /**

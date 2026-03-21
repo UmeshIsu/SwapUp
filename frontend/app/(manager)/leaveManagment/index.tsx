@@ -14,6 +14,8 @@ import {
 import { useRouter } from 'expo-router';
 import { getManagerLeaveRequests, approveLeaveRequest, declineLeaveRequest, LeaveRequest } from '@/src/services/leaveApi';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 type Tab = 'Pending' | 'Approved' | 'Declined';
 
@@ -21,6 +23,8 @@ export default function ManagerLeaveDashboard() {
     const router = useRouter();
     const { user } = useAuth();
     const MANAGER_ID = user?.id || '';
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
     const [activeTab, setActiveTab] = useState<Tab>('Pending');
     const [requests, setRequests] = useState<LeaveRequest[]>([]);
     const [loading, setLoading] = useState(false);
@@ -88,27 +92,27 @@ export default function ManagerLeaveDashboard() {
 
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" />
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: theme.background }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={[styles.backArrow, { color: theme.text }]}>←</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Leave Requests</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Leave Requests</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             {/* Tab Bar */}
-            <View style={styles.tabBar}>
+            <View style={[styles.tabBar, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
                 {(['Pending', 'Approved', 'Declined'] as Tab[]).map((tab) => (
                     <TouchableOpacity
                         key={tab}
                         style={[styles.tab, activeTab === tab && styles.activeTab]}
                         onPress={() => setActiveTab(tab)}
                     >
-                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+                        <Text style={[styles.tabText, { color: theme.textMuted }, activeTab === tab && styles.activeTabText]}>{tab}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -116,33 +120,33 @@ export default function ManagerLeaveDashboard() {
             {/* List */}
             <ScrollView contentContainerStyle={styles.content}>
                 {filteredRequests.length === 0 ? (
-                    <Text style={styles.emptyText}>No {activeTab.toLowerCase()} requests</Text>
+                    <Text style={[styles.emptyText, { color: theme.textMuted }]}>No {activeTab.toLowerCase()} requests</Text>
                 ) : (
                     filteredRequests.map((request) => (
-                        <View key={request.id} style={styles.card}>
+                        <View key={request.id} style={[styles.card, { backgroundColor: theme.surface }]}>
                             <View style={styles.cardHeader}>
-                                <View style={styles.avatar}>
+                                <View style={[styles.avatar, { backgroundColor: theme.card }]}>
                                     <Text style={{ fontSize: 24 }}>👤</Text>
                                 </View>
                                 <View>
-                                    <Text style={styles.employeeName}>{request.employee_name}</Text>
-                                    <Text style={styles.sentSubtext}>sent a leave request</Text>
+                                    <Text style={[styles.employeeName, { color: theme.text }]}>{request.employee_name}</Text>
+                                    <Text style={[styles.sentSubtext, { color: theme.textMuted }]}>sent a leave request</Text>
                                 </View>
                             </View>
 
-                            <View style={styles.innerBox}>
+                            <View style={[styles.innerBox, { backgroundColor: theme.card }]}>
                                 <View style={styles.innerIcon}>
                                     <Text style={{ fontSize: 18 }}>📋</Text>
                                 </View>
                                 <View>
-                                    <Text style={styles.roleText}>{request.employee_role || 'Waiter'}</Text>
-                                    <Text style={styles.dateText}>{formatDate(request.startDate)}</Text>
+                                    <Text style={[styles.roleText, { color: theme.textSecondary }]}>{request.employee_role || 'Waiter'}</Text>
+                                    <Text style={[styles.dateText, { color: theme.textMuted }]}>{formatDate(request.startDate)}</Text>
                                 </View>
                             </View>
 
                             {activeTab === 'Pending' ? (
                                 <View style={styles.btnRow}>
-                                    <TouchableOpacity style={styles.declineBtn} onPress={() => handleDecline(request)}>
+                                    <TouchableOpacity style={[styles.declineBtn, { backgroundColor: theme.background, borderColor: '#ffcdd2' }]} onPress={() => handleDecline(request)}>
                                         <Text style={styles.declineBtnText}>Decline</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.acceptBtn} onPress={() => handleAccept(request)}>

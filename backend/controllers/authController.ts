@@ -272,6 +272,9 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
         tenantId: user.tenantId,
         hotelName: tenant?.companyName || '',
         workerId: user.workerId,
+        phone: user.phone,
+        availabilityPreferences: user.availabilityPreferences,
+        plan: user.plan,
       }
     });
 
@@ -358,6 +361,9 @@ export const login = async (req: Request, res: Response) => {
         tenantId: user.tenantId,
         hotelName: tenant?.companyName || '',
         workerId: user.workerId,
+        phone: user.phone,
+        availabilityPreferences: user.availabilityPreferences,
+        plan: user.plan,
       }
     });
   } catch (error) {

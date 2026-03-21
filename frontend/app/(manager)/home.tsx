@@ -16,6 +16,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { shiftAPI } from '@/src/services/api';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,6 +80,8 @@ export default function ManagerHomeScreen() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     // Modal state
     const [modalType, setModalType] = useState<'onDuty' | 'late' | 'absentees' | null>(null);
@@ -110,13 +114,13 @@ export default function ManagerHomeScreen() {
     // ─── Modal Content Renderers ──────────────────────────────────────────
 
     const renderOnDutyItem = ({ item }: { item: OnDutyEmployee }) => (
-        <View style={ms.row}>
+        <View style={[ms.row, { backgroundColor: theme.surface }]}>
             <View style={ms.avatar}>
                 <Ionicons name="person" size={18} color="#fff" />
             </View>
             <View style={ms.info}>
-                <Text style={ms.name}>{item.name}</Text>
-                <Text style={ms.sub}>Checked in at {formatTime(item.checkedInAt)}</Text>
+                <Text style={[ms.name, { color: theme.text }]}>{item.name}</Text>
+                <Text style={[ms.sub, { color: theme.textSecondary }]}>Checked in at {formatTime(item.checkedInAt)}</Text>
             </View>
             <View style={[ms.badge, { backgroundColor: '#DEF7EC' }]}>
                 <Text style={[ms.badgeText, { color: '#059669' }]}>On Duty</Text>
@@ -125,13 +129,13 @@ export default function ManagerHomeScreen() {
     );
 
     const renderLateItem = ({ item }: { item: LateEmployee }) => (
-        <View style={ms.row}>
+        <View style={[ms.row, { backgroundColor: theme.surface }]}>
             <View style={[ms.avatar, { backgroundColor: '#FBBF24' }]}>
                 <Ionicons name="time" size={18} color="#fff" />
             </View>
             <View style={ms.info}>
-                <Text style={ms.name}>{item.name}</Text>
-                <Text style={ms.sub}>
+                <Text style={[ms.name, { color: theme.text }]}>{item.name}</Text>
+                <Text style={[ms.sub, { color: theme.textSecondary }]}>
                     Shift: {formatTime(item.shiftStart)} → Checked in: {formatTime(item.checkedInAt)}
                 </Text>
             </View>
@@ -142,13 +146,13 @@ export default function ManagerHomeScreen() {
     );
 
     const renderAbsentItem = ({ item }: { item: AbsentEmployee }) => (
-        <View style={ms.row}>
+        <View style={[ms.row, { backgroundColor: theme.surface }]}>
             <View style={[ms.avatar, { backgroundColor: '#F87171' }]}>
                 <Ionicons name="close" size={18} color="#fff" />
             </View>
             <View style={ms.info}>
-                <Text style={ms.name}>{item.name}</Text>
-                <Text style={ms.sub}>
+                <Text style={[ms.name, { color: theme.text }]}>{item.name}</Text>
+                <Text style={[ms.sub, { color: theme.textSecondary }]}>
                     Scheduled: {formatTime(item.shiftStart)} – {formatTime(item.shiftEnd)}
                 </Text>
             </View>
@@ -192,21 +196,23 @@ export default function ManagerHomeScreen() {
     // ─── Main Render ──────────────────────────────────────────────────────
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: theme.background }]}>
                 <View style={styles.headerLeft}>
-                    <Ionicons name="menu" size={28} color="#1a1a1a" />
-                    <Text style={styles.companyName}>  {user?.hotelName || 'Company name'}</Text>
+                    <Ionicons name="menu" size={28} color={theme.text} />
+                    <Text style={[styles.companyName, { color: theme.textSecondary }]}>  {user?.hotelName || 'Company name'}</Text>
                 </View>
                 <View style={styles.headerRight}>
                     <TouchableOpacity style={styles.notificationBtn}>
-                        <Ionicons name="notifications" size={24} color="#1a1a1a" />
+                        <Ionicons name="notifications" size={24} color={theme.text} />
                         <View style={styles.notificationDot} />
                     </TouchableOpacity>
-                    <View style={styles.avatar}>
-                        <Ionicons name="person" size={20} color="#fff" />
-                    </View>
+                    <TouchableOpacity onPress={() => router.push('/(manager)/profile' as any)}>
+                        <View style={styles.avatar}>
+                            <Ionicons name="person" size={20} color="#fff" />
+                        </View>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -217,68 +223,68 @@ export default function ManagerHomeScreen() {
             >
                 {/* Greeting */}
                 <View style={styles.greetingSection}>
-                    <Text style={styles.managerTitle}>Manager</Text>
-                    <Text style={styles.greetingSubtitle}>Have a nice day</Text>
+                    <Text style={[styles.managerTitle, { color: theme.text }]}>Manager</Text>
+                    <Text style={[styles.greetingSubtitle, { color: theme.textSecondary }]}>Have a nice day</Text>
                 </View>
 
                 {/* Check In Button */}
-                <TouchableOpacity style={styles.checkInButton} onPress={() => router.push('/(manager)/rosterCreation/checkin' as any)}>
+                <TouchableOpacity style={[styles.checkInButton, { backgroundColor: theme.primary }]} onPress={() => router.push('/(manager)/rosterCreation/checkin' as any)}>
                     <Text style={styles.checkInText}>Check in</Text>
                 </TouchableOpacity>
 
                 {/* Today's Shifts */}
-                <Text style={styles.sectionTitle}>Today's Shifts</Text>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Today's Shifts</Text>
                 {loading ? (
-                    <ActivityIndicator size="large" color="#1976D2" style={{ marginVertical: 20 }} />
+                    <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 20 }} />
                 ) : (
                     <View style={styles.statsGrid}>
                         <TouchableOpacity style={[styles.statCard, { backgroundColor: '#DEF7EC' }]} onPress={() => openModal('onDuty')}>
                             <Text style={styles.statLabel}>Employees on Duty</Text>
-                            <Text style={styles.statValue}>{stats?.onDutyCount ?? 0}</Text>
+                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.onDutyCount ?? 0}</Text>
                             <Ionicons name="chevron-forward" size={16} color="#059669" style={styles.statArrow} />
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.statCard, { backgroundColor: '#FEF3C7' }]} onPress={() => openModal('late')}>
                             <Text style={styles.statLabel}>Late Check-ins</Text>
-                            <Text style={styles.statValue}>{stats?.lateCount ?? 0}</Text>
+                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.lateCount ?? 0}</Text>
                             <Ionicons name="chevron-forward" size={16} color="#D97706" style={styles.statArrow} />
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.statCard, { backgroundColor: '#FEE2E2' }]} onPress={() => openModal('absentees')}>
                             <Text style={styles.statLabel}>Absentees</Text>
-                            <Text style={styles.statValue}>{stats?.absenteeCount ?? 0}</Text>
+                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.absenteeCount ?? 0}</Text>
                             <Ionicons name="chevron-forward" size={16} color="#DC2626" style={styles.statArrow} />
                         </TouchableOpacity>
-                        <View style={[styles.statCard, { backgroundColor: '#EEF2FF' }]}>
-                            <Text style={styles.statLabel}>Total Scheduled</Text>
-                            <Text style={styles.statValue}>{stats?.totalScheduled ?? 0}</Text>
+                        <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+                            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Total Scheduled</Text>
+                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.totalScheduled ?? 0}</Text>
                         </View>
                     </View>
                 )}
 
                 {/* Critical Alerts */}
-                <Text style={styles.sectionTitle}>Critical Alerts</Text>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Critical Alerts</Text>
                 {(stats?.lateCount ?? 0) > 0 ? (
-                    <TouchableOpacity style={styles.alertCard} onPress={() => openModal('late')}>
+                    <TouchableOpacity style={[styles.alertCard, { backgroundColor: theme.card }]} onPress={() => openModal('late')}>
                         <View style={[styles.alertIcon, { backgroundColor: '#FDECE8' }]}>
                             <MaterialIcons name="schedule" size={22} color="#E53935" />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={styles.alertTitle}>{stats?.lateCount} employee{(stats?.lateCount ?? 0) > 1 ? 's' : ''} checked in late</Text>
-                            <Text style={styles.alertTime}>Today</Text>
+                            <Text style={[styles.alertTitle, { color: theme.text }]}>{stats?.lateCount} employee{(stats?.lateCount ?? 0) > 1 ? 's' : ''} checked in late</Text>
+                            <Text style={[styles.alertTime, { color: theme.textMuted }]}>Today</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color="#A0A0A0" />
+                        <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
                     </TouchableOpacity>
                 ) : null}
 
                 {(stats?.absenteeCount ?? 0) > 0 ? (
-                    <TouchableOpacity style={styles.alertCard} onPress={() => openModal('absentees')}>
+                    <TouchableOpacity style={[styles.alertCard, { backgroundColor: theme.card }]} onPress={() => openModal('absentees')}>
                         <View style={[styles.alertIcon, { backgroundColor: '#FEE2E2' }]}>
                             <Ionicons name="alert-circle" size={22} color="#DC2626" />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={styles.alertTitle}>{stats?.absenteeCount} employee{(stats?.absenteeCount ?? 0) > 1 ? 's' : ''} absent</Text>
-                            <Text style={styles.alertTime}>Today</Text>
+                            <Text style={[styles.alertTitle, { color: theme.text }]}>{stats?.absenteeCount} employee{(stats?.absenteeCount ?? 0) > 1 ? 's' : ''} absent</Text>
+                            <Text style={[styles.alertTime, { color: theme.textMuted }]}>Today</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color="#A0A0A0" />
+                        <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
                     </TouchableOpacity>
                 ) : null}
 
@@ -288,31 +294,31 @@ export default function ManagerHomeScreen() {
                             <Ionicons name="checkmark-circle" size={22} color="#059669" />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={styles.alertTitle}>All clear — no alerts today!</Text>
+                            <Text style={[styles.alertTitle, { color: theme.text }]}>All clear — no alerts today!</Text>
                         </View>
                     </View>
                 )}
 
                 {/* Quick Actions */}
-                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Quick Actions</Text>
                 <View style={styles.quickActions}>
                     <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/chat/' as any)}>
-                        <View style={styles.actionIconBox}>
-                            <MaterialCommunityIcons name="swap-horizontal" size={24} color="#1565C0" />
+                        <View style={[styles.actionIconBox, { backgroundColor: theme.card }]}>
+                            <MaterialCommunityIcons name="swap-horizontal" size={24} color={theme.primary} />
                         </View>
-                        <Text style={styles.actionLabel}>Approve{'\n'}Swaps</Text>
+                        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>Approve{'\n'}Swaps</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/leaveManagment' as any)}>
-                        <View style={styles.actionIconBox}>
-                            <MaterialIcons name="event-note" size={24} color="#1565C0" />
+                        <View style={[styles.actionIconBox, { backgroundColor: theme.card }]}>
+                            <MaterialIcons name="event-note" size={24} color={theme.primary} />
                         </View>
-                        <Text style={styles.actionLabel}>Manage{'\n'}Leaves</Text>
+                        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>Manage{'\n'}Leaves</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionItem}>
-                        <View style={styles.actionIconBox}>
-                            <MaterialIcons name="insert-chart-outlined" size={24} color="#1565C0" />
+                        <View style={[styles.actionIconBox, { backgroundColor: theme.card }]}>
+                            <MaterialIcons name="insert-chart-outlined" size={24} color={theme.primary} />
                         </View>
-                        <Text style={styles.actionLabel}>View{'\n'}Analytics</Text>
+                        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>View{'\n'}Analytics</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -320,12 +326,12 @@ export default function ManagerHomeScreen() {
             {/* ─── Detail Modal ──────────────────────────────────────────────── */}
             <Modal visible={modalType !== null} animationType="slide" transparent>
                 <View style={ms.overlay}>
-                    <View style={ms.sheet}>
+                    <View style={[ms.sheet, { backgroundColor: theme.background }]}>
                         {/* Modal Header */}
                         <View style={ms.header}>
-                            <Text style={ms.title}>{modalConfig.title}</Text>
+                            <Text style={[ms.title, { color: theme.text }]}>{modalConfig.title}</Text>
                             <TouchableOpacity onPress={() => setModalType(null)} style={ms.closeBtn}>
-                                <Ionicons name="close" size={24} color="#333" />
+                                <Ionicons name="close" size={24} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
@@ -337,7 +343,7 @@ export default function ManagerHomeScreen() {
                             contentContainerStyle={{ paddingBottom: 30 }}
                             showsVerticalScrollIndicator={false}
                             ListEmptyComponent={
-                                <Text style={ms.emptyText}>{modalConfig.emptyText}</Text>
+                                <Text style={[ms.emptyText, { color: theme.textMuted }]}>{modalConfig.emptyText}</Text>
                             }
                         />
                     </View>

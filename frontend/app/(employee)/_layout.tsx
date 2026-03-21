@@ -20,8 +20,9 @@ export default function EmployeeLayout() {
             />
             <Tabs.Screen name="chat" />
             <Tabs.Screen name="leave" />
-            <Tabs.Screen name="analysis/index" />
-            <Tabs.Screen name="check-in" options={{ href: null }} />
+            <Tabs.Screen name="analysis" />
+            <Tabs.Screen name="profile" options={{ href: null }} />
         </Tabs>
     );
 }
+

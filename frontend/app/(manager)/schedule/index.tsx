@@ -9,30 +9,34 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 export default function ManagerScheduleScreen() {
     const router = useRouter();
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerLeft} />
-                <Text style={styles.headerTitle}>Schedule</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Schedule</Text>
                 <View style={styles.headerRight} />
             </View>
 
             {/* Empty State */}
             <View style={styles.body}>
-                <View style={styles.noEntryCard}>
-                    <Ionicons name="calendar-outline" size={48} color="#9CA3AF" style={{ marginBottom: 10 }} />
-                    <Text style={styles.noEntryText}>No Entry</Text>
-                    <Text style={styles.noEntrySubtext}>Create a new roster to get started</Text>
+                <View style={[styles.noEntryCard, { backgroundColor: theme.surface }]}>
+                    <Ionicons name="calendar-outline" size={48} color={theme.textMuted} style={{ marginBottom: 10 }} />
+                    <Text style={[styles.noEntryText, { color: theme.text }]}>No Entry</Text>
+                    <Text style={[styles.noEntrySubtext, { color: theme.textMuted }]}>Create a new roster to get started</Text>
                 </View>
 
                 {/* + New Button */}
                 <TouchableOpacity
-                    style={styles.newButton}
+                    style={[styles.newButton, { backgroundColor: theme.primary }]}
                     onPress={() => router.push('/(manager)/rosterCreation/week-select' as any)}
                 >
                     <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 6 }} />

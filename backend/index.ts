@@ -6,6 +6,8 @@ import cors from 'cors';
 import { prisma } from './config/prisma';
 
 import shiftRoutes from './routes/shifts';
+import featureShiftRoutes from './routes/shiftRoutes';
+import userRoutes from './routes/userRoutes';
 import swapRequestRoutes from './routes/swapRequests';
 import chatRoutes from './routes/chatRoutes';
 import devLoginRoutes from './routes/devLogin';
@@ -82,7 +84,9 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/shifts', shiftRoutes);
+app.use('/api/shifts', featureShiftRoutes);
 app.use('/api/swap-requests', swapRequestRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/leaves', leaveRoutes);

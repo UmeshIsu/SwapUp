@@ -17,6 +17,8 @@ import {
 import { useRouter } from 'expo-router';
 import { getLeaveSummary, getPendingRequests, LeaveSummary } from '@/src/services/leaveApi';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 // All zeros until employee data loads from the database
 const ZERO_SUMMARY: LeaveSummary = {
@@ -34,6 +36,8 @@ export default function LeaveDashboard() {
     const router = useRouter();
     const { user } = useAuth();
     const EMPLOYEE_ID = user?.id || '';
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     // Start with all zeros — no spinner, content is visible immediately
     const [summary, setSummary] = useState<LeaveSummary>(ZERO_SUMMARY);
@@ -66,17 +70,17 @@ export default function LeaveDashboard() {
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
 
             {/* ---- Assigned Leaves Table ---- */}
-            <Text style={styles.sectionTitle}>Your Assigned Leaves</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Your Assigned Leaves</Text>
 
-            <View style={styles.leaveTable}>
+            <View style={[styles.leaveTable, { borderColor: theme.border }]}>
                 {summary.assignedLeaves.map((leave) => (
-                    <View key={leave.id} style={styles.leaveRow}>
-                        <Text style={styles.leaveRowName}>{leave.name}</Text>
+                    <View key={leave.id} style={[styles.leaveRow, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                        <Text style={[styles.leaveRowName, { color: theme.text }]}>{leave.name}</Text>
                         {/* Show days from database when connected, or 0 */}
-                        <Text style={styles.leaveRowDays}>{leave.totalDays} Days</Text>
+                        <Text style={[styles.leaveRowDays, { color: theme.text }]}>{leave.totalDays} Days</Text>
                     </View>
                 ))}
             </View>
@@ -86,8 +90,8 @@ export default function LeaveDashboard() {
                 <View style={[styles.iconCircle, { backgroundColor: '#4caf50' }]}>
                     <Text style={styles.iconText}>🕐</Text>
                 </View>
-                <Text style={styles.cardNumber}>{summary.totalRemaining}</Text>
-                <Text style={styles.cardLabel}> Leaves Remaining</Text>
+                <Text style={[styles.cardNumber, { color: theme.text }]}>{summary.totalRemaining}</Text>
+                <Text style={[styles.cardLabel, { color: theme.textSecondary }]}> Leaves Remaining</Text>
             </View>
 
             {/* ---- Red Card: Absent This Month ---- */}
@@ -95,8 +99,8 @@ export default function LeaveDashboard() {
                 <View style={[styles.iconCircle, { backgroundColor: '#ef5350' }]}>
                     <Text style={styles.iconText}>📅</Text>
                 </View>
-                <Text style={styles.cardNumber}>{summary.absentThisMonth}</Text>
-                <Text style={styles.cardLabel}> Absent this month</Text>
+                <Text style={[styles.cardNumber, { color: theme.text }]}>{summary.absentThisMonth}</Text>
+                <Text style={[styles.cardLabel, { color: theme.textSecondary }]}> Absent this month</Text>
             </View>
 
             {/* ---- Button: Apply for Leave ---- */}

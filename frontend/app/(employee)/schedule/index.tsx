@@ -11,17 +11,21 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 export default function EmployeeScheduleScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const theme = Colors[colorScheme ?? 'light'];
   const [selected, setSelected] = useState('');
   const [markedDates, setMarkedDates] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [allShifts, setAllShifts] = useState<any[]>([]);
-  
+
   // Refs for the Bottom Sheet
   const sheetRef = useRef<BottomSheet>(null);
 
@@ -57,7 +61,7 @@ export default function EmployeeScheduleScreen() {
 
   const fetchShifts = async (month: number, year: number) => {
     if (!user?.id) return;
-    
+
     setLoading(true);
     const startOfMonth = new Date(year, month - 1, 1).toISOString();
     const endOfMonth = new Date(year, month, 0, 23, 59, 59).toISOString();
@@ -72,7 +76,7 @@ export default function EmployeeScheduleScreen() {
         const computedType = getShiftType(shift.startTime);
         marks[dateStr] = {
           marked: true,
-          dotColor: TYPE_COLORS[computedType] || '#9CA3AF', 
+          dotColor: TYPE_COLORS[computedType] || '#9CA3AF',
         };
       });
       setMarkedDates(marks);
@@ -87,7 +91,7 @@ export default function EmployeeScheduleScreen() {
   }, [user?.id]);
 
   const handleOpenShare = () => sheetRef.current?.expand();
-  
+
   const handleExport = async () => {
     try {
       setLoading(true);
@@ -108,7 +112,7 @@ export default function EmployeeScheduleScreen() {
       } else {
         Alert.alert('Error', 'Sharing is not available on this device');
       }
-      
+
       sheetRef.current?.close();
       setShowSuccess(true);
     } catch (error) {
@@ -136,24 +140,33 @@ export default function EmployeeScheduleScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" color="#000" size={24} />
+            <Ionicons name="chevron-back" color={theme.text} size={24} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Full Schedule</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Full Schedule</Text>
           <TouchableOpacity onPress={handleOpenShare}>
-            <Ionicons name="share-outline" color="#000" size={24} />
+            <Ionicons name="share-outline" color={theme.text} size={24} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.calendarCard}>
-          {loading && <ActivityIndicator style={styles.loader} color="#3B82F6" />}
+        <View style={[styles.calendarCard, { backgroundColor: theme.surface }]}>
+          {loading && <ActivityIndicator style={styles.loader} color={theme.primary} />}
           <Calendar
+            key={colorScheme}
             theme={{
               calendarBackground: 'transparent',
-              selectedDayBackgroundColor: '#3B82F6',
-              todayTextColor: '#3B82F6',
+              selectedDayBackgroundColor: theme.primary,
+              selectedDayTextColor: '#FFFFFF',
+              todayTextColor: theme.primary,
+              dayTextColor: theme.text,
+              textDayFontWeight: '500',
+              monthTextColor: theme.text,
+              textMonthFontWeight: '700',
+              textSectionTitleColor: theme.textSecondary,
+              textDisabledColor: theme.textMuted,
+              arrowColor: theme.primary,
             }}
             onDayPress={handleDayPress}
             onMonthChange={(date) => fetchShifts(date.month, date.year)}
@@ -164,27 +177,27 @@ export default function EmployeeScheduleScreen() {
           />
         </View>
 
-        <View style={styles.legendContainer}>
+        <View style={[styles.legendContainer, { backgroundColor: theme.surface }]}>
           {Object.entries(TYPE_COLORS).map(([label, color]) => (
             <View key={label} style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: color }]} />
-              <Text style={styles.legendText}>{label} Shifts</Text>
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>{label} Shifts</Text>
             </View>
           ))}
         </View>
 
         {selectedShift ? (
-          <View style={styles.shiftDetailCard}>
+          <View style={[styles.shiftDetailCard, { backgroundColor: theme.surface }]}>
             <View style={styles.shiftInfo}>
-              <Text style={styles.shiftDetailTitle}>{getShiftType(selectedShift.startTime)} Shift</Text>
-              <Text style={styles.shiftTime}>{formatTime(selectedShift.startTime)} - {formatTime(selectedShift.endTime)}</Text>
-              <Text style={styles.shiftDetailDate}>{(() => {
+              <Text style={[styles.shiftDetailTitle, { color: theme.text }]}>{getShiftType(selectedShift.startTime)} Shift</Text>
+              <Text style={[styles.shiftTime, { color: theme.textSecondary }]}>{formatTime(selectedShift.startTime)} - {formatTime(selectedShift.endTime)}</Text>
+              <Text style={[styles.shiftDetailDate, { color: theme.textMuted }]}>{(() => {
                 const [year, month, day] = selectedShift.date.split('T')[0].split('-').map(Number);
                 const d = new Date(year, month - 1, day);
                 return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
               })()}</Text>
             </View>
-            <TouchableOpacity style={styles.swapActionBtn} onPress={handleInitiateSwap}>
+            <TouchableOpacity style={[styles.swapActionBtn, { backgroundColor: theme.primary }]} onPress={handleInitiateSwap}>
               <Text style={styles.swapActionText}>Initiate Shift Swap</Text>
               <Ionicons name="swap-horizontal" size={20} color="#FFF" />
             </TouchableOpacity>
@@ -195,9 +208,9 @@ export default function EmployeeScheduleScreen() {
           </View>
         )}
 
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>To request a swap, please click on the relevant date in the calendar.</Text>
-          <Text style={styles.infoSub}>
+        <View style={[styles.infoBox, { backgroundColor: theme.card }]}>
+          <Text style={[styles.infoTitle, { color: theme.text }]}>To request a swap, please click on the relevant date in the calendar.</Text>
+          <Text style={[styles.infoSub, { color: theme.textMuted }]}>
             Please note: shift swap request must be made at least 7 days in advance.
           </Text>
         </View>
