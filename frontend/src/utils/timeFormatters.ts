@@ -5,3 +5,4 @@ export const getSecond = (d: Date) => d.getSeconds();
 export const isMorning = (d: Date) => d.getHours() < 12;
 export const isAfternoon = (d: Date) => d.getHours() >= 12;
 export const checkValidDate = (d: Date) => !isNaN(d.getTime());
+export const parseDateString = (str: string) => new Date(str);
