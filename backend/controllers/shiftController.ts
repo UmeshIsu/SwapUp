@@ -1,8 +1,7 @@
-import { Response } from "express";
-import prisma from "../services/prisma";
-import { AuthRequest } from "../middleware/authMiddleware";
+import { Request, Response } from "express";
+import prisma from "../config/db";
 
-export const getMyShifts = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getMyShifts = async (req: Request, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const year = Number(req.query.year);
     const month = Number(req.query.month);
@@ -38,7 +37,7 @@ export const getMyShifts = async (req: AuthRequest, res: Response): Promise<void
     }
 };
 
-export const getShiftById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getShiftById = async (req: Request, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const { id } = req.params;
 

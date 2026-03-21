@@ -1,9 +1,9 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import prisma from "../services/prisma";
-import { AuthRequest } from "../middleware/authMiddleware";
+import prisma from "../config/db";
+import { supabase } from "../config/supabaseClient";
 
-export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getProfile = async (req: Request, res: Response): Promise<void> => {
     const userId = req.user!.userId;
 
     try {
@@ -34,7 +34,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     }
 };
 
-export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
     const { name, email, phone, availabilityPreferences } = req.body;
     const userId = req.user!.userId;
 
@@ -65,7 +65,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     }
 };
 
-export const changePassword = async (req: AuthRequest, res: Response): Promise<void> => {
+export const changePassword = async (req: Request, res: Response): Promise<void> => {
     const { oldPassword, newPassword } = req.body;
     const userId = req.user!.userId;
 
@@ -92,7 +92,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     try {
         const user = await (prisma as any).user.findUnique({
             where: { id: userId },
-            select: { password: true },
+            select: { password: true, email: true },
         });
 
         if (!user) {
@@ -100,13 +100,38 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
             return;
         }
 
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        // Verify old password via Supabase Auth (same method used for login)
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: oldPassword,
+        });
 
-        if (!isMatch) {
+        if (signInError) {
+            console.warn(`[CHANGE_PASSWORD] Old password verification failed for ${user.email}:`, signInError.message);
             res.status(400).json({ message: "Incorrect old password" });
             return;
         }
 
+        // 1. Update password in Supabase Auth (login authenticates against Supabase)
+        const { data: supaUsers } = await supabase.auth.admin.listUsers();
+        const supaUser = supaUsers.users.find((u: any) => u.email === user.email);
+
+        if (supaUser) {
+            const { error: supaError } = await supabase.auth.admin.updateUserById(supaUser.id, {
+                password: newPassword,
+            });
+
+            if (supaError) {
+                console.error("[CHANGE_PASSWORD] Supabase update failed:", supaError.message);
+                res.status(500).json({ message: "Failed to update password in auth system" });
+                return;
+            }
+            console.log(`[CHANGE_PASSWORD] Supabase Auth password updated for ${user.email}`);
+        } else {
+            console.warn(`[CHANGE_PASSWORD] User ${user.email} not found in Supabase Auth`);
+        }
+
+        // 2. Update password in local Prisma DB
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         await (prisma as any).user.update({
@@ -114,8 +139,11 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
             data: { password: hashedPassword },
         });
 
+        console.log(`[CHANGE_PASSWORD] Prisma DB password updated for ${user.email}`);
         res.json({ message: "Password changed successfully" });
     } catch (error: any) {
+        console.error("[CHANGE_PASSWORD] Error:", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
