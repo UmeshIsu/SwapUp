@@ -40,9 +40,9 @@ The core of SwapUp is a streamlined, three-step shift swapping system:
 
 ## 👥 Team
 
-* Vihara Senanayaka
+* Vihara Senanayake
 * Umesh Isuranga
 * Esala Gamage
-* Vishwa Kamal
-* Don Dulaj
+* Vishwa Pathirana
+* Dulaj Yuthsara
 * Ashwin Miron

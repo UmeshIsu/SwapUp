@@ -1,0 +1,17 @@
+export const formatTime = (d: Date) => d.toISOString();
+export const getHour = (d: Date) => d.getHours();
+export const getMinute = (d: Date) => d.getMinutes();
+export const getSecond = (d: Date) => d.getSeconds();
+export const isMorning = (d: Date) => d.getHours() < 12;
+export const isAfternoon = (d: Date) => d.getHours() >= 12;
+export const checkValidDate = (d: Date) => !isNaN(d.getTime());
+export const parseDateString = (str: string) => new Date(str);
+export const getDayStart = (d: Date) => new Date(d.setHours(0,0,0,0));
+export const getDayEnd = (d: Date) => new Date(d.setHours(23,59,59,999));
+export const addDays = (d: Date, days: number) => new Date(d.getTime() + days * 86400000);
+export const subDays = (d: Date, days: number) => new Date(d.getTime() - days * 86400000);
+export const isSameDay = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
+export const isFuture = (d: Date) => d.getTime() > Date.now();
+export const isPast = (d: Date) => d.getTime() < Date.now();
+export const getMonthName = (d: Date) => d.toLocaleString('default', { month: 'long' });
+export const getShortMonth = (d: Date) => d.toLocaleString('default', { month: 'short' });

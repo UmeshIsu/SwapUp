@@ -23,6 +23,7 @@ interface Shift {
     location?: string;
     shiftRole?: string;
     actualCheckIn?: string;
+    actualCheckOut?: string;
 }
 
 interface Announcement {
@@ -67,7 +68,12 @@ export default function EmployeeHomeScreen() {
             })),
         ]);
 
-        if (shiftRes) setTodayShift(shiftRes.data.shift);
+        if (shiftRes) {
+            setTodayShift(shiftRes.data.shift);
+            if (shiftRes.data.shift?.actualCheckOut) {
+                setIsCheckedOut(true);
+            }
+        }
         if (announcementsRes) setAnnouncements(announcementsRes.data.announcements.slice(0, 3));
         if (swapsRes) setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
         if (leaveRes) setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
@@ -94,6 +100,21 @@ export default function EmployeeHomeScreen() {
 
     const handleCheckIn = () => {
         router.push('/(employee)/check-in' as any);
+    };
+
+    const handleCheckOut = async () => {
+        if (!todayShift) return;
+
+        setIsCheckingIn(true);
+        try {
+            await shiftAPI.checkOut(todayShift.id);
+            Alert.alert('Success', 'Checked out successfully!');
+            setIsCheckedOut(true);
+        } catch (error: any) {
+            Alert.alert('Error', error.response?.data?.message || 'Failed to check out');
+        } finally {
+            setIsCheckingIn(false);
+        }
     };
 
     const formatTime = (dateString: string) => {
@@ -408,6 +429,9 @@ const styles = StyleSheet.create({
     },
     checkedIn: {
         backgroundColor: '#10B981',
+    },
+    checkOutStyle: {
+        backgroundColor: '#F5A623',
     },
     checkInText: {
         color: '#fff',
