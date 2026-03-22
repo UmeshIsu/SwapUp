@@ -1,0 +1,17 @@
+{
+    "name": "swapup",
+    "version": "1.0.0",
+    "description": "SwapUp - Employee Management System",
+    "private": true,
+    "scripts": {
+        "dev": "npm run dev --prefix frontend",
+        "start": "npm start --prefix frontend",
+        "dev:backend": "npm run dev --prefix backend",
+        "start:backend": "npm start --prefix backend",
+        "install:all": "npm install --prefix frontend && npm install --prefix backend",
+        "lint": "npm run lint --prefix frontend"
+    },
+    "devDependencies": {
+        "concurrently": "^9.1.2"
+    }
+}

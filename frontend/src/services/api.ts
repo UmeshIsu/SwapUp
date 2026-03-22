@@ -58,13 +58,13 @@ export const authAPI = {
     login: (data: { email: string; password: string; role?: string }) =>
         api.post('/auth/login', data),
 
-    verifyHotel: (hotelName: string) => 
+    verifyHotel: (hotelName: string) =>
         api.post('/auth/verify-hotel', { hotelName }),
 
-    sendCode: (target: string, type: 'EMAIL' | 'PHONE') => 
+    sendCode: (target: string, type: 'EMAIL' | 'PHONE') =>
         api.post('/auth/send-code', { target, type }),
-        
-    verifyOtp: (email: string, token: string) => 
+
+    verifyOtp: (email: string, token: string) =>
         api.post('/auth/verify-otp', { email, token }),
 
     getProfile: () => api.get('/auth/profile'),
@@ -76,7 +76,7 @@ export const authAPI = {
 // Shift APIs
 export const shiftAPI = {
     getMyShifts: (params?: { startDate?: string; endDate?: string }) =>
-        api.get('/shifts/my', { params }),
+        api.get('/shifts/my-shifts', { params }),
     getTodayShift: () => api.get('/shifts/today'),
     getAllShifts: (params?: { startDate?: string; endDate?: string; assignedToId?: string }) =>
         api.get('/shifts', { params }),
@@ -96,6 +96,7 @@ export const shiftAPI = {
     checkOut: (id: string) => api.put(`/shifts/${id}/check-out`),
     exportToICS: (params?: { startDate?: string; endDate?: string }) =>
         api.get('/shifts/export', { params, responseType: 'text' }),
+    getManagerDashboardStats: () => api.get('/shifts/manager-dashboard-stats'),
 };
 
 // Swap Request APIs
@@ -158,6 +159,29 @@ export const chatAPI = {
         api.post('/chat/messages', data),
     getConversations: () => api.get('/chat/conversations'),
     getUnreadCount: () => api.get('/chat/unread'),
+};
+
+/**
+ * Adapter for incoming feature/-employee-profile components
+ * Provides a 'fetch'-like apiCall interface backed by the robust dev axios instance.
+ */
+export const apiCall = async (endpoint: string, options: any = {}) => {
+    const { method = 'GET', body, ...rest } = options;
+        
+    try {
+        const response = await api({
+            url: endpoint,
+            method: method.toLowerCase(),
+            data: body,
+            // Axios interceptor handles Authorization token automatically
+            headers: rest.headers,
+        });
+        return response.data;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
+        console.error(`API Error (${endpoint}):`, errorMessage);
+        throw new Error(errorMessage);
+    }
 };
 
 export default api;

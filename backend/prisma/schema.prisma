@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==========================================
@@ -97,12 +98,13 @@ model Shift {
   createdBy    String   @db.Uuid
 
   // --- NEW FIELDS ADDED ---
-  instructions String?
-  type         String?  // Morning, Afternoon, Night
-  location     String?
-  role         String?  // Shift-specific role
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt // Added to resolve errors if existing data is modified
+  instructions  String?
+  type          String?   // Morning, Afternoon, Night
+  location      String?
+  role          String?   // Shift-specific role
+  actualCheckIn DateTime? // Set by the check-in endpoint (server UTC time)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt // Added to resolve errors if existing data is modified
 
   // --- EXISTING RELATIONS ---
   employee     User     @relation("EmployeeShifts", fields: [employeeId], references: [id], onDelete: Cascade)
@@ -127,6 +129,7 @@ model Attendance {
   accuracy     Float
   status       String   // "APPROVED" | "REJECTED"
   rejectReason String?
+  checkedOutAt DateTime? // Set when employee checks out — used for overtime calc
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -1,4 +1,14 @@
 import { API_BASE_URL } from '../constants/chatApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Helper to build headers with auth token
+const getHeaders = async (json = true): Promise<Record<string, string>> => {
+    const headers: Record<string, string> = {};
+    if (json) headers['Content-Type'] = 'application/json';
+    const token = await AsyncStorage.getItem('authToken');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,7 +67,9 @@ export interface Message {
  * Fetch conversations for a specific user
  */
 export const getConversations = async (userId: string): Promise<Conversation[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/conversations/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/chat/conversations/${userId}`, {
+        headers: await getHeaders(false),
+    });
     if (!response.ok) throw new Error('Failed to fetch conversations');
     return response.json();
 };
@@ -66,7 +78,9 @@ export const getConversations = async (userId: string): Promise<Conversation[]> 
  * Fetch swap requests sent by the user
  */
 export const getSentSwapRequests = async (userId: string): Promise<SwapRequest[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/sent-swap-requests/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/chat/sent-swap-requests/${userId}`, {
+        headers: await getHeaders(false),
+    });
     if (!response.ok) throw new Error('Failed to fetch sent swap requests');
     return response.json();
 };
@@ -75,7 +89,9 @@ export const getSentSwapRequests = async (userId: string): Promise<SwapRequest[]
  * Fetch swap requests received by the user
  */
 export const getIncomingSwapRequests = async (userId: string): Promise<SwapRequest[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/incoming-swap-requests/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/chat/incoming-swap-requests/${userId}`, {
+        headers: await getHeaders(false),
+    });
     if (!response.ok) throw new Error('Failed to fetch incoming swap requests');
     return response.json();
 };
@@ -84,7 +100,9 @@ export const getIncomingSwapRequests = async (userId: string): Promise<SwapReque
  * Fetch messages for a specific conversation
  */
 export const getMessages = async (conversationId: string): Promise<Message[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/messages/${conversationId}`);
+    const response = await fetch(`${API_BASE_URL}/api/chat/messages/${conversationId}`, {
+        headers: await getHeaders(false),
+    });
     if (!response.ok) throw new Error('Failed to fetch messages');
     return response.json();
 };
@@ -95,7 +113,7 @@ export const getMessages = async (conversationId: string): Promise<Message[]> =>
 export const respondToSwapRequest = async (id: string, status: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/api/chat/swap-requests/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getHeaders(),
         body: JSON.stringify({ status }),
     });
     if (!response.ok) throw new Error('Failed to update swap request status');
@@ -107,7 +125,7 @@ export const respondToSwapRequest = async (id: string, status: string): Promise<
 export const sendMessage = async (conversationId: string, senderId: string, content: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/api/chat/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getHeaders(),
         body: JSON.stringify({
             conversationId,
             senderId,
@@ -130,7 +148,7 @@ export const sendSwapRequest = async (
 ): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/api/chat/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getHeaders(),
         body: JSON.stringify({
             conversationId,
             senderId,
@@ -154,7 +172,7 @@ export const sendSwapRequest = async (
 export const createConversation = async (userIds: string[]): Promise<Conversation> => {
     const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getHeaders(),
         body: JSON.stringify({ userIds }),
     });
     if (!response.ok) throw new Error('Failed to create/get conversation');
@@ -165,7 +183,9 @@ export const createConversation = async (userIds: string[]): Promise<Conversatio
  * [MANAGER ONLY] Fetch all swap requests needing approval
  */
 export const getManagerSwapApprovals = async (): Promise<SwapRequest[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/manager/swap-approvals`);
+    const response = await fetch(`${API_BASE_URL}/api/chat/manager/swap-approvals`, {
+        headers: await getHeaders(false),
+    });
     if (!response.ok) throw new Error('Failed to fetch manager approvals');
     return response.json();
 };
@@ -193,7 +213,9 @@ export const searchDepartmentUsers = async (
     if (!query.trim()) return [];
     const params = new URLSearchParams({ query, department, excludeUserId });
     if (tenantId) params.append('tenantId', tenantId);
-    const response = await fetch(`${API_BASE_URL}/api/chat/users/search?${params}`);
+    const response = await fetch(`${API_BASE_URL}/api/chat/users/search?${params}`, {
+        headers: await getHeaders(false),
+    });
     if (!response.ok) throw new Error('Failed to search users');
     return response.json();
 };

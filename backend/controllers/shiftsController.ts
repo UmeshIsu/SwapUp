@@ -5,9 +5,18 @@ import { prisma } from '../config/prisma';
 export const getMyShifts = async (req: Request, res: Response): Promise<void> => {
     try {
         const employeeId = req.user!.id;
+        const { startDate, endDate } = req.query;
+
+        const where: any = { employeeId };
+        
+        if (startDate || endDate) {
+            where.date = {};
+            if (startDate) where.date.gte = new Date(startDate as string);
+            if (endDate) where.date.lte = new Date(endDate as string);
+        }
 
         const shifts = await prisma.shift.findMany({
-            where: { employeeId },
+            where,
             orderBy: { date: 'asc' },
         });
 
@@ -51,14 +60,22 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
             },
         });
 
-        const colleagues = shifts.map((s: any) => ({
-            shiftId: s.id,
-            employeeId: s.employee.id,
-            name: s.employee.name,
-            role: s.employee.role,
-            startTime: s.startTime,
-            endTime: s.endTime,
-        }));
+        const colleagueMap = new Map<string, any>();
+        shifts.forEach((s: any) => {
+            // Only keep the first shift per employee to avoid duplicates
+            if (!colleagueMap.has(s.employee.id)) {
+                colleagueMap.set(s.employee.id, {
+                    shiftId: s.id,
+                    employeeId: s.employee.id,
+                    name: s.employee.name,
+                    role: s.employee.role,
+                    startTime: s.startTime,
+                    endTime: s.endTime,
+                });
+            }
+        });
+
+        const colleagues = Array.from(colleagueMap.values());
 
         res.json(colleagues);
     } catch (error) {
@@ -66,41 +83,161 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// PUT /api/shifts/:id/check-out
-export const checkOut = async (req: Request, res: Response): Promise<void> => {
+// POST /api/shifts/bulk
+export const bulkCreateShifts = async (req: Request, res: Response): Promise<void> => {
     try {
-        const id = req.params.id as string;
-        const employeeId = req.user!.id;
+        const { shifts } = req.body;
+        const managerId = req.user!.id;
 
-        if (id && id !== 'manager-check-out') {
-            const shift = await prisma.shift.findUnique({
-                where: { id }
-            });
-
-            if (!shift) {
-                res.status(404).json({ error: 'Shift not found' });
-                return;
-            }
-
-            if (shift.employeeId !== employeeId) {
-                res.status(403).json({ error: 'Not authorized for this shift' });
-                return;
-            }
+        if (!Array.isArray(shifts) || shifts.length === 0) {
+            res.status(400).json({ error: 'shifts must be a non-empty array' });
+            return;
         }
 
-        const attendance = await prisma.attendance.create({
-            data: {
-                userId: employeeId,
-                status: 'CHECKOUT',
-                lat: req.body.lat || 0,
-                lng: req.body.lng || 0,
-                accuracy: req.body.accuracy || 0,
-                rejectReason: id
-            }
+        // Extract unique dates from the shifts to clear them first
+        const datesToClear = [...new Set(shifts.map((s: any) => new Date(s.date).toISOString().split('T')[0]))];
+
+        // 1. Get tenant name for location
+        const tenant = await prisma.tenant.findUnique({
+            where: { id: req.user!.tenantId },
+            select: { companyName: true }
+        });
+        const location = tenant?.companyName || 'Unknown Location';
+
+        // 2. Get unique employee roles/departments for this batch
+        const employeeIds = [...new Set(shifts.map((s: any) => s.employeeId))];
+        const employees = await prisma.user.findMany({
+            where: { id: { in: employeeIds } },
+            select: { id: true, role: true, department: true }
+        });
+        const employeeMap = Object.fromEntries(employees.map(e => [e.id, e]));
+
+        // Helper to determine shift type
+        const getShiftType = (startTime: Date) => {
+            const hours = startTime.getHours();
+            if (hours >= 4 && hours < 12) return 'Morning';
+            if (hours >= 12 && hours < 20) return 'Afternoon';
+            return 'Night';
+        };
+
+        await prisma.$transaction(async (tx) => {
+            // 1. Delete existing shifts for these dates created by this manager
+            await tx.shift.deleteMany({
+                where: {
+                    createdBy: managerId,
+                    date: {
+                        in: datesToClear.map(d => new Date(d)),
+                    },
+                },
+            });
+
+            // 2. Create new shifts
+            await Promise.all(
+                shifts.map((s: any) => {
+                    const startDate = new Date(s.startTime);
+                    const emp = employeeMap[s.employeeId];
+                    
+                    return tx.shift.create({
+                        data: {
+                            date: new Date(s.date),
+                            startTime: startDate,
+                            endTime: new Date(s.endTime),
+                            employeeId: s.employeeId,
+                            createdBy: managerId,
+                            instructions: s.instructions || '',
+                            type: getShiftType(startDate),
+                            location: location,
+                            role: emp?.department || 'Staff', // Use department as the role if job role is not defined
+                        },
+                    });
+                })
+            );
         });
 
-        res.json({ message: 'Checked out successfully', attendance });
+        res.status(201).json({ message: `${shifts.length} shifts published successfully` });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to process checkout' });
+        console.error('bulkCreateShifts error:', error);
+        res.status(500).json({ error: 'Failed to publish shifts' });
+    }
+};
+
+// GET /api/shifts/today
+export const getTodayShift = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const employeeId = req.user!.id;
+        const now = new Date();
+        const dayStart = new Date(now);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(now);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const shift = await prisma.shift.findFirst({
+            where: {
+                employeeId,
+                date: { gte: dayStart, lte: dayEnd },
+            },
+        });
+
+        res.json({ shift });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch today\'s shift' });
+    }
+};
+
+// GET /api/shifts/export
+export const exportToICS = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const employeeId = req.user!.id;
+        const { startDate, endDate } = req.query;
+
+        const where: any = { employeeId };
+        if (startDate || endDate) {
+            where.date = {};
+            if (startDate) where.date.gte = new Date(startDate as string);
+            if (endDate) where.date.lte = new Date(endDate as string);
+        }
+
+        const shifts = await prisma.shift.findMany({
+            where,
+            orderBy: { date: 'asc' },
+        });
+
+        const formatICSDate = (date: Date) => {
+            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        };
+
+        let icsContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Swapup//Shift Schedule//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+        ].join('\r\n') + '\r\n';
+
+        shifts.forEach((shift) => {
+            const start = new Date(shift.startTime);
+            const end = new Date(shift.endTime);
+            const now = new Date();
+
+            icsContent += [
+                'BEGIN:VEVENT',
+                `UID:${shift.id}@swapup.com`,
+                `DTSTAMP:${formatICSDate(now)}`,
+                `DTSTART:${formatICSDate(start)}`,
+                `DTEND:${formatICSDate(end)}`,
+                `SUMMARY:Work Shift (${shift.type || 'Standard'})`,
+                `DESCRIPTION:Roster shift at Swapup. ${shift.instructions || ''}`,
+                'END:VEVENT',
+            ].join('\r\n') + '\r\n';
+        });
+
+        icsContent += 'END:VCALENDAR';
+
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="schedule.ics"');
+        res.send(icsContent);
+    } catch (error) {
+        console.error('exportToICS error:', error);
+        res.status(500).json({ error: 'Failed to export schedule' });
     }
 };

@@ -15,6 +15,9 @@ interface User {
     workerId?: string;
     hotelName?: string;
     tenantId?: string;
+    avatarUrl?: string;
+    availabilityPreferences?: string;
+    plan?: string;
 }
 
 interface AuthContextType {
@@ -107,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             setSelectedRole(userData.role);
         } catch (error: any) {
-            throw new Error(error.response?.data?.error || error.response?.data?.message || 'Login failed');
+            throw new Error(error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed');
         }
     };
 
@@ -143,8 +146,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             await AsyncStorage.removeItem('authToken');
             await AsyncStorage.removeItem('user');
+            await AsyncStorage.removeItem('selectedRole');
             setToken(null);
             setUser(null);
+            setSelectedRole(null);
             socketService.disconnect();
         } catch (error) {
             console.error('Error during logout:', error);
