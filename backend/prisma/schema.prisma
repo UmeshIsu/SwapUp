@@ -130,6 +130,7 @@ model Attendance {
   checkedOutAt DateTime? // null = still working; set on checkout
   status       String   // "APPROVED" | "REJECTED"
   rejectReason String?
+  checkedOutAt DateTime? // Set when employee checks out — used for overtime calc
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

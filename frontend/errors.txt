@@ -1,0 +1,1 @@
+app/(tabs)/overview.tsx(9,10): error TS2724: '"../../src/data/mock"' has no exported member named 'mockOverview'. Did you mean 'mockOvertime'?

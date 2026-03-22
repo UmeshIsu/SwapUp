@@ -11,6 +11,8 @@ import { getConversations, searchDepartmentUsers, createConversation } from '@/s
 import { getIncomingSwapRequests, getMySwapRequests, respondToSwapRequest } from '@/src/services/swapService';
 import type { Conversation, DepartmentUser } from '@/src/services/chatService';
 import type { IncomingSwapRequest, MySwapRequest } from '@/src/services/swapService';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -116,12 +118,12 @@ const formatDateSpec = (dateStr: string, start: string, end: string, role: strin
         const day = d.toLocaleDateString('en-US', { weekday: 'short' });
         const month = d.toLocaleDateString('en-US', { month: 'short' });
         const date = d.getDate();
-        
+
         const formatTime = (iso: string) => {
             const time = new Date(iso);
             return `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
         };
-        
+
         return `${role}, ${day}, ${month} ${date}, ${formatTime(start)}-${formatTime(end)}`;
     } catch {
         return dateStr;
@@ -130,7 +132,7 @@ const formatDateSpec = (dateStr: string, start: string, end: string, role: strin
 
 function SentSwapRow({ item }: { item: MySwapRequest }) {
     const targetName = item.target?.name || 'Colleague';
-    
+
     let reqShiftStr = '';
     let tgtShiftStr = '';
     if (item.requesterShift) {
@@ -173,6 +175,8 @@ export default function ChatScreen() {
     const { user } = useAuth();
     const userId = user?.id ?? '';
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     const [tab, setTab] = useState<'msg' | 'incoming' | 'sent'>('msg');
     const [convos, setConvos] = useState<Conversation[]>([]);
@@ -264,10 +268,10 @@ export default function ChatScreen() {
     const handleSwapRespond = async (swapId: string, action: 'ACCEPT' | 'REJECT') => {
         try {
             await respondToSwapRequest(swapId, action);
-            
+
             // Map the frontend ACCEPT/REJECT to backend status string
             const newStatus = action === 'ACCEPT' ? 'ACCEPTED_BY_EMPLOYEE' : 'DECLINED_BY_EMPLOYEE';
-            
+
             // Update local state
             setIncomingSwaps(prev =>
                 prev.map(s => s.id === swapId ? { ...s, status: newStatus } : s)
@@ -291,35 +295,35 @@ export default function ChatScreen() {
     ];
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
             <View style={[S.header, { paddingTop: insets.top + 12 }]}>
                 <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
-                    <Ionicons name="arrow-back" size={22} color="#111" />
+                    <Ionicons name="arrow-back" size={22} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={S.headerTitle}>Messages</Text>
+                <Text style={[S.headerTitle, { color: theme.text }]}>Messages</Text>
                 <View style={{ width: 30 }} />
             </View>
 
-            <View style={S.tabBar}>
+            <View style={[S.tabBar, { borderBottomColor: theme.border }]}>
                 {tabs.map((t) => (
                     <TouchableOpacity
                         key={t.key}
                         style={[S.tab, tab === t.key && S.tabOn]}
                         onPress={() => setTab(t.key)}
                     >
-                        <Text style={[S.tabTxt, tab === t.key && { color: '#2563EB' }]}>{t.label}</Text>
+                        <Text style={[S.tabTxt, { color: theme.textMuted }, tab === t.key && { color: theme.primary }]}>{t.label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
 
             {/* ── Search Bar (Messages tab only) ── */}
             {tab === 'msg' && (
-                <View style={S.searchContainer}>
-                    <Ionicons name="search" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
+                <View style={[S.searchContainer, { backgroundColor: theme.inputBg }]}>
+                    <Ionicons name="search" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
                     <TextInput
-                        style={S.searchInput}
+                        style={[S.searchInput, { color: theme.text }]}
                         placeholder="Search employees & managers..."
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor={theme.textMuted}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         autoCorrect={false}
@@ -334,7 +338,7 @@ export default function ChatScreen() {
 
             {/* ── Search Results Overlay ── */}
             {tab === 'msg' && searchQuery.trim().length > 0 && (
-                <View style={S.searchResultsContainer}>
+                <View style={[S.searchResultsContainer, { backgroundColor: theme.background }]}>
                     {searching ? (
                         <ActivityIndicator style={{ paddingVertical: 20 }} color="#2563EB" />
                     ) : searchResults.length === 0 ? (

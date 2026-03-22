@@ -11,16 +11,16 @@ export default function EmployeeLayout() {
             }}
         >
             <Tabs.Screen name="home" />
-            <Tabs.Screen name="schedule/index" />
-            <Tabs.Screen 
-                name="swap/initiate" 
-                options={{
-                    href: null,
-                }}
-            />
+            <Tabs.Screen name="schedule" />
             <Tabs.Screen name="chat" />
             <Tabs.Screen name="leave" />
-            <Tabs.Screen name="analysis/index" />
+            <Tabs.Screen name="analysis" />
+            <Tabs.Screen
+                name="swap/initiate"
+                options={{ href: null }}
+            />
+            <Tabs.Screen name="profile" options={{ href: null }} />
         </Tabs>
     );
 }
+

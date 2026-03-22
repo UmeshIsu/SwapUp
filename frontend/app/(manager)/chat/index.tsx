@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { getConversations, getManagerSwapApprovals, respondToSwapRequest, searchDepartmentUsers, createConversation } from '@/src/services/chatService';
 import type { DepartmentUser } from '@/src/services/chatService';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 
 
@@ -102,6 +104,8 @@ export default function ManagerChatInbox() {
     const [swaps, setSwaps] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     // ── Search state ──
     const [searchQuery, setSearchQuery] = useState('');
@@ -185,32 +189,32 @@ export default function ManagerChatInbox() {
     useEffect(() => { load(); }, [load]);
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-            <View style={S.header}><Text style={S.headerTitle}>Messages</Text></View>
-            <View style={S.tabBar}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+            <View style={S.header}><Text style={[S.headerTitle, { color: theme.text }]}>Messages</Text></View>
+            <View style={[S.tabBar, { borderBottomColor: theme.border }]}>
                 <TouchableOpacity style={[S.tab, tab === 'msg' && S.tabOn]} onPress={() => setTab('msg')}>
-                    <Text style={[S.tabTxt, tab === 'msg' && { color: '#2563EB' }]}>Messages</Text>
+                    <Text style={[S.tabTxt, { color: theme.textMuted }, tab === 'msg' && { color: theme.primary }]}>Messages</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[S.tab, tab === 'swap' && S.tabOn]} onPress={() => setTab('swap')}>
-                    <Text style={[S.tabTxt, tab === 'swap' && { color: '#2563EB' }]}>Swap Approvals</Text>
+                    <Text style={[S.tabTxt, { color: theme.textMuted }, tab === 'swap' && { color: theme.primary }]}>Swap Approvals</Text>
                 </TouchableOpacity>
             </View>
 
             {/* ── Search Bar (Messages tab only) ── */}
             {tab === 'msg' && (
-                <View style={S.searchContainer}>
-                    <Ionicons name="search" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
+                <View style={[S.searchContainer, { backgroundColor: theme.inputBg }]}>
+                    <Ionicons name="search" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
                     <TextInput
-                        style={S.searchInput}
+                        style={[S.searchInput, { color: theme.text }]}
                         placeholder="Search employees & managers..."
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor={theme.textMuted}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         autoCorrect={false}
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
-                            <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+                            <Ionicons name="close-circle" size={18} color={theme.textMuted} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -218,7 +222,7 @@ export default function ManagerChatInbox() {
 
             {/* ── Search Results Overlay ── */}
             {tab === 'msg' && searchQuery.trim().length > 0 && (
-                <View style={S.searchResultsContainer}>
+                <View style={[S.searchResultsContainer, { backgroundColor: theme.background }]}>
                     {searching ? (
                         <ActivityIndicator style={{ paddingVertical: 20 }} color="#2563EB" />
                     ) : searchResults.length === 0 ? (

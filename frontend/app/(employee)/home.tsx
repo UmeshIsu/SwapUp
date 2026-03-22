@@ -12,6 +12,8 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 interface Shift {
     id: string;
@@ -39,6 +41,9 @@ export default function EmployeeHomeScreen() {
     const [leaveBalance, setLeaveBalance] = useState(0);
     const [weekShifts, setWeekShifts] = useState<Shift[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
 
     useEffect(() => {
         loadData();
@@ -133,31 +138,31 @@ export default function EmployeeHomeScreen() {
     const weekDates = getWeekDates();
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
             >
                 {/* Header Row: Hamburger + Company Name + Icons */}
-                <View style={styles.headerRow}>
+                <View style={[styles.headerRow, { backgroundColor: theme.background }]}>
                     <View style={styles.headerLeft}>
                         {/* Hamburger menu - 3 lines stacked */}
                         <TouchableOpacity style={styles.menuButton}>
-                            <View style={styles.hamburgerLine} />
-                            <View style={[styles.hamburgerLine, { width: 14 }]} />
+                            <View style={[styles.hamburgerLine, { backgroundColor: theme.hamburger }]} />
+                            <View style={[styles.hamburgerLine, { width: 14, backgroundColor: theme.hamburger }]} />
                         </TouchableOpacity>
-                        <Text style={styles.companyName}>{user?.hotelName || 'Company name'}</Text>
+                        <Text style={[styles.companyName, { color: theme.textSecondary }]}>{user?.hotelName || 'Company name'}</Text>
                     </View>
                     <View style={styles.headerRight}>
                         {/* Bell icon with yellow fill */}
                         <TouchableOpacity style={styles.bellContainer}>
-                            <Ionicons name="notifications" size={24} color="#F5A623" />
+                            <Ionicons name="notifications" size={24} color={theme.warning} />
                             <View style={styles.bellBadge} />
                         </TouchableOpacity>
                         {/* Avatar with blue background */}
-                        <TouchableOpacity onPress={logout}>
-                            <View style={styles.avatar}>
+                        <TouchableOpacity onPress={() => router.push('/(employee)/profile' as any)}>
+                            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
                                 <Ionicons name="person" size={22} color="#fff" />
                             </View>
                         </TouchableOpacity>
@@ -165,14 +170,14 @@ export default function EmployeeHomeScreen() {
                 </View>
 
                 {/* Greeting */}
-                <View style={styles.greetingSection}>
-                    <Text style={styles.greeting}>Hello, {user?.name || 'User'} !</Text>
-                    <Text style={styles.subGreeting}>Have a nice day</Text>
+                <View style={[styles.greetingSection, { backgroundColor: theme.background }]}>
+                    <Text style={[styles.greeting, { color: theme.text }]}>Hello, {user?.name || 'User'} !</Text>
+                    <Text style={[styles.subGreeting, { color: theme.textMuted }]}>Have a nice day</Text>
                 </View>
 
                 {/* Check In Button */}
                 <TouchableOpacity
-                    style={[styles.checkInButton, todayShift?.actualCheckIn && styles.checkedIn]}
+                    style={[styles.checkInButton, { backgroundColor: theme.primary }, todayShift?.actualCheckIn && { backgroundColor: theme.success }]}
                     onPress={handleCheckIn}
                     disabled={!!todayShift?.actualCheckIn}
                     activeOpacity={0.85}
@@ -182,43 +187,29 @@ export default function EmployeeHomeScreen() {
                     </Text>
                 </TouchableOpacity>
 
-                {/* Announcement */}
-                <View style={styles.announcementCard}>
-                    <View style={styles.announcementHeader}>
-                        {/* Warning triangle icon */}
-                        <View style={styles.warningIcon}>
-                            <Text style={styles.warningIconText}>⚠</Text>
-                        </View>
-                        <Text style={styles.announcementLabel}>Announcement</Text>
-                    </View>
-                    <Text style={styles.announcementText}>
-                        {announcements.length > 0
-                            ? announcements[0].content
-                            : 'Mandatory staff meeting will be held on tomorrow'}
-                    </Text>
-                </View>
+                {/* Announcement Removed */}
 
                 {/* Today's Shift */}
-                <View style={styles.todayShiftCard}>
-                    <Text style={styles.sectionTitle}>Today' Shift</Text>
+                <View style={[styles.todayShiftCard, { backgroundColor: theme.card }]}>
+                    <Text style={[styles.sectionTitle, { color: theme.text }]}>Today' Shift</Text>
                     <View style={styles.shiftInfoRow}>
                         <View style={styles.shiftInfoItem}>
-                            <Ionicons name="time-outline" size={22} color="#1373D0" />
-                            <Text style={styles.shiftInfoText}>
+                            <Ionicons name="time-outline" size={22} color={theme.primary} />
+                            <Text style={[styles.shiftInfoText, { color: theme.textSecondary }]}>
                                 {todayShift
                                     ? `${formatTime(todayShift.startTime)}- ${formatTime(todayShift.endTime)}`
                                     : '9.00 AM- 5.00\nPM'}
                             </Text>
                         </View>
                         <View style={styles.shiftInfoItem}>
-                            <MaterialCommunityIcons name="silverware-fork-knife" size={22} color="#555" />
-                            <Text style={styles.shiftInfoText}>
+                            <MaterialCommunityIcons name="silverware-fork-knife" size={22} color={theme.iconSecondary} />
+                            <Text style={[styles.shiftInfoText, { color: theme.textSecondary }]}>
                                 {todayShift?.location || 'Main Dining\nHall'}
                             </Text>
                         </View>
                         <View style={styles.shiftInfoItem}>
-                            <FontAwesome5 name="concierge-bell" size={18} color="#555" />
-                            <Text style={styles.shiftInfoText}>
+                            <FontAwesome5 name="concierge-bell" size={18} color={theme.iconSecondary} />
+                            <Text style={[styles.shiftInfoText, { color: theme.textSecondary }]}>
                                 {todayShift?.shiftRole || 'Server'}
                             </Text>
                         </View>
@@ -226,15 +217,15 @@ export default function EmployeeHomeScreen() {
                 </View>
 
                 {/* This Week's Shift */}
-                <View style={styles.weekShiftCard}>
+                <View style={[styles.weekShiftCard, { backgroundColor: theme.card }]}>
                     <View style={styles.weekHeader}>
-                        <Text style={styles.sectionTitle}>This Week's Shift</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.text }]}>This Week's Shift</Text>
                         <TouchableOpacity
                             style={styles.fullScheduleBtn}
                             onPress={() => router.push('/schedule')}
                         >
-                            <Text style={styles.fullScheduleLink}>Full Schedule</Text>
-                            <Ionicons name="chevron-forward" size={14} color="#1373D0" />
+                            <Text style={[styles.fullScheduleLink, { color: theme.primary }]}>Full Schedule</Text>
+                            <Ionicons name="chevron-forward" size={14} color={theme.primary} />
                         </TouchableOpacity>
                     </View>
 
@@ -244,7 +235,8 @@ export default function EmployeeHomeScreen() {
                             <View key={`label-${index}`} style={styles.dayColumn}>
                                 <Text style={[
                                     styles.dayLabel,
-                                    isToday(index) && styles.dayLabelToday,
+                                    { color: theme.textMuted },
+                                    isToday(index) && { color: theme.primary, fontWeight: '700' },
                                 ]}>
                                     {getDayOfWeek(index)}
                                 </Text>
@@ -258,10 +250,11 @@ export default function EmployeeHomeScreen() {
                             <View key={`date-${index}`} style={styles.dayColumn}>
                                 <View style={[
                                     styles.dayNumberCircle,
-                                    isToday(index) && styles.dayNumberCircleToday,
+                                    isToday(index) && { backgroundColor: theme.primary },
                                 ]}>
                                     <Text style={[
                                         styles.dayNumber,
+                                        { color: theme.textSecondary },
                                         isToday(index) && styles.dayNumberToday,
                                     ]}>
                                         {weekDates[index]}
@@ -270,7 +263,8 @@ export default function EmployeeHomeScreen() {
                                 {hasShiftOnDay(index) && (
                                     <View style={[
                                         styles.shiftDot,
-                                        isToday(index) && styles.shiftDotRed,
+                                        { backgroundColor: theme.primary },
+                                        isToday(index) && { backgroundColor: theme.danger },
                                     ]} />
                                 )}
                             </View>
@@ -279,34 +273,38 @@ export default function EmployeeHomeScreen() {
                 </View>
 
                 {/* Leaves Remaining */}
-                <View style={styles.leavesCard}>
-                    <View style={styles.leavesIconWrapper}>
-                        <Ionicons name="time" size={28} color="#1373D0" />
+                <TouchableOpacity 
+                    style={[styles.leavesCard, { backgroundColor: theme.successBg }]}
+                    onPress={() => router.push('/(employee)/leave/apply' as any)}
+                    activeOpacity={0.8}
+                >
+                    <View style={[styles.leavesIconWrapper, { backgroundColor: theme.successLight }]}>
+                        <Ionicons name="time" size={28} color={theme.primary} />
                     </View>
-                    <Text style={styles.leavesCount}>{leaveBalance || 14}</Text>
-                    <Text style={styles.leavesLabel}>Leaves Remaining</Text>
-                </View>
+                    <Text style={[styles.leavesCount, { color: theme.text }]}>{leaveBalance || 14}</Text>
+                    <Text style={[styles.leavesLabel, { color: theme.text }]}>Leaves Remaining</Text>
+                </TouchableOpacity>
 
                 {/* Pending Swaps */}
                 <TouchableOpacity
-                    style={styles.swapCard}
+                    style={[styles.swapCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                     onPress={() => router.push('/(employee)/swap/pending-requests' as any)}
                     activeOpacity={0.7}
                 >
                     <View style={styles.swapLeft}>
-                        <View style={styles.swapIconContainer}>
-                            <Ionicons name="swap-horizontal" size={22} color="#1373D0" />
+                        <View style={[styles.swapIconContainer, { backgroundColor: theme.card }]}>
+                            <Ionicons name="swap-horizontal" size={22} color={theme.primary} />
                         </View>
                         <View style={styles.swapTextContainer}>
-                            <Text style={styles.swapTitle}>Pending Swaps</Text>
-                            <Text style={styles.swapSubtitle}>
+                            <Text style={[styles.swapTitle, { color: theme.text }]}>Pending Swaps</Text>
+                            <Text style={[styles.swapSubtitle, { color: theme.textMuted }]}>
                                 You have {pendingSwaps || 2} pending requests
                             </Text>
                         </View>
                     </View>
                     <View style={styles.swapRight}>
                         {(pendingSwaps > 0 || true) && <View style={styles.notificationBadge} />}
-                        <Ionicons name="chevron-forward" size={18} color="#BBBBBB" />
+                        <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
                     </View>
                 </TouchableOpacity>
 
@@ -319,11 +317,9 @@ export default function EmployeeHomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
     },
     scrollContent: {
         paddingBottom: 10,
-        backgroundColor: '#FFFFFF',
     },
 
     /* ---- Header ---- */
@@ -334,7 +330,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 12,
         paddingBottom: 6,
-        backgroundColor: '#FFFFFF',
     },
     headerLeft: {
         flexDirection: 'row',
@@ -349,13 +344,11 @@ const styles = StyleSheet.create({
     hamburgerLine: {
         width: 20,
         height: 2.5,
-        backgroundColor: '#333',
         borderRadius: 2,
         marginBottom: 4,
     },
     companyName: {
         fontSize: 14,
-        color: '#333',
         fontWeight: '500',
     },
     headerRight: {
@@ -385,7 +378,6 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#4A90D9',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -395,23 +387,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 6,
         paddingBottom: 10,
-        backgroundColor: '#FFFFFF',
     },
     greeting: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#111827',
         letterSpacing: 0.1,
     },
     subGreeting: {
         fontSize: 13,
-        color: '#9CA3AF',
         marginTop: 2,
     },
 
     /* ---- Check In Button ---- */
     checkInButton: {
-        backgroundColor: '#1373D0',
         marginHorizontal: 20,
         paddingVertical: 14,
         borderRadius: 12,
@@ -428,47 +416,8 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
     },
 
-    /* ---- Announcement ---- */
-    announcementCard: {
-        backgroundColor: '#FFFBEB',
-        marginHorizontal: 20,
-        padding: 14,
-        borderRadius: 12,
-        marginBottom: 14,
-        borderWidth: 1,
-        borderColor: '#FDE68A',
-    },
-    announcementHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 6,
-    },
-    warningIcon: {
-        width: 24,
-        height: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    warningIconText: {
-        fontSize: 18,
-        color: '#E67E22',
-    },
-    announcementLabel: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#D97706',
-    },
-    announcementText: {
-        fontSize: 13,
-        color: '#6B7280',
-        lineHeight: 20,
-        paddingLeft: 2,
-    },
-
     /* ---- Today's Shift ---- */
     todayShiftCard: {
-        backgroundColor: '#EEF4FB',
         marginHorizontal: 20,
         padding: 10,
         borderRadius: 12,
@@ -477,7 +426,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1A1A2E',
         marginBottom: 14,
     },
     shiftInfoRow: {
@@ -492,7 +440,6 @@ const styles = StyleSheet.create({
     },
     shiftInfoText: {
         fontSize: 11,
-        color: '#444',
         fontWeight: '500',
         textAlign: 'center',
         lineHeight: 16,
@@ -500,7 +447,6 @@ const styles = StyleSheet.create({
 
     /* ---- This Week's Shift ---- */
     weekShiftCard: {
-        backgroundColor: '#EEF4FB',
         marginHorizontal: 20,
         padding: 10,
         borderRadius: 12,
@@ -519,7 +465,6 @@ const styles = StyleSheet.create({
     },
     fullScheduleLink: {
         fontSize: 12,
-        color: '#1373D0',
         fontWeight: '600',
     },
     weekRow: {
@@ -533,13 +478,8 @@ const styles = StyleSheet.create({
     },
     dayLabel: {
         fontSize: 12,
-        color: '#9CA3AF',
         fontWeight: '500',
         marginBottom: 6,
-    },
-    dayLabelToday: {
-        color: '#1373D0',
-        fontWeight: '700',
     },
     dayNumberCircle: {
         width: 30,
@@ -548,12 +488,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    dayNumberCircleToday: {
-        backgroundColor: '#1373D0',
-    },
     dayNumber: {
         fontSize: 13,
-        color: '#374151',
         fontWeight: '600',
     },
     dayNumberToday: {
@@ -564,16 +500,11 @@ const styles = StyleSheet.create({
         width: 5,
         height: 5,
         borderRadius: 3,
-        backgroundColor: '#1373D0',
         marginTop: 4,
-    },
-    shiftDotRed: {
-        backgroundColor: '#EF4444',
     },
 
     /* ---- Leaves Remaining ---- */
     leavesCard: {
-        backgroundColor: '#BFFFC6',
         marginHorizontal: 20,
         paddingVertical: 16,
         paddingHorizontal: 18,
@@ -587,25 +518,21 @@ const styles = StyleSheet.create({
         width: 46,
         height: 46,
         borderRadius: 23,
-        backgroundColor: '#9BFAA4',
         alignItems: 'center',
         justifyContent: 'center',
     },
     leavesCount: {
         fontSize: 22,
         fontWeight: '800',
-        color: '#111827',
     },
     leavesLabel: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#1F2937',
         flex: 1,
     },
 
     /* ---- Pending Swaps ---- */
     swapCard: {
-        backgroundColor: '#F9F9F9',
         marginHorizontal: 20,
         paddingVertical: 16,
         paddingHorizontal: 16,
@@ -615,7 +542,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: '#F0F0F0',
     },
     swapLeft: {
         flexDirection: 'row',
@@ -627,7 +553,6 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#EEF4FB',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -637,12 +562,10 @@ const styles = StyleSheet.create({
     swapTitle: {
         fontSize: 17,
         fontWeight: '700',
-        color: '#111827',
         marginBottom: 2,
     },
     swapSubtitle: {
         fontSize: 12,
-        color: '#a4aab4ff',
     },
     swapRight: {
         flexDirection: 'row',

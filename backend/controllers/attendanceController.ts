@@ -151,3 +151,49 @@ export const postCheckOut = async (req: Request, res: Response): Promise<void> =
         res.status(500).json({ error: 'Internal server error during check-out' });
     }
 };
+
+// GET /api/attendance/status
+export const getAttendanceStatus = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        
+        const openAttendance = await prisma.attendance.findFirst({
+            where: {
+                userId,
+                status: 'APPROVED',
+                checkedOutAt: null,
+            },
+            orderBy: { checkedInAt: 'desc' },
+        });
+
+        if (openAttendance) {
+            res.json({ status: 'open', attendance: openAttendance });
+            return;
+        }
+
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setUTCHours(23, 59, 59, 999);
+
+        const completedAttendance = await prisma.attendance.findFirst({
+            where: {
+                userId,
+                status: 'APPROVED',
+                checkedOutAt: { not: null },
+                checkedInAt: { gte: todayStart, lte: todayEnd },
+            },
+        });
+
+        if (completedAttendance) {
+            res.json({ status: 'completed', attendance: completedAttendance });
+            return;
+        }
+
+        res.json({ status: 'none', attendance: null });
+    } catch (error) {
+        console.error('[attendance] getAttendanceStatus error:', error);
+        res.status(500).json({ error: 'Internal server error during status check' });
+    }
+};
+
