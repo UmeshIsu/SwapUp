@@ -100,7 +100,41 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
             }
         });
 
-        // ── 5. Build response lists ────────────────────────────────────────
+        // ── 5. Fatigue alerts — checked in > 24 h ago with no check-out ────
+        //const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+        const fatigueAttendances = await prisma.attendance.findMany({
+            where: {
+                status: 'APPROVED',
+                checkedOutAt: null,
+                checkedInAt: { lt: fiveMinutesAgo },
+                user: {
+                    department: department as any,
+                    tenantId,
+                    role: 'EMPLOYEE',
+                },
+            },
+            include: {
+                user: { select: { id: true, name: true, avatarUrl: true } },
+            },
+        });
+
+        let fatigueAlerts = fatigueAttendances.map(a => {
+            const hoursWorked = Math.round(
+                (now.getTime() - new Date(a.checkedInAt).getTime()) / (1000 * 60 * 60)
+            );
+            return {
+                id: a.user.id,
+                name: a.user.name,
+                avatarUrl: a.user.avatarUrl,
+                checkedInAt: a.checkedInAt,
+                hoursWorked,
+                message: `Warning: ${a.user.name} is working more than 24 hours. Please let them take a rest`,
+            };
+        });
+
+        // ── 6. Build response lists ────────────────────────────────────────
 
         const onDuty: any[] = [];
         const lateCheckIns: any[] = [];
@@ -132,6 +166,27 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
                         lateByMinutes,
                     });
                 }
+
+                if (attendance.checkedOutAt) {
+                    const shiftEnd = new Date(emp.shiftEnd);
+                    const checkedOutAt = new Date(attendance.checkedOutAt);
+                    const lateCheckoutByMs = checkedOutAt.getTime() - shiftEnd.getTime();
+                    const lateCheckoutByMinutes = Math.round(lateCheckoutByMs / 60000);
+
+                    if (lateCheckoutByMinutes > 5) {
+                        const hoursWorked = Math.round(
+                            (checkedOutAt.getTime() - new Date(attendance.checkedInAt).getTime()) / (1000 * 60 * 60)
+                        );
+                        fatigueAlerts.push({
+                            id: empId,
+                            name: emp.name,
+                            avatarUrl: emp.avatarUrl,
+                            checkedInAt: attendance.checkedInAt,
+                            hoursWorked,
+                            message: `Warning: ${emp.name}, working unhealthy hours. Tell him to take a break.`,
+                        });
+                    }
+                }
             } else {
                 // Not checked in — is it a valid absentee?
                 const isOnLeave = onLeaveIds.has(empId);
@@ -154,9 +209,11 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
             lateCount: lateCheckIns.length,
             absenteeCount: absentees.length,
             totalScheduled: scheduledMap.size,
+            fatigueAlertCount: fatigueAlerts.length,
             onDuty,
             lateCheckIns,
             absentees,
+            fatigueAlerts,
         });
     } catch (error) {
         console.error('getManagerDashboardStats error:', error);

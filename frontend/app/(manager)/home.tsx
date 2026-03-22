@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -11,11 +11,13 @@ import {
     FlatList,
     ActivityIndicator,
     RefreshControl,
+    Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { shiftAPI } from '@/src/services/api';
+import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 
@@ -41,14 +43,25 @@ interface AbsentEmployee {
     shiftEnd: string;
 }
 
+interface FatigueAlert {
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+    checkedInAt: string;
+    hoursWorked: number;
+    message: string;
+}
+
 interface DashboardStats {
     onDutyCount: number;
     lateCount: number;
     absenteeCount: number;
     totalScheduled: number;
+    fatigueAlertCount: number;
     onDuty: OnDutyEmployee[];
     lateCheckIns: LateEmployee[];
     absentees: AbsentEmployee[];
+    fatigueAlerts: FatigueAlert[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -78,18 +91,27 @@ export default function ManagerHomeScreen() {
     const router = useRouter();
     const { user } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [attendanceStatus, setAttendanceStatus] = useState<'open' | 'completed' | 'none'>('none');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
 
     // Modal state
-    const [modalType, setModalType] = useState<'onDuty' | 'late' | 'absentees' | null>(null);
+    const [modalType, setModalType] = useState<'onDuty' | 'late' | 'absentees' | 'fatigue' | null>(null);
+    const [bellModalVisible, setBellModalVisible] = useState(false);
 
     const fetchStats = useCallback(async () => {
         try {
             const response = await shiftAPI.getManagerDashboardStats();
             setStats(response.data);
+
+            try {
+                const attRes = await getAttendanceStatus();
+                if (attRes) setAttendanceStatus(attRes.status);
+            } catch (e) {
+                // Ignore
+            }
         } catch (error) {
             console.error('Failed to fetch dashboard stats:', error);
         } finally {
@@ -98,17 +120,48 @@ export default function ManagerHomeScreen() {
         }
     }, []);
 
-    useEffect(() => {
-        fetchStats();
-    }, [fetchStats]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchStats();
+        }, [fetchStats])
+    );
 
     const onRefresh = () => {
         setRefreshing(true);
         fetchStats();
     };
 
-    const openModal = (type: 'onDuty' | 'late' | 'absentees') => {
+    const openModal = (type: 'onDuty' | 'late' | 'absentees' | 'fatigue') => {
         setModalType(type);
+    };
+
+    const fatigueCount = stats?.fatigueAlertCount ?? 0;
+
+    const handleCheckIn = () => {
+        router.push('/(manager)/rosterCreation/checkin' as any);
+    };
+
+    const handleCheckOut = () => {
+        Alert.alert(
+            "Check Out",
+            "Are you sure you want to check out?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Check Out", 
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await postCheckOut();
+                            Alert.alert("Success", "Checked out successfully!");
+                            fetchStats(); // Refresh UI
+                        } catch (e: any) {
+                            Alert.alert("Error", e?.message || "Failed to check out.");
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     // ─── Modal Content Renderers ──────────────────────────────────────────
@@ -162,6 +215,23 @@ export default function ManagerHomeScreen() {
         </View>
     );
 
+    const renderFatigueItem = ({ item }: { item: FatigueAlert }) => (
+        <View style={ms.row}>
+            <View style={[ms.avatar, { backgroundColor: '#EF4444' }]}>
+                <MaterialIcons name="warning" size={18} color="#fff" />
+            </View>
+            <View style={ms.info}>
+                <Text style={ms.name}>{item.name}</Text>
+                <Text style={[ms.sub, { color: '#DC2626' }]}>
+                    Working for {item.hoursWorked}h+ without checkout
+                </Text>
+            </View>
+            <View style={[ms.badge, { backgroundColor: '#FEE2E2' }]}>
+                <Text style={[ms.badgeText, { color: '#DC2626' }]}>{item.hoursWorked}h</Text>
+            </View>
+        </View>
+    );
+
     const getModalConfig = () => {
         if (!stats) return { title: '', data: [] as any[], renderItem: renderOnDutyItem, emptyText: '' };
         switch (modalType) {
@@ -186,6 +256,13 @@ export default function ManagerHomeScreen() {
                     renderItem: renderAbsentItem,
                     emptyText: 'No absentees today. All employees accounted for!',
                 };
+            case 'fatigue':
+                return {
+                    title: `Fatigue Alerts (${stats.fatigueAlertCount})`,
+                    data: stats.fatigueAlerts,
+                    renderItem: renderFatigueItem,
+                    emptyText: 'No fatigue alerts. All employees have normal hours.',
+                };
             default:
                 return { title: '', data: [] as any[], renderItem: renderOnDutyItem, emptyText: '' };
         }
@@ -204,9 +281,19 @@ export default function ManagerHomeScreen() {
                     <Text style={[styles.companyName, { color: theme.textSecondary }]}>  {user?.hotelName || 'Company name'}</Text>
                 </View>
                 <View style={styles.headerRight}>
-                    <TouchableOpacity style={styles.notificationBtn}>
-                        <Ionicons name="notifications" size={24} color={theme.text} />
-                        <View style={styles.notificationDot} />
+                    <TouchableOpacity style={styles.notificationBtn} onPress={() => {
+                        if (fatigueCount > 0) {
+                            setBellModalVisible(true);
+                        }
+                    }}>
+                        <Ionicons name="notifications" size={24} color={fatigueCount > 0 ? '#EF4444' : theme.text} />
+                        {fatigueCount > 0 ? (
+                            <View style={styles.notificationBadge}>
+                                <Text style={styles.notificationBadgeText}>{fatigueCount}</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.notificationDot} />
+                        )}
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push('/(manager)/profile' as any)}>
                         <View style={styles.avatar}>
@@ -227,9 +314,18 @@ export default function ManagerHomeScreen() {
                     <Text style={[styles.greetingSubtitle, { color: theme.textSecondary }]}>Have a nice day</Text>
                 </View>
 
-                {/* Check In Button */}
-                <TouchableOpacity style={[styles.checkInButton, { backgroundColor: theme.primary }]} onPress={() => router.push('/(manager)/rosterCreation/checkin' as any)}>
-                    <Text style={styles.checkInText}>Check in</Text>
+                {/* Check In / Check Out Button */}
+                <TouchableOpacity 
+                    style={[
+                        styles.checkInButton, 
+                        { backgroundColor: theme.primary },
+                        attendanceStatus === 'open' && { backgroundColor: theme.danger || '#EF4444' }
+                    ]} 
+                    onPress={attendanceStatus === 'open' ? handleCheckOut : handleCheckIn}
+                >
+                    <Text style={styles.checkInText}>
+                        {attendanceStatus === 'open' ? 'Check out' : 'Check in'}
+                    </Text>
                 </TouchableOpacity>
 
                 {/* Today's Shifts */}
@@ -288,7 +384,25 @@ export default function ManagerHomeScreen() {
                     </TouchableOpacity>
                 ) : null}
 
-                {(stats?.lateCount ?? 0) === 0 && (stats?.absenteeCount ?? 0) === 0 && !loading && (
+                {/* Fatigue Alerts */}
+                {(stats?.fatigueAlerts ?? []).map((alert, index) => (
+                    <TouchableOpacity
+                        key={`fatigue-${alert.id}-${index}`}
+                        style={[styles.alertCard, { backgroundColor: '#FEF2F2', borderLeftWidth: 4, borderLeftColor: '#EF4444' }]}
+                        onPress={() => openModal('fatigue')}
+                    >
+                        <View style={[styles.alertIcon, { backgroundColor: '#FEE2E2' }]}>
+                            <MaterialIcons name="warning" size={22} color="#EF4444" />
+                        </View>
+                        <View style={styles.alertContent}>
+                            <Text style={[styles.alertTitle, { color: '#B91C1C' }]}>{alert.message}</Text>
+                            <Text style={styles.alertTime}>Working for {alert.hoursWorked}h+</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                ))}
+
+                {(stats?.lateCount ?? 0) === 0 && (stats?.absenteeCount ?? 0) === 0 && fatigueCount === 0 && !loading && (
                     <View style={[styles.alertCard, { backgroundColor: '#DEF7EC' }]}>
                         <View style={[styles.alertIcon, { backgroundColor: '#A7F3D0' }]}>
                             <Ionicons name="checkmark-circle" size={22} color="#059669" />
@@ -349,6 +463,32 @@ export default function ManagerHomeScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* ─── Bell Notification Modal (Fatigue Alerts) ───────────────── */}
+            <Modal visible={bellModalVisible} animationType="slide" transparent>
+                <View style={ms.overlay}>
+                    <View style={ms.sheet}>
+                        <View style={ms.header}>
+                            <Text style={ms.title}>
+                                🔔 Fatigue Alerts ({fatigueCount})
+                            </Text>
+                            <TouchableOpacity onPress={() => setBellModalVisible(false)} style={ms.closeBtn}>
+                                <Ionicons name="close" size={24} color="#333" />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={stats?.fatigueAlerts ?? []}
+                            keyExtractor={(item: FatigueAlert, index: number) => `bell-fatigue-${item.id}-${index}`}
+                            renderItem={renderFatigueItem}
+                            contentContainerStyle={{ paddingBottom: 30 }}
+                            showsVerticalScrollIndicator={false}
+                            ListEmptyComponent={
+                                <Text style={ms.emptyText}>No fatigue alerts right now.</Text>
+                            }
+                        />
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -369,6 +509,14 @@ const styles = StyleSheet.create({
         position: 'absolute', top: 2, right: 3, width: 8, height: 8,
         backgroundColor: '#333', borderRadius: 4, borderWidth: 1.5, borderColor: '#FAFAFA'
     },
+    notificationBadge: {
+        position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18,
+        backgroundColor: '#EF4444', borderRadius: 9, justifyContent: 'center', alignItems: 'center',
+        paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FAFAFA',
+    } as any,
+    notificationBadgeText: {
+        color: '#fff', fontSize: 10, fontWeight: '700',
+    } as any,
     avatar: {
         width: 32, height: 32, borderRadius: 16,
         backgroundColor: '#90CAF9', justifyContent: 'center', alignItems: 'center',

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { postCheckIn, postCheckOut } from '../controllers/attendanceController';
+import { postCheckIn, postCheckOut, getAttendanceStatus } from '../controllers/attendanceController';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -11,5 +11,8 @@ router.post('/check-in', postCheckIn);
 
 // POST /api/attendance/check-out
 router.post('/check-out', postCheckOut);
+
+// GET /api/attendance/status
+router.get('/status', getAttendanceStatus);
 
 export default router;

@@ -99,6 +99,13 @@ export const shiftAPI = {
     getManagerDashboardStats: () => api.get('/shifts/manager-dashboard-stats'),
 };
 
+// Attendance APIs
+export const attendanceAPI = {
+    checkIn: (data: { lat: number; lng: number; accuracy: number }) =>
+        api.post('/attendance/check-in', data),
+    checkOut: () => api.post('/attendance/check-out'),
+};
+
 // Swap Request APIs
 export const swapAPI = {
     createRequest: (data: {
