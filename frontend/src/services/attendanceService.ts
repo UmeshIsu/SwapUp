@@ -37,3 +37,22 @@ export async function postCheckIn(
         token,
     });
 }
+
+export interface AttendanceStatusResponse {
+    status: 'open' | 'completed' | 'none';
+    attendance?: any;
+}
+
+export async function getAttendanceStatus(): Promise<AttendanceStatusResponse> {
+    return apiRequest<AttendanceStatusResponse>('GET', '/attendance/status');
+}
+
+export interface CheckOutResponse {
+    status: 'CHECKED_OUT';
+    checkedInAt: string;
+    checkedOutAt: string;
+}
+
+export async function postCheckOut(): Promise<CheckOutResponse> {
+    return apiRequest<CheckOutResponse>('POST', '/attendance/check-out');
+}
