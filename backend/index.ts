@@ -79,7 +79,7 @@ app.set('io', io);
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({ status: 'OK', service: 'SwapUp API' });
+    res.json({ status: 'OK', service: 'SWAPUP Backend is successfully running!' });
 });
 
 // Routes
