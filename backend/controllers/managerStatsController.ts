@@ -120,7 +120,7 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
             },
         });
 
-        const fatigueAlerts = fatigueAttendances.map(a => {
+        let fatigueAlerts = fatigueAttendances.map(a => {
             const hoursWorked = Math.round(
                 (now.getTime() - new Date(a.checkedInAt).getTime()) / (1000 * 60 * 60)
             );
@@ -165,6 +165,27 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
                         ...entry,
                         lateByMinutes,
                     });
+                }
+
+                if (attendance.checkedOutAt) {
+                    const shiftEnd = new Date(emp.shiftEnd);
+                    const checkedOutAt = new Date(attendance.checkedOutAt);
+                    const lateCheckoutByMs = checkedOutAt.getTime() - shiftEnd.getTime();
+                    const lateCheckoutByMinutes = Math.round(lateCheckoutByMs / 60000);
+
+                    if (lateCheckoutByMinutes > 5) {
+                        const hoursWorked = Math.round(
+                            (checkedOutAt.getTime() - new Date(attendance.checkedInAt).getTime()) / (1000 * 60 * 60)
+                        );
+                        fatigueAlerts.push({
+                            id: empId,
+                            name: emp.name,
+                            avatarUrl: emp.avatarUrl,
+                            checkedInAt: attendance.checkedInAt,
+                            hoursWorked,
+                            message: `Warning: ${emp.name}, working unhealthy hours. Tell him to take a break.`,
+                        });
+                    }
                 }
             } else {
                 // Not checked in — is it a valid absentee?
