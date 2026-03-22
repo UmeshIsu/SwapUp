@@ -1,15 +1,17 @@
 import { useAuth } from '@/src/contexts/AuthContext';
 import { announcementAPI, leaveAPI, shiftAPI, swapAPI } from '@/src/services/api';
+import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
@@ -36,6 +38,7 @@ export default function EmployeeHomeScreen() {
     const router = useRouter();
     const { user, logout } = useAuth();
     const [todayShift, setTodayShift] = useState<Shift | null>(null);
+    const [attendanceStatus, setAttendanceStatus] = useState<'open' | 'completed' | 'none'>('none');
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [pendingSwaps, setPendingSwaps] = useState(0);
     const [leaveBalance, setLeaveBalance] = useState(0);
@@ -45,9 +48,11 @@ export default function EmployeeHomeScreen() {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [])
+    );
 
     const loadData = async () => {
         // Each call is wrapped individually so a 404 from a missing backend
@@ -56,7 +61,7 @@ export default function EmployeeHomeScreen() {
             try { return await fn(); } catch { return null; }
         };
 
-        const [shiftRes, announcementsRes, swapsRes, leaveRes, weekRes] = await Promise.all([
+        const [shiftRes, announcementsRes, swapsRes, leaveRes, weekRes, attendanceRes] = await Promise.all([
             safeFetch(() => shiftAPI.getTodayShift()),
             safeFetch(() => announcementAPI.getAnnouncements()),
             safeFetch(() => swapAPI.getPendingPeerRequests()),
@@ -65,6 +70,7 @@ export default function EmployeeHomeScreen() {
                 startDate: getWeekStart().toISOString(),
                 endDate: getWeekEnd().toISOString(),
             })),
+            safeFetch(() => getAttendanceStatus()),
         ]);
 
         if (shiftRes) setTodayShift(shiftRes.data.shift);
@@ -72,6 +78,7 @@ export default function EmployeeHomeScreen() {
         if (swapsRes) setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
         if (leaveRes) setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
         if (weekRes) setWeekShifts(Array.isArray(weekRes.data) ? weekRes.data : weekRes.data.shifts || []);
+        if (attendanceRes) setAttendanceStatus(attendanceRes.status);
     };
 
     const getWeekStart = () => {
@@ -94,6 +101,29 @@ export default function EmployeeHomeScreen() {
 
     const handleCheckIn = () => {
         router.push('/(employee)/check-in' as any);
+    };
+
+    const handleCheckOut = () => {
+        Alert.alert(
+            "Check Out",
+            "Are you sure you want to check out?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Check Out", 
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await postCheckOut();
+                            Alert.alert("Success", "Checked out successfully!");
+                            loadData(); // Refresh UI
+                        } catch (e: any) {
+                            Alert.alert("Error", e?.message || "Failed to check out.");
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const formatTime = (dateString: string) => {
@@ -175,15 +205,18 @@ export default function EmployeeHomeScreen() {
                     <Text style={[styles.subGreeting, { color: theme.textMuted }]}>Have a nice day</Text>
                 </View>
 
-                {/* Check In Button */}
+                {/* Check In / Check Out Button */}
                 <TouchableOpacity
-                    style={[styles.checkInButton, { backgroundColor: theme.primary }, todayShift?.actualCheckIn && { backgroundColor: theme.success }]}
-                    onPress={handleCheckIn}
-                    disabled={!!todayShift?.actualCheckIn}
+                    style={[
+                        styles.checkInButton,
+                        { backgroundColor: theme.primary },
+                        attendanceStatus === 'open' && { backgroundColor: theme.danger || '#EF4444' }
+                    ]}
+                    onPress={attendanceStatus === 'open' ? handleCheckOut : handleCheckIn}
                     activeOpacity={0.85}
                 >
                     <Text style={styles.checkInText}>
-                        {todayShift?.actualCheckIn ? 'Checked In ✓' : 'Check in'}
+                        {attendanceStatus === 'open' ? 'Check out' : 'Check in'}
                     </Text>
                 </TouchableOpacity>
 
