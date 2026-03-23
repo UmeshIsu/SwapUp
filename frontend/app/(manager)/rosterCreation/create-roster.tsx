@@ -81,7 +81,6 @@ export default function CreateRosterScreen() {
     })();
 
     const [selectedDayIdx, setSelectedDayIdx] = useState(defaultDayIdx);
-    
     // Store the full week's schedule
     const [weekSchedule, setWeekSchedule] = useState<Record<number, ShiftRow[]>>(() => {
         return [0, 1, 2, 3, 4, 5, 6].reduce((acc, i) => ({ ...acc, [i]: [] }), {});
@@ -227,16 +226,12 @@ export default function CreateRosterScreen() {
     const handlePublish = async () => {
         try {
             setIsLoading(true);
-            
             // Final sync of current rows to weekSchedule
             const finalWeekSchedule = { ...weekSchedule, [selectedDayIdx]: rows };
-            
             const shiftsToSave: any[] = [];
-            
             Object.entries(finalWeekSchedule).forEach(([dayIdx, dayRows]) => {
                 const idx = Number(dayIdx);
                 const selectedDate = weekDates[idx].fullDate;
-                
                 // Use local date string (YYYY-MM-DD) instead of toISOString() which shifts timezone
                 const year = selectedDate.getFullYear();
                 const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
@@ -250,7 +245,6 @@ export default function CreateRosterScreen() {
                             let [hours, minutes] = time.split(':').map(Number);
                             if (modifier === 'PM' && hours < 12) hours += 12;
                             if (modifier === 'AM' && hours === 12) hours = 0;
-                            
                             // Create a date object for the specific day at the given hours/minutes in local time
                             const d = new Date(selectedDate);
                             d.setHours(hours, minutes, 0, 0);
@@ -484,9 +478,9 @@ export default function CreateRosterScreen() {
                         <Text style={styles.modalTitle}>Select Employee</Text>
                         <ScrollView style={{ maxHeight: 300 }}>
                             {availableEmployees.map((emp) => (
-                                <TouchableOpacity 
-                                    key={emp.id} 
-                                    style={styles.empSelectItem} 
+                                <TouchableOpacity
+                                    key={emp.id}
+                                    style={styles.empSelectItem}
                                     onPress={() => confirmAddEmployee(emp)}
                                 >
                                     <View style={[styles.empAvatar, { backgroundColor: '#1565C0', width: 24, height: 24, borderRadius: 12 }]}>

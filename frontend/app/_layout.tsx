@@ -11,6 +11,9 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { AppThemeProvider } from '@/src/context/ThemeContext';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreAllLogs(false);
 
 export const unstable_settings = {
   initialRouteName: 'index',
