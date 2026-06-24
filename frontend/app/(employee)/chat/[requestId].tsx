@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
 
     // ── Swap Request Card ──
     swapCard: {
-        backgroundColor: '#F9F9F9',
+        backgroundColor: '#FFFFFF',
         borderRadius: 14,
         padding: 16,
         marginBottom: 20,

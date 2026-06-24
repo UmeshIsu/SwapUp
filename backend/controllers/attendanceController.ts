@@ -115,6 +115,91 @@ export const postCheckIn = async (req: Request, res: Response): Promise<void> =>
 };
 
 
+// ---------------------------------------------------------------------------
+// POST /api/attendance/qr-check-in
+// Body: { code: string }  — the value decoded from the restaurant's QR code.
+// Geo-fence logic above is intentionally kept but no longer used for check-in.
+// The QR value must match the user's tenant (company id or name).
+// ---------------------------------------------------------------------------
+export const postQrCheckIn = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const tenantId = req.user!.tenantId;
+        const { code } = req.body as { code?: string };
+
+        if (!code || !code.trim()) {
+            res.status(400).json({ error: 'A QR code value is required' });
+            return;
+        }
+
+        // ── Validate the scanned code against the user's restaurant (tenant) ──
+        const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+
+        // Accept any of: the configured site code, the tenant id, or the company name.
+        const scanned = code.trim().toLowerCase();
+        const siteCode = (process.env.SITE_QR_CODE ?? '').trim().toLowerCase();
+        const allowed = [
+            siteCode,
+            tenantId.toLowerCase(),
+            tenant?.companyName?.trim().toLowerCase() ?? '',
+            // Support a namespaced payload like "SWAPUP:<tenantId>"
+            `swapup:${tenantId.toLowerCase()}`,
+            tenant ? `swapup:${tenant.companyName.trim().toLowerCase()}` : '',
+        ].filter(Boolean);
+
+        if (!allowed.includes(scanned)) {
+            res.json({
+                status: 'REJECTED',
+                reason: 'This QR code does not belong to your restaurant.',
+            });
+            return;
+        }
+
+        // ── Once-per-day guard ─────────────────────────────────────────────
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setUTCHours(23, 59, 59, 999);
+
+        const existing = await prisma.attendance.findFirst({
+            where: {
+                userId,
+                status: 'APPROVED',
+                checkedInAt: { gte: todayStart, lte: todayEnd },
+            },
+        });
+
+        if (existing) {
+            res.json({
+                status: 'REJECTED',
+                reason: 'You have already checked in today.',
+            });
+            return;
+        }
+
+        // ── Approved ───────────────────────────────────────────────────────
+        // lat/lng/accuracy columns are non-nullable; QR check-ins store 0 sentinels.
+        const attendance = await prisma.attendance.create({
+            data: {
+                userId,
+                lat: 0,
+                lng: 0,
+                accuracy: 0,
+                status: 'APPROVED',
+            },
+        });
+
+        res.json({
+            status: 'APPROVED',
+            checkedInAt: attendance.checkedInAt.toISOString(),
+        });
+    } catch (error) {
+        console.error('[attendance] postQrCheckIn error:', error);
+        res.status(500).json({ error: 'Internal server error during QR check-in' });
+    }
+};
+
+
 // POST /api/attendance/check-out
 
 export const postCheckOut = async (req: Request, res: Response): Promise<void> => {

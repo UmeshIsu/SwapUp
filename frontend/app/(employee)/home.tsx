@@ -14,8 +14,26 @@ import {
     Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/src/hooks/use-color-scheme';
-import { Colors } from '@/src/constants/theme';
+import AttendanceStatusCard from '@/src/components/AttendanceStatusCard';
+
+// ─── Premium light palette ──────────────────────────────────────────────────
+const C = {
+    bg: '#F8F9FA',
+    card: '#FFFFFF',
+    text: '#0F172A',
+    textSecondary: '#475569',
+    textMuted: '#94A3B8',
+    primary: '#2563EB',
+    primarySoft: '#EFF6FF',
+    border: '#EEF1F5',
+    divider: '#E8ECF1',
+    success: '#16A34A',
+    successText: '#15803D',
+    successSoft: '#ECFDF5',
+    warning: '#EA580C',
+    warningSoft: '#FFF7ED',
+    danger: '#DC2626',
+};
 
 interface Shift {
     id: string;
@@ -45,9 +63,6 @@ export default function EmployeeHomeScreen() {
     const [leaveBalance, setLeaveBalance] = useState(0);
     const [weekShifts, setWeekShifts] = useState<Shift[]>([]);
     const [refreshing, setRefreshing] = useState(false);
-
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme ?? 'light'];
 
     useFocusEffect(
         useCallback(() => {
@@ -103,7 +118,7 @@ export default function EmployeeHomeScreen() {
     }, []);
 
     const handleCheckIn = () => {
-        router.push('/(employee)/check-in' as any);
+        router.push('/check-in-qr' as any);
     };
 
     const handleCheckOut = () => {
@@ -112,8 +127,8 @@ export default function EmployeeHomeScreen() {
             "Are you sure you want to check out?",
             [
                 { text: "Cancel", style: "cancel" },
-                { 
-                    text: "Check Out", 
+                {
+                    text: "Check Out",
                     style: "destructive",
                     onPress: async () => {
                         try {
@@ -170,109 +185,146 @@ export default function EmployeeHomeScreen() {
 
     const weekDates = getWeekDates();
 
+    // ─── Presentation helpers (display only — no data changes) ───────────────
+    const getGreeting = () => {
+        const h = new Date().getHours();
+        if (h < 12) return 'Good morning';
+        if (h < 17) return 'Good afternoon';
+        return 'Good evening';
+    };
+
+    const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : 'there');
+
+    const formatDepartment = (dept?: string) => {
+        if (!dept) return 'Team Member';
+        const map: Record<string, string> = {
+            INDIAN: 'Indian Cuisine',
+            CHINESE: 'Chinese Cuisine',
+        };
+        const label = map[dept] || dept.charAt(0).toUpperCase() + dept.slice(1).toLowerCase();
+        return `${label} Department`;
+    };
+
+    const todayLabel = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+    });
+
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
+                contentContainerStyle={styles.scrollContent}
             >
-                {/* Header Row: Hamburger + Company Name + Icons */}
-                <View style={[styles.headerRow, { backgroundColor: theme.background }]}>
-                    <View style={styles.headerLeft}>
-                        {/* Hamburger menu - 3 lines stacked */}
-                        <TouchableOpacity style={styles.menuButton}>
-                            <View style={[styles.hamburgerLine, { backgroundColor: theme.hamburger }]} />
-                            <View style={[styles.hamburgerLine, { width: 14, backgroundColor: theme.hamburger }]} />
-                        </TouchableOpacity>
-                        <Text style={[styles.companyName, { color: theme.textSecondary }]}>{user?.hotelName || 'Company name'}</Text>
-                    </View>
-                    <View style={styles.headerRight}>
-                        {/* Bell icon with yellow fill */}
-                        <TouchableOpacity style={styles.bellContainer}>
-                            <Ionicons name="notifications" size={24} color={theme.warning} />
+                {/* ─── Header ─────────────────────────────────────────────── */}
+                <View style={styles.headerTop}>
+                    <Text style={styles.eyebrow} numberOfLines={1}>
+                        {user?.hotelName || 'Company name'}
+                    </Text>
+                    <View style={styles.headerActions}>
+                        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+                            <Ionicons name="notifications-outline" size={22} color={C.textSecondary} />
                             <View style={styles.bellBadge} />
                         </TouchableOpacity>
-                        {/* Avatar with blue background */}
-                        <TouchableOpacity onPress={() => router.push('/(employee)/profile' as any)}>
-                            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                                <Ionicons name="person" size={22} color="#fff" />
+                        <TouchableOpacity
+                            onPress={() => router.push('/(employee)/profile' as any)}
+                            activeOpacity={0.8}
+                        >
+                            <View style={styles.avatar}>
+                                <Ionicons name="person" size={20} color="#fff" />
                             </View>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Greeting */}
-                <View style={[styles.greetingSection, { backgroundColor: theme.background }]}>
-                    <Text style={[styles.greeting, { color: theme.text }]}>Hello, {user?.name || 'User'} !</Text>
-                    <Text style={[styles.subGreeting, { color: theme.textMuted }]}>Have a nice day</Text>
+                <View style={styles.greetingSection}>
+                    <Text style={styles.greeting}>
+                        {getGreeting()}, {firstName}
+                    </Text>
+                    <Text style={styles.subGreeting}>{formatDepartment(user?.department)}</Text>
                 </View>
 
-                {/* Check In / Check Out Button */}
-                <TouchableOpacity
-                    style={[
-                        styles.checkInButton,
-                        { backgroundColor: theme.primary },
-                        attendanceStatus === 'open' && { backgroundColor: theme.danger || '#EF4444' }
-                    ]}
-                    onPress={attendanceStatus === 'open' ? handleCheckOut : handleCheckIn}
-                    activeOpacity={0.85}
-                >
-                    <Text style={styles.checkInText}>
-                        {attendanceStatus === 'open' ? 'Check out' : 'Check in'}
-                    </Text>
-                </TouchableOpacity>
+                {/* ─── Attendance (QR check-in) ─────────────────────────────── */}
+                <AttendanceStatusCard
+                    status={attendanceStatus}
+                    checkedInAt={todayShift?.actualCheckIn}
+                    onCheckIn={handleCheckIn}
+                    onCheckOut={handleCheckOut}
+                    style={{ marginBottom: 16 }}
+                />
 
-                {/* Announcement Removed */}
-
-                {/* Today's Shift */}
-                <View style={[styles.todayShiftCard, { backgroundColor: theme.card }]}>
-                    <Text style={[styles.sectionTitle, { color: theme.text }]}>Today' Shift</Text>
-                    <View style={styles.shiftInfoRow}>
-                        <View style={styles.shiftInfoItem}>
-                            <Ionicons name="time-outline" size={22} color={theme.primary} />
-                            <Text style={[styles.shiftInfoText, { color: theme.textSecondary }]}>
-                                {todayShift
-                                    ? `${formatTime(todayShift.startTime)}- ${formatTime(todayShift.endTime)}`
-                                    : '9.00 AM- 5.00\nPM'}
-                            </Text>
-                        </View>
-                        <View style={styles.shiftInfoItem}>
-                            <MaterialCommunityIcons name="silverware-fork-knife" size={22} color={theme.iconSecondary} />
-                            <Text style={[styles.shiftInfoText, { color: theme.textSecondary }]}>
-                                {todayShift?.location || 'Main Dining\nHall'}
-                            </Text>
-                        </View>
-                        <View style={styles.shiftInfoItem}>
-                            <FontAwesome5 name="concierge-bell" size={18} color={theme.iconSecondary} />
-                            <Text style={[styles.shiftInfoText, { color: theme.textSecondary }]}>
-                                {todayShift?.shiftRole || 'Server'}
-                            </Text>
+                {/* ─── Today's Shift (boarding-pass style) ─────────────────── */}
+                <View style={[styles.card, styles.shiftCard]}>
+                    <View style={styles.shiftHeader}>
+                        <Text style={styles.cardTitle}>Today&apos;s Shift</Text>
+                        <View style={styles.datePill}>
+                            <Text style={styles.datePillText}>{todayLabel}</Text>
                         </View>
                     </View>
+
+                    {todayShift ? (
+                        <View style={styles.ticketRow}>
+                            <View style={styles.ticketSegment}>
+                                <Ionicons name="time-outline" size={20} color={C.primary} />
+                                <Text style={styles.ticketLabel}>TIME</Text>
+                                <Text style={styles.ticketValue}>
+                                    {formatTime(todayShift.startTime)}
+                                </Text>
+                                <Text style={styles.ticketValueSub}>
+                                    {formatTime(todayShift.endTime)}
+                                </Text>
+                            </View>
+
+                            <View style={styles.ticketDivider} />
+
+                            <View style={styles.ticketSegment}>
+                                <MaterialCommunityIcons name="map-marker-outline" size={20} color={C.primary} />
+                                <Text style={styles.ticketLabel}>LOCATION</Text>
+                                <Text style={styles.ticketValue} numberOfLines={2}>
+                                    {todayShift.location || '—'}
+                                </Text>
+                            </View>
+
+                            <View style={styles.ticketDivider} />
+
+                            <View style={styles.ticketSegment}>
+                                <FontAwesome5 name="concierge-bell" size={17} color={C.primary} />
+                                <Text style={styles.ticketLabel}>ROLE</Text>
+                                <Text style={styles.ticketValue} numberOfLines={2}>
+                                    {todayShift.shiftRole || '—'}
+                                </Text>
+                            </View>
+                        </View>
+                    ) : (
+                        <View style={styles.emptyShift}>
+                            <Ionicons name="cafe-outline" size={26} color={C.textMuted} />
+                            <Text style={styles.emptyShiftText}>No shift scheduled today</Text>
+                        </View>
+                    )}
                 </View>
 
-                {/* This Week's Shift */}
-                <View style={[styles.weekShiftCard, { backgroundColor: theme.card }]}>
+                {/* ─── This Week's Shift ───────────────────────────────────── */}
+                <View style={[styles.card, styles.weekCard]}>
                     <View style={styles.weekHeader}>
-                        <Text style={[styles.sectionTitle, { color: theme.text }]}>This Week's Shift</Text>
+                        <Text style={styles.cardTitle}>This Week&apos;s Shift</Text>
                         <TouchableOpacity
                             style={styles.fullScheduleBtn}
                             onPress={() => router.push('/schedule')}
+                            activeOpacity={0.7}
                         >
-                            <Text style={[styles.fullScheduleLink, { color: theme.primary }]}>Full Schedule</Text>
-                            <Ionicons name="chevron-forward" size={14} color={theme.primary} />
+                            <Text style={styles.fullScheduleLink}>Full Schedule</Text>
+                            <Ionicons name="chevron-forward" size={14} color={C.primary} />
                         </TouchableOpacity>
                     </View>
 
-                    {/* Day labels row */}
                     <View style={styles.weekRow}>
                         {[0, 1, 2, 3, 4, 5, 6].map((index) => (
                             <View key={`label-${index}`} style={styles.dayColumn}>
                                 <Text style={[
                                     styles.dayLabel,
-                                    { color: theme.textMuted },
-                                    isToday(index) && { color: theme.primary, fontWeight: '700' },
+                                    isToday(index) && { color: C.primary, fontWeight: '700' },
                                 ]}>
                                     {getDayOfWeek(index)}
                                 </Text>
@@ -280,17 +332,15 @@ export default function EmployeeHomeScreen() {
                         ))}
                     </View>
 
-                    {/* Day numbers row */}
                     <View style={styles.weekRow}>
                         {[0, 1, 2, 3, 4, 5, 6].map((index) => (
                             <View key={`date-${index}`} style={styles.dayColumn}>
                                 <View style={[
                                     styles.dayNumberCircle,
-                                    isToday(index) && { backgroundColor: theme.primary },
+                                    isToday(index) && { backgroundColor: C.primary },
                                 ]}>
                                     <Text style={[
                                         styles.dayNumber,
-                                        { color: theme.textSecondary },
                                         isToday(index) && styles.dayNumberToday,
                                     ]}>
                                         {weekDates[index]}
@@ -299,8 +349,7 @@ export default function EmployeeHomeScreen() {
                                 {hasShiftOnDay(index) && (
                                     <View style={[
                                         styles.shiftDot,
-                                        { backgroundColor: theme.primary },
-                                        isToday(index) && { backgroundColor: theme.danger },
+                                        isToday(index) && { backgroundColor: C.warning },
                                     ]} />
                                 )}
                             </View>
@@ -308,43 +357,41 @@ export default function EmployeeHomeScreen() {
                     </View>
                 </View>
 
-                {/* Leaves Remaining */}
-                <TouchableOpacity 
-                    style={[styles.leavesCard, { backgroundColor: theme.successBg }]}
-                    onPress={() => router.push('/(employee)/leave/apply' as any)}
-                    activeOpacity={0.8}
-                >
-                    <View style={[styles.leavesIconWrapper, { backgroundColor: theme.successLight }]}>
-                        <Ionicons name="time" size={28} color={theme.primary} />
-                    </View>
-                    <Text style={[styles.leavesCount, { color: theme.text }]}>{leaveBalance || 14}</Text>
-                    <Text style={[styles.leavesLabel, { color: theme.text }]}>Leaves Remaining</Text>
-                </TouchableOpacity>
-
-                {/* Pending Swaps */}
-                <TouchableOpacity
-                    style={[styles.swapCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                    onPress={() => router.push('/(employee)/swap/pending-requests' as any)}
-                    activeOpacity={0.7}
-                >
-                    <View style={styles.swapLeft}>
-                        <View style={[styles.swapIconContainer, { backgroundColor: theme.card }]}>
-                            <Ionicons name="swap-horizontal" size={22} color={theme.primary} />
+                {/* ─── Stats Grid: Leaves + Swaps ──────────────────────────── */}
+                <View style={styles.gridRow}>
+                    <TouchableOpacity
+                        style={[styles.card, styles.gridCard, { backgroundColor: C.successSoft }]}
+                        onPress={() => router.push('/(employee)/leave/apply' as any)}
+                        activeOpacity={0.85}
+                    >
+                        <View style={[styles.gridIcon, { backgroundColor: '#FFFFFF' }]}>
+                            <Ionicons name="calendar-clear-outline" size={20} color={C.successText} />
                         </View>
-                        <View style={styles.swapTextContainer}>
-                            <Text style={[styles.swapTitle, { color: theme.text }]}>Pending Swaps</Text>
-                            <Text style={[styles.swapSubtitle, { color: theme.textMuted }]}>
-                                You have {pendingSwaps || 2} pending requests
-                            </Text>
+                        <View>
+                            <Text style={[styles.gridNumber, { color: C.successText }]}>{leaveBalance || 14}</Text>
+                            <Text style={[styles.gridLabel, { color: C.successText }]}>Leaves Remaining</Text>
                         </View>
-                    </View>
-                    <View style={styles.swapRight}>
-                        {(pendingSwaps > 0 || true) && <View style={styles.notificationBadge} />}
-                        <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
-                    </View>
-                </TouchableOpacity>
+                    </TouchableOpacity>
 
-                <View style={{ height: 20 }} />
+                    <TouchableOpacity
+                        style={[styles.card, styles.gridCard, { backgroundColor: C.warningSoft }]}
+                        onPress={() => router.push('/(employee)/swap/pending-requests' as any)}
+                        activeOpacity={0.85}
+                    >
+                        <View style={styles.gridTopRow}>
+                            <View style={[styles.gridIcon, { backgroundColor: '#FFFFFF' }]}>
+                                <Ionicons name="swap-horizontal" size={20} color={C.warning} />
+                            </View>
+                            {(pendingSwaps > 0) && <View style={styles.gridBadge} />}
+                        </View>
+                        <View>
+                            <Text style={[styles.gridNumber, { color: C.warning }]}>{pendingSwaps || 2}</Text>
+                            <Text style={[styles.gridLabel, { color: C.warning }]}>Pending Swaps</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ height: 24 }} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -353,149 +400,284 @@ export default function EmployeeHomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: C.bg,
     },
     scrollContent: {
-        paddingBottom: 10,
+        paddingHorizontal: 20,
+        paddingTop: 4,
+        paddingBottom: 12,
+        backgroundColor: C.bg,
+    },
+
+    /* Reusable premium card */
+    card: {
+        backgroundColor: C.card,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
     },
 
     /* ---- Header ---- */
-    headerRow: {
+    headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 12,
-        paddingBottom: 6,
+        paddingTop: 8,
+        marginBottom: 18,
     },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
+    eyebrow: {
+        flex: 1,
+        fontSize: 13,
+        fontWeight: '600',
+        color: C.textMuted,
+        letterSpacing: 0.3,
     },
-    menuButton: {
-        padding: 4,
-        gap: 4,
-        justifyContent: 'center',
-    },
-    hamburgerLine: {
-        width: 20,
-        height: 2.5,
-        borderRadius: 2,
-        marginBottom: 4,
-    },
-    companyName: {
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    headerRight: {
+    headerActions: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
     },
-    bellContainer: {
-        position: 'relative',
-        width: 36,
-        height: 36,
+    iconButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: C.card,
         alignItems: 'center',
         justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
     },
     bellBadge: {
         position: 'absolute',
-        top: 5,
-        right: 5,
+        top: 9,
+        right: 10,
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#EF4444',
+        backgroundColor: C.danger,
         borderWidth: 1.5,
         borderColor: '#fff',
     },
     avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: C.primary,
         alignItems: 'center',
         justifyContent: 'center',
     },
 
     /* ---- Greeting ---- */
     greetingSection: {
-        paddingHorizontal: 20,
-        paddingTop: 6,
-        paddingBottom: 10,
+        marginBottom: 18,
     },
     greeting: {
-        fontSize: 22,
-        fontWeight: '700',
-        letterSpacing: 0.1,
+        fontSize: 26,
+        fontWeight: '800',
+        color: C.text,
+        letterSpacing: -0.4,
     },
     subGreeting: {
-        fontSize: 13,
-        marginTop: 2,
+        fontSize: 14,
+        color: C.textMuted,
+        marginTop: 4,
+        fontWeight: '500',
     },
 
-    /* ---- Check In Button ---- */
-    checkInButton: {
-        marginHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    checkedIn: {
-        backgroundColor: '#10B981',
-    },
-    checkOutStyle: {
-        backgroundColor: '#F5A623',
-    },
-    checkInText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-        letterSpacing: 0.3,
-    },
-
-    /* ---- Today's Shift ---- */
-    todayShiftCard: {
-        marginHorizontal: 20,
-        padding: 10,
-        borderRadius: 12,
-        marginBottom: 10,
-    },
-    sectionTitle: {
-        fontSize: 13,
-        fontWeight: '700',
-        marginBottom: 14,
-    },
-    shiftInfoRow: {
+    /* ---- Hero status card ---- */
+    statusCard: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 18,
+        marginBottom: 16,
+    },
+    statusInfo: {
+        flex: 1,
+        paddingRight: 12,
+    },
+    statusEyebrow: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: C.textMuted,
+        letterSpacing: 0.8,
+        marginBottom: 4,
+    },
+    statusTitle: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: C.text,
+        letterSpacing: -0.3,
+    },
+    statusMeta: {
+        fontSize: 13,
+        color: C.textMuted,
+        marginTop: 4,
+        fontWeight: '500',
+    },
+    statusPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 7,
+        backgroundColor: C.successSoft,
+        paddingHorizontal: 12,
+        paddingVertical: 7,
+        borderRadius: 20,
+    },
+    statusPillNeutral: {
+        backgroundColor: C.bg,
+    },
+    statusDotGreen: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: C.success,
+    },
+    statusPillText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: C.successText,
+    },
+    checkInTouchArea: {
+        width: 64,
+        height: 64,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    pulseRing: {
+        position: 'absolute',
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: C.primary,
+    },
+    checkInCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: C.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: C.primary,
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+    },
+    checkInCircleDone: {
+        backgroundColor: C.successSoft,
+        shadowOpacity: 0,
+        elevation: 0,
+    },
+    checkOutBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: '#FECACA',
+        backgroundColor: '#FEF2F2',
+    },
+    checkOutBtnText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: C.danger,
+    },
+
+    /* ---- Today's Shift (ticket) ---- */
+    shiftCard: {
+        padding: 18,
+        marginBottom: 16,
+    },
+    shiftHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 18,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: C.text,
+        letterSpacing: -0.2,
+    },
+    datePill: {
+        backgroundColor: C.primarySoft,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    datePillText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: C.primary,
+    },
+    ticketRow: {
+        flexDirection: 'row',
         alignItems: 'flex-start',
     },
-    shiftInfoItem: {
-        alignItems: 'center',
-        gap: 8,
+    ticketSegment: {
         flex: 1,
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 4,
     },
-    shiftInfoText: {
-        fontSize: 11,
-        fontWeight: '500',
+    ticketDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: C.divider,
+        marginHorizontal: 4,
+    },
+    ticketLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: C.textMuted,
+        letterSpacing: 0.8,
+        marginTop: 2,
+    },
+    ticketValue: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: C.text,
         textAlign: 'center',
-        lineHeight: 16,
+    },
+    ticketValueSub: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: C.textMuted,
+        textAlign: 'center',
+    },
+    emptyShift: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 18,
+        gap: 8,
+    },
+    emptyShiftText: {
+        fontSize: 14,
+        color: C.textMuted,
+        fontWeight: '500',
     },
 
     /* ---- This Week's Shift ---- */
-    weekShiftCard: {
-        marginHorizontal: 20,
-        padding: 10,
-        borderRadius: 12,
-        marginBottom: 10,
+    weekCard: {
+        padding: 18,
+        marginBottom: 16,
     },
     weekHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 18,
     },
     fullScheduleBtn: {
         flexDirection: 'row',
@@ -503,13 +685,14 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     fullScheduleLink: {
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '600',
+        color: C.primary,
     },
     weekRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 2,
+        marginBottom: 6,
     },
     dayColumn: {
         alignItems: 'center',
@@ -517,106 +700,76 @@ const styles = StyleSheet.create({
     },
     dayLabel: {
         fontSize: 12,
-        fontWeight: '500',
-        marginBottom: 6,
+        fontWeight: '600',
+        color: C.textMuted,
+        marginBottom: 10,
     },
     dayNumberCircle: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
         alignItems: 'center',
         justifyContent: 'center',
     },
     dayNumber: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '600',
+        color: C.textSecondary,
     },
     dayNumberToday: {
         color: '#fff',
-        fontWeight: '700',
+        fontWeight: '800',
     },
     shiftDot: {
         width: 5,
         height: 5,
         borderRadius: 3,
-        marginTop: 4,
+        backgroundColor: C.primary,
+        marginTop: 6,
     },
 
-    /* ---- Leaves Remaining ---- */
-    leavesCard: {
-        marginHorizontal: 20,
-        paddingVertical: 16,
-        paddingHorizontal: 18,
-        borderRadius: 12,
-        marginBottom: 14,
+    /* ---- Stats grid ---- */
+    gridRow: {
         flexDirection: 'row',
-        alignItems: 'center',
         gap: 14,
     },
-    leavesIconWrapper: {
-        width: 46,
-        height: 46,
-        borderRadius: 23,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    leavesCount: {
-        fontSize: 22,
-        fontWeight: '800',
-    },
-    leavesLabel: {
-        fontSize: 17,
-        fontWeight: '600',
+    gridCard: {
         flex: 1,
-    },
-
-    /* ---- Pending Swaps ---- */
-    swapCard: {
-        marginHorizontal: 20,
-        paddingVertical: 16,
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
+        aspectRatio: 1,
+        padding: 18,
         justifyContent: 'space-between',
-        borderWidth: 1,
+        shadowOpacity: 0.03,
     },
-    swapLeft: {
+    gridTopRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 14,
-        flex: 1,
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
     },
-    swapIconContainer: {
+    gridIcon: {
         width: 44,
         height: 44,
-        borderRadius: 22,
+        borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    swapTextContainer: {
-        flex: 1,
-    },
-    swapTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        marginBottom: 2,
-    },
-    swapSubtitle: {
-        fontSize: 12,
-    },
-    swapRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    notificationBadge: {
+    gridBadge: {
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: '#F97316',
-        borderWidth: 1.5,
+        backgroundColor: C.warning,
+        borderWidth: 2,
         borderColor: '#fff',
+        marginTop: 4,
+    },
+    gridNumber: {
+        fontSize: 38,
+        fontWeight: '800',
+        letterSpacing: -1,
+    },
+    gridLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 2,
+        opacity: 0.85,
     },
 });

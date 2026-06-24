@@ -40,7 +40,7 @@ export default function SwapSummaryScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5F6FA" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
             <View style={styles.header}>
@@ -116,7 +116,7 @@ const PRIMARY = '#1373D0';
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: '#F5F6FA',
+        backgroundColor: '#F8F9FA',
     },
 
     // Header

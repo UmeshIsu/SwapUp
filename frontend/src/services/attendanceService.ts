@@ -38,6 +38,14 @@ export async function postCheckIn(
     });
 }
 
+/**
+ * QR-based check-in. Sends the value decoded from the restaurant's QR code.
+ * Replaces the geo check-in flow (the geolocation code above is kept intact).
+ */
+export async function postQrCheckIn(code: string): Promise<CheckInResponse> {
+    return apiRequest<CheckInResponse>('POST', '/attendance/qr-check-in', { code });
+}
+
 export interface AttendanceStatusResponse {
     status: 'open' | 'completed' | 'none';
     attendance?: any;

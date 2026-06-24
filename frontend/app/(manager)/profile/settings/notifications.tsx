@@ -109,7 +109,7 @@ function ToggleItem({
     const colorScheme = useColorScheme();
     
     return (
-        <View style={[styles.toggleRow, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}>
+        <View style={[styles.toggleRow, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}>
             <View style={[styles.iconContainer, { backgroundColor: colorScheme === 'dark' ? '#3C3C3C' : '#E8E8E8' }]}>
                 <IconSymbol name={icon} size={20} color="#888" />
             </View>
@@ -137,7 +137,7 @@ function RadioItem({
     
     return (
         <TouchableOpacity 
-            style={[styles.radioRow, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}
+            style={[styles.radioRow, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}
             onPress={onPress}
         >
             <ThemedText style={styles.radioLabel}>{label}</ThemedText>

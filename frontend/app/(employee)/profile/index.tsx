@@ -203,7 +203,7 @@ export default function ProfileScreen() {
             <ThemedView style={styles.section}>
                 <ThemedText style={styles.sectionTitle}>Application Settings</ThemedText>
 
-                <View style={[styles.item, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}>
+                <View style={[styles.item, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}>
                     <View style={[styles.iconContainer, { backgroundColor: colorScheme === 'dark' ? '#3C3C3C' : '#E8E8E8' }]}>
                         <IconSymbol name="moon.fill" size={20} color={theme.icon} />
                     </View>
@@ -271,7 +271,7 @@ function EditableField({
     const theme = Colors[colorScheme ?? 'light'];
 
     return (
-        <ThemedView style={[styles.editField, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}>
+        <ThemedView style={[styles.editField, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}>
             <View style={[styles.iconContainer, { backgroundColor: colorScheme === 'dark' ? '#3C3C3C' : '#E8E8E8' }]}>
                 <IconSymbol name={icon} size={20} color={theme.icon} />
             </View>
@@ -295,7 +295,7 @@ function InfoItem({ icon, label, value }: { icon: string; label: string; value: 
     const theme = Colors[colorScheme ?? 'light'];
 
     return (
-        <ThemedView style={[styles.item, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}>
+        <ThemedView style={[styles.item, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}>
             <View style={[styles.iconContainer, { backgroundColor: colorScheme === 'dark' ? '#3C3C3C' : '#E8E8E8' }]}>
                 <IconSymbol name={icon} size={20} color={theme.icon} />
             </View>
@@ -313,7 +313,7 @@ function SettingItem({ icon, label, onPress }: { icon: string; label: string; on
 
     return (
         <TouchableOpacity
-            style={[styles.item, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}
+            style={[styles.item, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}
             onPress={onPress}
         >
             <View style={[styles.iconContainer, { backgroundColor: colorScheme === 'dark' ? '#3C3C3C' : '#E8E8E8' }]}>

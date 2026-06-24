@@ -55,7 +55,7 @@ export default function CustomerSupportScreen() {
                 {faqs.map((faq, index) => (
                     <TouchableOpacity 
                         key={index}
-                        style={[styles.faqItem, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}
+                        style={[styles.faqItem, { backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}
                         onPress={() => toggleFAQ(index)}
                     >
                         <View style={styles.faqQuestion}>

@@ -379,11 +379,11 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#F8F9FA',
     },
     container: {
         flex: 1,
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#F8F9FA',
     },
 
     /* ── Header ── */
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 16,
         paddingBottom: 12,
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#F8F9FA',
     },
     backButton: {
         width: 40,

@@ -218,7 +218,7 @@ const PRIMARY = '#1373D0';
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: '#F5F6FA',
+        backgroundColor: '#F8F9FA',
     },
 
     // Header

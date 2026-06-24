@@ -214,8 +214,8 @@ function InfoCard({ icon, label, value }: { icon: any; label: string; value: str
 // Styles
 // ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FAFAFA' },
-    centeredContainer: { flex: 1, backgroundColor: '#FAFAFA', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+    container: { flex: 1, backgroundColor: '#F8F9FA' },
+    centeredContainer: { flex: 1, backgroundColor: '#F8F9FA', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 40 : 20, paddingBottom: 15,

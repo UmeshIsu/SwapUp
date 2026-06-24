@@ -44,6 +44,12 @@
       ],
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "SwapUp needs camera access to scan the restaurant QR code for attendance check-in."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/new-logo.png",

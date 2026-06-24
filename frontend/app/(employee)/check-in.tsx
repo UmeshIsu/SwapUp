@@ -232,10 +232,10 @@ export default function CheckInScreen() {
 // Styles
 // ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FAFAFA' },
+    container: { flex: 1, backgroundColor: '#F8F9FA' },
     centeredContainer: {
         flex: 1,
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#F8F9FA',
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 32,

@@ -20,6 +20,27 @@ import { shiftAPI } from '@/src/services/api';
 import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import AttendanceStatusCard from '@/src/components/AttendanceStatusCard';
+
+// ─── Premium light palette ──────────────────────────────────────────────────
+const C = {
+    bg: '#F8F9FA',
+    card: '#FFFFFF',
+    text: '#0F172A',
+    textSecondary: '#475569',
+    textMuted: '#94A3B8',
+    primary: '#2563EB',
+    primarySoft: '#EFF6FF',
+    border: '#EEF1F5',
+    success: '#16A34A',
+    successSoft: '#ECFDF5',
+    warning: '#EA580C',
+    warningSoft: '#FFF7ED',
+    danger: '#DC2626',
+    dangerSoft: '#FEF2F2',
+    alertTint: '#FFF5F5',
+    alertAccent: '#EF4444',
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -138,7 +159,7 @@ export default function ManagerHomeScreen() {
     const fatigueCount = stats?.fatigueAlertCount ?? 0;
 
     const handleCheckIn = () => {
-        router.push('/(manager)/rosterCreation/checkin' as any);
+        router.push('/check-in-qr' as any);
     };
 
     const handleCheckOut = () => {
@@ -270,23 +291,29 @@ export default function ManagerHomeScreen() {
 
     const modalConfig = getModalConfig();
 
+    // ─── Presentation helpers (display only — no data changes) ─────────────
+    const getGreeting = () => {
+        const h = new Date().getHours();
+        if (h < 12) return 'Good morning';
+        if (h < 17) return 'Good afternoon';
+        return 'Good evening';
+    };
+    const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : 'Manager');
+
     // ─── Main Render ──────────────────────────────────────────────────────
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <SafeAreaView style={styles.container}>
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.background }]}>
-                <View style={styles.headerLeft}>
-                    <Ionicons name="menu" size={28} color={theme.text} />
-                    <Text style={[styles.companyName, { color: theme.textSecondary }]}>  {user?.hotelName || 'Company name'}</Text>
-                </View>
+            <View style={styles.header}>
+                <Text style={styles.eyebrow} numberOfLines={1}>{user?.hotelName || 'Company name'}</Text>
                 <View style={styles.headerRight}>
                     <TouchableOpacity style={styles.notificationBtn} onPress={() => {
                         if (fatigueCount > 0) {
                             setBellModalVisible(true);
                         }
                     }}>
-                        <Ionicons name="notifications" size={24} color={fatigueCount > 0 ? '#EF4444' : theme.text} />
+                        <Ionicons name="notifications-outline" size={22} color={fatigueCount > 0 ? C.danger : C.textSecondary} />
                         {fatigueCount > 0 ? (
                             <View style={styles.notificationBadge}>
                                 <Text style={styles.notificationBadgeText}>{fatigueCount}</Text>
@@ -306,81 +333,84 @@ export default function ManagerHomeScreen() {
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1976D2']} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} colors={[C.primary]} />}
             >
                 {/* Greeting */}
                 <View style={styles.greetingSection}>
-                    <Text style={[styles.managerTitle, { color: theme.text }]}>Manager</Text>
-                    <Text style={[styles.greetingSubtitle, { color: theme.textSecondary }]}>Have a nice day</Text>
+                    <Text style={styles.greeting}>{getGreeting()}, {firstName}</Text>
+                    <Text style={styles.greetingSubtitle}>Here is your daily overview.</Text>
                 </View>
 
-                {/* Check In / Check Out Button */}
-                <TouchableOpacity 
-                    style={[
-                        styles.checkInButton, 
-                        { backgroundColor: theme.primary },
-                        attendanceStatus === 'open' && { backgroundColor: theme.danger || '#EF4444' }
-                    ]} 
-                    onPress={attendanceStatus === 'open' ? handleCheckOut : handleCheckIn}
-                >
-                    <Text style={styles.checkInText}>
-                        {attendanceStatus === 'open' ? 'Check out' : 'Check in'}
-                    </Text>
-                </TouchableOpacity>
+                {/* Attendance (QR check-in) */}
+                <AttendanceStatusCard
+                    status={attendanceStatus}
+                    onCheckIn={handleCheckIn}
+                    onCheckOut={handleCheckOut}
+                    style={{ marginBottom: 24 }}
+                />
 
                 {/* Today's Shifts */}
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>Today's Shifts</Text>
+                <Text style={styles.sectionTitle}>Today&apos;s Shifts</Text>
                 {loading ? (
-                    <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 20 }} />
+                    <ActivityIndicator size="large" color={C.primary} style={{ marginVertical: 20 }} />
                 ) : (
                     <View style={styles.statsGrid}>
-                        <TouchableOpacity style={[styles.statCard, { backgroundColor: '#DEF7EC' }]} onPress={() => openModal('onDuty')}>
+                        <TouchableOpacity style={[styles.card, styles.statCard]} onPress={() => openModal('onDuty')} activeOpacity={0.85}>
+                            <View style={[styles.statIcon, { backgroundColor: C.successSoft }]}>
+                                <Ionicons name="people" size={20} color={C.success} />
+                            </View>
+                            <Text style={styles.statValue}>{stats?.onDutyCount ?? 0}</Text>
                             <Text style={styles.statLabel}>Employees on Duty</Text>
-                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.onDutyCount ?? 0}</Text>
-                            <Ionicons name="chevron-forward" size={16} color="#059669" style={styles.statArrow} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.statCard, { backgroundColor: '#FEF3C7' }]} onPress={() => openModal('late')}>
+                        <TouchableOpacity style={[styles.card, styles.statCard]} onPress={() => openModal('late')} activeOpacity={0.85}>
+                            <View style={[styles.statIcon, { backgroundColor: C.warningSoft }]}>
+                                <Ionicons name="time" size={20} color={C.warning} />
+                            </View>
+                            <Text style={styles.statValue}>{stats?.lateCount ?? 0}</Text>
                             <Text style={styles.statLabel}>Late Check-ins</Text>
-                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.lateCount ?? 0}</Text>
-                            <Ionicons name="chevron-forward" size={16} color="#D97706" style={styles.statArrow} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.statCard, { backgroundColor: '#FEE2E2' }]} onPress={() => openModal('absentees')}>
+                        <TouchableOpacity style={[styles.card, styles.statCard]} onPress={() => openModal('absentees')} activeOpacity={0.85}>
+                            <View style={[styles.statIcon, { backgroundColor: C.dangerSoft }]}>
+                                <Ionicons name="person-remove" size={19} color={C.danger} />
+                            </View>
+                            <Text style={styles.statValue}>{stats?.absenteeCount ?? 0}</Text>
                             <Text style={styles.statLabel}>Absentees</Text>
-                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.absenteeCount ?? 0}</Text>
-                            <Ionicons name="chevron-forward" size={16} color="#DC2626" style={styles.statArrow} />
                         </TouchableOpacity>
-                        <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-                            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Total Scheduled</Text>
-                            <Text style={[styles.statValue, { color: theme.text }]}>{stats?.totalScheduled ?? 0}</Text>
+                        <View style={[styles.card, styles.statCard]}>
+                            <View style={[styles.statIcon, { backgroundColor: C.primarySoft }]}>
+                                <Ionicons name="calendar" size={19} color={C.primary} />
+                            </View>
+                            <Text style={styles.statValue}>{stats?.totalScheduled ?? 0}</Text>
+                            <Text style={styles.statLabel}>Total Scheduled</Text>
                         </View>
                     </View>
                 )}
 
                 {/* Critical Alerts */}
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>Critical Alerts</Text>
+                <Text style={styles.sectionTitle}>Critical Alerts</Text>
                 {(stats?.lateCount ?? 0) > 0 ? (
-                    <TouchableOpacity style={[styles.alertCard, { backgroundColor: theme.card }]} onPress={() => openModal('late')}>
-                        <View style={[styles.alertIcon, { backgroundColor: '#FDECE8' }]}>
-                            <MaterialIcons name="schedule" size={22} color="#E53935" />
+                    <TouchableOpacity style={styles.alertCard} onPress={() => openModal('late')} activeOpacity={0.85}>
+                        <View style={[styles.alertIcon, { backgroundColor: '#FEE2E2' }]}>
+                            <MaterialIcons name="schedule" size={20} color={C.alertAccent} />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={[styles.alertTitle, { color: theme.text }]}>{stats?.lateCount} employee{(stats?.lateCount ?? 0) > 1 ? 's' : ''} checked in late</Text>
-                            <Text style={[styles.alertTime, { color: theme.textMuted }]}>Today</Text>
+                            <Text style={styles.alertTitle}>{stats?.lateCount} employee{(stats?.lateCount ?? 0) > 1 ? 's' : ''} checked in late</Text>
+                            <Text style={styles.alertTime}>Today</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+                        <Ionicons name="chevron-forward" size={20} color={C.alertAccent} />
                     </TouchableOpacity>
                 ) : null}
 
                 {(stats?.absenteeCount ?? 0) > 0 ? (
-                    <TouchableOpacity style={[styles.alertCard, { backgroundColor: theme.card }]} onPress={() => openModal('absentees')}>
+                    <TouchableOpacity style={styles.alertCard} onPress={() => openModal('absentees')} activeOpacity={0.85}>
                         <View style={[styles.alertIcon, { backgroundColor: '#FEE2E2' }]}>
-                            <Ionicons name="alert-circle" size={22} color="#DC2626" />
+                            <Ionicons name="alert-circle" size={21} color={C.danger} />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={[styles.alertTitle, { color: theme.text }]}>{stats?.absenteeCount} employee{(stats?.absenteeCount ?? 0) > 1 ? 's' : ''} absent</Text>
-                            <Text style={[styles.alertTime, { color: theme.textMuted }]}>Today</Text>
+                            <Text style={styles.alertTitle}>{stats?.absenteeCount} employee{(stats?.absenteeCount ?? 0) > 1 ? 's' : ''} absent</Text>
+                            <Text style={styles.alertTime}>Today</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+                        <Ionicons name="chevron-forward" size={20} color={C.alertAccent} />
                     </TouchableOpacity>
                 ) : null}
 
@@ -388,51 +418,52 @@ export default function ManagerHomeScreen() {
                 {(stats?.fatigueAlerts ?? []).map((alert, index) => (
                     <TouchableOpacity
                         key={`fatigue-${alert.id}-${index}`}
-                        style={[styles.alertCard, { backgroundColor: '#FEF2F2', borderLeftWidth: 4, borderLeftColor: '#EF4444' }]}
+                        style={styles.alertCard}
                         onPress={() => openModal('fatigue')}
+                        activeOpacity={0.85}
                     >
                         <View style={[styles.alertIcon, { backgroundColor: '#FEE2E2' }]}>
-                            <MaterialIcons name="warning" size={22} color="#EF4444" />
+                            <MaterialIcons name="warning" size={20} color={C.alertAccent} />
                         </View>
                         <View style={styles.alertContent}>
                             <Text style={[styles.alertTitle, { color: '#B91C1C' }]}>{alert.message}</Text>
                             <Text style={styles.alertTime}>Working for {alert.hoursWorked}h+</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+                        <Ionicons name="chevron-forward" size={20} color={C.alertAccent} />
                     </TouchableOpacity>
                 ))}
 
                 {(stats?.lateCount ?? 0) === 0 && (stats?.absenteeCount ?? 0) === 0 && fatigueCount === 0 && !loading && (
-                    <View style={[styles.alertCard, { backgroundColor: '#DEF7EC' }]}>
-                        <View style={[styles.alertIcon, { backgroundColor: '#A7F3D0' }]}>
-                            <Ionicons name="checkmark-circle" size={22} color="#059669" />
+                    <View style={[styles.alertCard, styles.alertCardClear]}>
+                        <View style={[styles.alertIcon, { backgroundColor: C.successSoft }]}>
+                            <Ionicons name="checkmark-circle" size={21} color={C.success} />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={[styles.alertTitle, { color: theme.text }]}>All clear — no alerts today!</Text>
+                            <Text style={styles.alertTitle}>All clear — no alerts today!</Text>
                         </View>
                     </View>
                 )}
 
                 {/* Quick Actions */}
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>Quick Actions</Text>
+                <Text style={styles.sectionTitle}>Quick Actions</Text>
                 <View style={styles.quickActions}>
-                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/chat/' as any)}>
-                        <View style={[styles.actionIconBox, { backgroundColor: theme.card }]}>
-                            <MaterialCommunityIcons name="swap-horizontal" size={24} color={theme.primary} />
+                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/chat/' as any)} activeOpacity={0.8}>
+                        <View style={styles.actionIconBox}>
+                            <MaterialCommunityIcons name="swap-horizontal" size={24} color={C.primary} />
                         </View>
-                        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>Approve{'\n'}Swaps</Text>
+                        <Text style={styles.actionLabel}>Approve{'\n'}Swaps</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/leaveManagment' as any)}>
-                        <View style={[styles.actionIconBox, { backgroundColor: theme.card }]}>
-                            <MaterialIcons name="event-note" size={24} color={theme.primary} />
+                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/leaveManagment' as any)} activeOpacity={0.8}>
+                        <View style={styles.actionIconBox}>
+                            <MaterialIcons name="event-note" size={24} color={C.primary} />
                         </View>
-                        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>Manage{'\n'}Leaves</Text>
+                        <Text style={styles.actionLabel}>Manage{'\n'}Leaves</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionItem}>
-                        <View style={[styles.actionIconBox, { backgroundColor: theme.card }]}>
-                            <MaterialIcons name="insert-chart-outlined" size={24} color={theme.primary} />
+                    <TouchableOpacity style={styles.actionItem} activeOpacity={0.8}>
+                        <View style={styles.actionIconBox}>
+                            <MaterialIcons name="insert-chart-outlined" size={24} color={C.primary} />
                         </View>
-                        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>View{'\n'}Analytics</Text>
+                        <Text style={styles.actionLabel}>View{'\n'}Analytics</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -496,67 +527,116 @@ export default function ManagerHomeScreen() {
 // ─── Main Styles ──────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FAFAFA' },
+    container: { flex: 1, backgroundColor: C.bg },
+
+    /* Reusable premium card */
+    card: {
+        backgroundColor: C.card,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+
+    /* ---- Header ---- */
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 40 : 20, paddingBottom: 15,
+        paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 40 : 20, paddingBottom: 12,
+        backgroundColor: C.bg,
     },
-    headerLeft: { flexDirection: 'row', alignItems: 'center' },
-    companyName: { fontSize: 13, color: '#333', marginLeft: 4, fontWeight: '500' },
-    headerRight: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-    notificationBtn: { position: 'relative' },
+    eyebrow: { flex: 1, fontSize: 13, color: C.textMuted, fontWeight: '600', letterSpacing: 0.3 },
+    headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    notificationBtn: {
+        position: 'relative',
+        width: 42, height: 42, borderRadius: 21,
+        backgroundColor: C.card, alignItems: 'center', justifyContent: 'center',
+        shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    },
     notificationDot: {
-        position: 'absolute', top: 2, right: 3, width: 8, height: 8,
-        backgroundColor: '#333', borderRadius: 4, borderWidth: 1.5, borderColor: '#FAFAFA'
+        position: 'absolute', top: 11, right: 12, width: 8, height: 8,
+        backgroundColor: C.textMuted, borderRadius: 4, borderWidth: 1.5, borderColor: '#fff'
     },
     notificationBadge: {
-        position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18,
-        backgroundColor: '#EF4444', borderRadius: 9, justifyContent: 'center', alignItems: 'center',
-        paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FAFAFA',
+        position: 'absolute', top: 4, right: 4, minWidth: 18, height: 18,
+        backgroundColor: C.alertAccent, borderRadius: 9, justifyContent: 'center', alignItems: 'center',
+        paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#fff',
     } as any,
     notificationBadgeText: {
         color: '#fff', fontSize: 10, fontWeight: '700',
     } as any,
     avatar: {
-        width: 32, height: 32, borderRadius: 16,
-        backgroundColor: '#90CAF9', justifyContent: 'center', alignItems: 'center',
+        width: 42, height: 42, borderRadius: 21,
+        backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center',
     },
     scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
-    greetingSection: { marginBottom: 15 },
-    managerTitle: { fontSize: 32, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-    greetingSubtitle: { fontSize: 13, color: '#666', marginTop: 2, fontWeight: '500' },
-    checkInButton: {
-        backgroundColor: '#1976D2', borderRadius: 12, paddingVertical: 16,
-        alignItems: 'center', marginBottom: 25,
-        shadowColor: '#1976D2', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
+
+    /* ---- Greeting ---- */
+    greetingSection: { marginBottom: 18, marginTop: 4 },
+    greeting: { fontSize: 26, fontWeight: '800', color: C.text, letterSpacing: -0.4 },
+    greetingSubtitle: { fontSize: 14, color: C.textMuted, marginTop: 4, fontWeight: '500' },
+
+    /* ---- Attendance status bar ---- */
+    statusBar: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingVertical: 14, paddingHorizontal: 18, marginBottom: 24,
     },
-    checkInText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-    sectionTitle: { fontSize: 17, fontWeight: '700', color: '#1a1a1a', marginBottom: 15 },
-    statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 25 },
+    statusLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    statusDot: { width: 10, height: 10, borderRadius: 5 },
+    statusEyebrow: { fontSize: 10, fontWeight: '700', color: C.textMuted, letterSpacing: 0.8 },
+    statusValue: { fontSize: 16, fontWeight: '700', color: C.text, marginTop: 2 },
+    statusPill: {
+        flexDirection: 'row', alignItems: 'center', gap: 7,
+        paddingHorizontal: 18, paddingVertical: 10, borderRadius: 24,
+    },
+    statusPillIn: { backgroundColor: C.primary },
+    statusPillOut: { backgroundColor: '#FEF2F2', borderWidth: 1.5, borderColor: '#FECACA' },
+    statusPillText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+
+    /* ---- Section titles ---- */
+    sectionTitle: { fontSize: 16, fontWeight: '700', color: C.text, marginBottom: 14, letterSpacing: -0.2 },
+
+    /* ---- Stats grid (2x2) ---- */
+    statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
     statCard: {
-        flex: 1, minWidth: '45%', backgroundColor: '#EEF2FF',
-        borderRadius: 16, padding: 16, position: 'relative',
+        flex: 1, minWidth: '46%',
+        padding: 16,
     },
-    statLabel: { fontSize: 12, color: '#555', fontWeight: '500', marginBottom: 10 },
-    statValue: { fontSize: 24, fontWeight: '700', color: '#1a1a1a' },
-    statArrow: { position: 'absolute', top: 16, right: 14 },
+    statIcon: {
+        width: 38, height: 38, borderRadius: 12,
+        alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+    },
+    statValue: { fontSize: 30, fontWeight: '800', color: C.text, letterSpacing: -0.8 },
+    statLabel: { fontSize: 12.5, color: C.textSecondary, fontWeight: '600', marginTop: 2 },
+
+    /* ---- Critical alerts ---- */
     alertCard: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF2FF',
-        borderRadius: 16, padding: 12, marginBottom: 12,
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: C.alertTint,
+        borderRadius: 16, padding: 14, marginBottom: 12,
+        borderLeftWidth: 4, borderLeftColor: C.alertAccent,
+    },
+    alertCardClear: {
+        backgroundColor: '#F0FDF4',
+        borderLeftColor: C.success,
     },
     alertIcon: {
-        width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 15
+        width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 14,
     },
     alertContent: { flex: 1 },
-    alertTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a', marginBottom: 4 },
-    alertTime: { fontSize: 12, color: '#888' },
-    quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5, marginBottom: 20 },
-    actionItem: { alignItems: 'center', width: '22%' },
+    alertTitle: { fontSize: 14.5, fontWeight: '700', color: C.text, marginBottom: 2 },
+    alertTime: { fontSize: 12, color: C.textMuted, fontWeight: '500' },
+
+    /* ---- Quick actions ---- */
+    quickActions: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 5, marginBottom: 20 },
+    actionItem: { alignItems: 'center', width: '28%' },
     actionIconBox: {
-        width: 50, height: 50, borderRadius: 25, backgroundColor: '#E3F2FD',
-        justifyContent: 'center', alignItems: 'center', marginBottom: 8,
+        width: 58, height: 58, borderRadius: 29, backgroundColor: C.card,
+        justifyContent: 'center', alignItems: 'center', marginBottom: 10,
+        shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2,
     },
-    actionLabel: { fontSize: 11, color: '#333', textAlign: 'center', fontWeight: '500', lineHeight: 14 },
+    actionLabel: { fontSize: 12, color: C.textSecondary, textAlign: 'center', fontWeight: '500', lineHeight: 16 },
 });
 
 // ─── Modal Styles ─────────────────────────────────────────────────────────────

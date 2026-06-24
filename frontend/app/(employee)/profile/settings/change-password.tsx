@@ -81,7 +81,7 @@ export default function ChangePasswordScreen() {
                 <ThemedText style={styles.label}>Current Password</ThemedText>
                 <View style={styles.inputContainer}>
                     <TextInput
-                        style={[styles.input, { color: theme.text, backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}
+                        style={[styles.input, { color: theme.text, backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}
                         secureTextEntry={!showCurrent}
                         placeholder="••••••••"
                         placeholderTextColor="#888"
@@ -106,7 +106,7 @@ export default function ChangePasswordScreen() {
                 <ThemedText style={styles.label}>New Password</ThemedText>
                 <View style={styles.inputContainer}>
                     <TextInput
-                        style={[styles.input, { color: theme.text, backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}
+                        style={[styles.input, { color: theme.text, backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}
                         secureTextEntry={!showNew}
                         placeholder="••••••••"
                         placeholderTextColor="#888"
@@ -148,7 +148,7 @@ export default function ChangePasswordScreen() {
                 <ThemedText style={styles.label}>Confirm New Password</ThemedText>
                 <View style={styles.inputContainer}>
                     <TextInput
-                        style={[styles.input, { color: theme.text, backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#F9F9F9' }]}
+                        style={[styles.input, { color: theme.text, backgroundColor: colorScheme === 'dark' ? '#2C2C2C' : '#FFFFFF' }]}
                         secureTextEntry={!showConfirm}
                         placeholder="Confirm your new password"
                         placeholderTextColor="#888"

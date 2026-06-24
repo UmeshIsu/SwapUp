@@ -8,6 +8,7 @@ export default function EmployeeLayout() {
             tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
+                sceneStyle: { backgroundColor: '#F8F9FA' },
             }}
         >
             <Tabs.Screen name="home" />

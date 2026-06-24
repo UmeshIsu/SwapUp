@@ -147,7 +147,7 @@ export default function ManagerEmployeesScreen() {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#F8F9FA',
     },
     headerContainer: {
         alignItems: 'center',
