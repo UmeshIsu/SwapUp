@@ -17,6 +17,7 @@ import { getManagerLeaveRequests, approveLeaveRequest, declineLeaveRequest, Leav
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 type Tab = 'Pending' | 'Approved' | 'Declined';
 
@@ -93,17 +94,10 @@ export default function ManagerLeaveDashboard() {
 
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
 
-            {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.background }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Text style={[styles.backArrow, { color: theme.text }]}>←</Text>
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Leave Requests</Text>
-                <View style={{ width: 40 }} />
-            </View>
+            <ScreenHeader title="Leave Requests" />
 
             {/* Tab Bar */}
             <View style={[styles.tabBar, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
@@ -171,7 +165,7 @@ export default function ManagerLeaveDashboard() {
                     ))
                 )}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 

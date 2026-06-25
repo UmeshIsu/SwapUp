@@ -16,6 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { authAPI, shiftAPI } from '../../../src/services/api';
 import { useEffect } from 'react';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 // Day names (fixed order Mon–Sun)
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -284,15 +285,8 @@ export default function CreateRosterScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Create/Edit Weekly Roster</Text>
-                <View style={{ width: 24 }} />
-            </View>
+        <View style={styles.container}>
+            <ScreenHeader title="Create/Edit Weekly Roster" />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Week Label */}
@@ -503,7 +497,7 @@ export default function CreateRosterScreen() {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 }
 

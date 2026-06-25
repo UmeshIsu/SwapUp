@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/src/constants/colors";
+import ScreenHeader from "@/src/components/ScreenHeader";
 
 // Assuming we want a native alike look
 import * as RN from "react-native";
@@ -110,9 +111,9 @@ export default function RoleManagementScreen() {
   };
 
   return (
-    <RN.SafeAreaView style={styles.container}>
-      <RN.View style={styles.header}>
-        <RN.Text style={styles.headerTitle}>Role Management</RN.Text>
+    <RN.View style={styles.container}>
+      <ScreenHeader title="Role Management" />
+      <RN.View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12 }}>
         <RN.Text style={styles.headerSubtitle}>Manage access levels for your team</RN.Text>
       </RN.View>
 
@@ -123,7 +124,7 @@ export default function RoleManagementScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </RN.SafeAreaView>
+    </RN.View>
   );
 }
 

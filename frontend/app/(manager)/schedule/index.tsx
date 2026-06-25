@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 export default function ManagerScheduleScreen() {
     const router = useRouter();
@@ -19,13 +20,8 @@ export default function ManagerScheduleScreen() {
     const theme = Colors[colorScheme ?? 'light'];
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerLeft} />
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Schedule</Text>
-                <View style={styles.headerRight} />
-            </View>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <ScreenHeader title="Schedule" showBack={false} />
 
             {/* Empty State */}
             <View style={styles.body}>
@@ -44,7 +40,7 @@ export default function ManagerScheduleScreen() {
                     <Text style={styles.newButtonText}>New</Text>
                 </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

@@ -11,9 +11,10 @@ import {
     TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { analyticsAPI } from '@/src/services/api';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 interface EmployeeAnalytics {
     month: string;
@@ -67,8 +68,8 @@ export default function EmployeeAnalyticsScreen() {
 
     if (loading) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
-                <Stack.Screen options={{ title: 'Employee deatils', headerShadowVisible: false, headerStyle: { backgroundColor: '#F8F9FA' } }} />
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }} edges={['bottom']}>
+                <ScreenHeader title="Employee Details" />
                 <View style={[styles.center, { flex: 1 }]}>
                     <ActivityIndicator size="large" color={palette.primary} />
                 </View>
@@ -78,8 +79,8 @@ export default function EmployeeAnalyticsScreen() {
 
     if (!data) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
-                <Stack.Screen options={{ title: 'Employee deatils', headerShadowVisible: false }} />
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }} edges={['bottom']}>
+                <ScreenHeader title="Employee Details" />
                 <View style={[styles.center, { flex: 1 }]}>
                     <Text style={{ color: '#6B7280' }}>Failed to load employee details.</Text>
                 </View>
@@ -93,8 +94,8 @@ export default function EmployeeAnalyticsScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-            <Stack.Screen options={{ title: 'Employee deatils', headerShadowVisible: false, headerStyle: { backgroundColor: '#F8F9FA' } }} />
-            <ScrollView 
+            <ScreenHeader title="Employee Details" />
+            <ScrollView
                 contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
                 refreshControl={

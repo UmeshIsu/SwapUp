@@ -11,9 +11,9 @@ import {
     RefreshControl,
     TouchableOpacity
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import ScreenHeader from '@/src/components/ScreenHeader';
 import { authAPI } from '@/src/services/api';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
@@ -85,11 +85,8 @@ export default function ManagerEmployeesScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            {/* Header */}
-            <View style={styles.headerContainer}>
-                <Text style={styles.headerTitle}>Employee</Text>
-            </View>
+        <View style={styles.safeArea}>
+            <ScreenHeader title="Employee" showBack={false} />
 
             {/* Search Bar */}
             <View style={styles.searchWrapper}>
@@ -141,7 +138,7 @@ export default function ManagerEmployeesScreen() {
                     }
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 }
 

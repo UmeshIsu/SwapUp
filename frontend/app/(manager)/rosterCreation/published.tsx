@@ -8,18 +8,14 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 export default function PublishedScreen() {
     const router = useRouter();
 
     return (
-        <SafeAreaView style={styles.container}>
-            {/* Back button */}
-            <View style={styles.topBar}>
-                <TouchableOpacity onPress={() => router.push('/home' as any)}>
-                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-                </TouchableOpacity>
-            </View>
+        <View style={styles.container}>
+            <ScreenHeader title="" onBack={() => router.push('/home' as any)} />
 
             {/* Success Content */}
             <View style={styles.body}>
@@ -31,7 +27,7 @@ export default function PublishedScreen() {
                     The weekly roaster has been updates for{'\n'}all staff
                 </Text>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

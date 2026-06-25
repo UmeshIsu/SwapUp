@@ -10,20 +10,14 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 export default function ScheduleScreen() {
     const router = useRouter();
 
     return (
-        <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Schedule</Text>
-                <View style={styles.headerRight} />
-            </View>
+        <View style={styles.container}>
+            <ScreenHeader title="Schedule" />
 
             {/* Empty State */}
             <View style={styles.body}>
@@ -61,7 +55,7 @@ export default function ScheduleScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
