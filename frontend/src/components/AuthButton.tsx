@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import {
     ActivityIndicator,
@@ -47,11 +48,11 @@ export default function AuthButton({
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#1373D0',
+        backgroundColor: palette.primary,
         borderRadius: 14,
         paddingVertical: 17,
         alignItems: 'center',
-        shadowColor: '#1373D0',
+        shadowColor: palette.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.28,
         shadowRadius: 8,

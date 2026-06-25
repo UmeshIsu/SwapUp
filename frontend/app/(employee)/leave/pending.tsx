@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // pending.tsx - Pending Leave Requests Screen (Picture 4)
 // Shows the employee's pending leave requests
 // Starts empty (0 requests) — real data loads from the backend when connected
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
         lineHeight: 21, marginBottom: 28,
     },
     applyButton: {
-        backgroundColor: '#1a73e8', borderRadius: 30,
+        backgroundColor: palette.primary, borderRadius: 30,
         paddingHorizontal: 32, paddingVertical: 14,
     },
     applyButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },

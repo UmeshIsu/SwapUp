@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -73,9 +74,9 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
     },
     optionSelected: {
-        backgroundColor: '#1373D0',
-        borderColor: '#1373D0',
-        shadowColor: '#1373D0',
+        backgroundColor: palette.primary,
+        borderColor: palette.primary,
+        shadowColor: palette.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,

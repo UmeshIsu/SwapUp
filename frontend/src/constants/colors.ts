@@ -1,7 +1,8 @@
 import { useColorScheme } from "../hooks/use-color-scheme";
+import { palette } from "./palette";
 
 export const colors = {
-    primary: "#1E66FF",
+    primary: palette.primary,
     white: "#FFFFFF",
     bg: "#F6F7FB",
     text: "#111827",
@@ -23,7 +24,7 @@ export const colors = {
 };
 
 export const darkColors: typeof colors = {
-    primary: "#4A9EE5",
+    primary: palette.primaryDarkScheme,
     white: "#1A1A1A",
     bg: "#121212",
     text: "#ECEDEE",

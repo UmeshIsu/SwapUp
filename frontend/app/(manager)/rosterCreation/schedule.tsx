@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import {
     View,
@@ -80,9 +81,9 @@ const styles = StyleSheet.create({
     },
     noEntryText: { fontSize: 15, color: '#333', fontWeight: '600' },
     newButton: {
-        backgroundColor: '#1976D2', borderRadius: 12,
+        backgroundColor: palette.primary, borderRadius: 12,
         paddingVertical: 16, alignItems: 'center',
-        shadowColor: '#1976D2', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
+        shadowColor: palette.primary, shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
     },
     newButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
     bottomNavContainer: {

@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // index.tsx - Leave Dashboard Screen (Picture 2)
 // Shows:
 //  - Assigned leaves table (all start at 0 until backend is connected)
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
         marginLeft: 4,
     },
     applyButton: {
-        backgroundColor: '#1a73e8',
+        backgroundColor: palette.primary,
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     pendingButton: {
-        backgroundColor: '#1a73e8',
+        backgroundColor: palette.primary,
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',

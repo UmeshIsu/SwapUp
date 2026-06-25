@@ -3,10 +3,11 @@
 // This controls how screens slide in/out when navigating
 
 import { Stack } from 'expo-router';
+import { appHeaderOptions } from '@/src/constants/headerOptions';
 
 export default function LeaveLayout() {
     return (
-        <Stack>
+        <Stack screenOptions={appHeaderOptions}>
             {/* Screen 1: Leave Dashboard */}
             <Stack.Screen
                 name="index"

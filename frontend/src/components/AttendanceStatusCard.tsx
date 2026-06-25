@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +8,7 @@ const C = {
     card: '#FFFFFF',
     text: '#0F172A',
     textMuted: '#94A3B8',
-    primary: '#2563EB',
+    primary: palette.primary,
     success: '#16A34A',
     successText: '#15803D',
     successSoft: '#ECFDF5',

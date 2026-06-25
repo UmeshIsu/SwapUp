@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -5,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 
-const ACTIVE_COLOR = '#1373D0';
+const ACTIVE_COLOR = palette.primary;
 const ACTIVE_BG = 'rgba(19, 115, 208, 0.24)';
 
 

@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
     View,
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
+import ScreenHeader from '@/src/components/ScreenHeader';
 import {
     getMySwapRequests,
     withdrawSwapRequest,
@@ -20,7 +22,7 @@ import {
 } from '../../../src/services/swapService';
 
 // ─── Constants & Types ────────────────────────────────────────────────────────
-const PRIMARY = '#1373D0';
+const PRIMARY = palette.primary;
 type TabType = 'Pending' | 'Approved' | 'Declined';
 
 export default function PendingRequestsScreen() {
@@ -187,16 +189,10 @@ export default function PendingRequestsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color="#111" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Pending Swap Request</Text>
-            </View>
+            <ScreenHeader title="Pending Swap Request" />
 
             {/* Tabs */}
             <View style={styles.tabsContainer}>
@@ -284,8 +280,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     tabActive: {
-        backgroundColor: '#1373D0',
-        shadowColor: '#1373D0',
+        backgroundColor: palette.primary,
+        shadowColor: palette.primary,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,

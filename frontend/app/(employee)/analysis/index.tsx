@@ -1,4 +1,5 @@
 import { StyleSheet, TouchableOpacity, ScrollView, View, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "@/src/components/themed-text";
@@ -18,6 +19,7 @@ export default function AnalysisIndex() {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const c = useColors();
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         let cancelled = false;
@@ -36,7 +38,7 @@ export default function AnalysisIndex() {
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: c.bg }]}>
-            <ThemedView style={[styles.header, { backgroundColor: c.cardBg, borderBottomColor: c.border }]}>
+            <ThemedView style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: c.cardBg, borderBottomColor: c.border }]}>
                 <HeaderBar title="Monthly Analytical Reports" monthValue={month} onMonthChange={setMonth} />
             </ThemedView>
 
@@ -185,6 +187,7 @@ const styles = StyleSheet.create({
     },
     cardValue: {
         fontSize: 32,
+        lineHeight: 40, // must exceed fontSize or iOS clips the digits (ThemedText defaults lineHeight to 24)
         fontWeight: "800",
     },
     unit: {

@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
+import { appHeaderOptions } from '@/src/constants/headerOptions';
 
 export default function SettingsLayout() {
     return (
-        <Stack screenOptions={{ headerShown: true }}>
+        <Stack screenOptions={{ headerShown: true, ...appHeaderOptions }}>
             <Stack.Screen name="index" options={{ title: 'Settings' }} />
             <Stack.Screen name="change-password" options={{ title: 'Change Password' }} />
             <Stack.Screen name="privacy" options={{ title: 'Privacy Settings' }} />

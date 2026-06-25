@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { announcementAPI, leaveAPI, shiftAPI, swapAPI } from '@/src/services/api';
 import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
@@ -23,7 +24,7 @@ const C = {
     text: '#0F172A',
     textSecondary: '#475569',
     textMuted: '#94A3B8',
-    primary: '#2563EB',
+    primary: palette.primary,
     primarySoft: '#EFF6FF',
     border: '#EEF1F5',
     divider: '#E8ECF1',

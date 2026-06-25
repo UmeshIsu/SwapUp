@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -17,6 +18,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getMyShifts, Shift } from '../../../src/services/shiftService';
 import { format, parseISO } from 'date-fns';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatShiftTime(startTime: string, endTime: string): string {
@@ -92,16 +94,13 @@ export default function InitiateSwapScreen() {
     const myRole = shifts.length > 0 ? (shifts[0].role || 'Waiter') : 'Waiter';
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={22} color="#111" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Request a swap</Text>
-            </View>
+            <ScreenHeader
+                title="Request a swap"
+                onBack={() => router.navigate('/(employee)/schedule' as any)}
+            />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Page title */}
@@ -213,7 +212,7 @@ export default function InitiateSwapScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const PRIMARY = '#1373D0';
+const PRIMARY = palette.primary;
 
 const styles = StyleSheet.create({
     safe: {

@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import {
     View,
@@ -10,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SwapSummaryScreen() {
@@ -39,16 +41,10 @@ export default function SwapSummaryScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={22} color="#111" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Request a swap</Text>
-            </View>
+            <ScreenHeader title="Request a swap" />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Success Icon */}
@@ -111,7 +107,7 @@ export default function SwapSummaryScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const PRIMARY = '#1373D0';
+const PRIMARY = palette.primary;
 
 const styles = StyleSheet.create({
     safe: {

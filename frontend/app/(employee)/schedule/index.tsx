@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
@@ -13,6 +14,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 export default function EmployeeScheduleScreen() {
   const { user } = useAuth();
@@ -32,7 +34,7 @@ export default function EmployeeScheduleScreen() {
   const TYPE_COLORS: { [key: string]: string } = {
     'Morning': '#FDE68A',
     'Afternoon': '#FDBA74',
-    'Night': '#3B82F6',
+    'Night': palette.primary,
   };
 
   const getShiftType = (startTime: string) => {
@@ -139,18 +141,20 @@ export default function EmployeeScheduleScreen() {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" color={theme.text} size={24} />
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.background }}>
+      <ScreenHeader
+        title="Full Schedule"
+        right={
+          <TouchableOpacity onPress={handleOpenShare} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="share-outline" color={palette.primary} size={22} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Full Schedule</Text>
-          <TouchableOpacity onPress={handleOpenShare}>
-            <Ionicons name="share-outline" color={theme.text} size={24} />
-          </TouchableOpacity>
-        </View>
-
+        }
+      />
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.background }]}
+        contentContainerStyle={{ paddingTop: 12, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={[styles.calendarCard, { backgroundColor: theme.surface }]}>
           {loading && <ActivityIndicator style={styles.loader} color={theme.primary} />}
           <Calendar
@@ -172,7 +176,7 @@ export default function EmployeeScheduleScreen() {
             onMonthChange={(date) => fetchShifts(date.month, date.year)}
             markedDates={{
               ...markedDates,
-              [selected]: { ...markedDates[selected], selected: true, selectedColor: '#3B82F6' },
+              [selected]: { ...markedDates[selected], selected: true, selectedColor: palette.primary },
             }}
           />
         </View>
@@ -269,7 +273,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   swapActionBtn: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: palette.primary,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,

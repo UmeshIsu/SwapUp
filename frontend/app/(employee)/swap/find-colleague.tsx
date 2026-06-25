@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     View,
@@ -16,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getColleaguesByDate, Colleague } from '../../../src/services/shiftService';
 import { createSwapRequest } from '../../../src/services/swapService';
 import { format, parseISO } from 'date-fns';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ColleagueItem extends Colleague {
@@ -178,16 +180,10 @@ export default function FindColleagueScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={22} color="#111" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Find Colleague</Text>
-            </View>
+            <ScreenHeader title="Find Colleague" />
 
             {/* Shift Info Card */}
             <View style={styles.shiftInfoCard}>
@@ -239,7 +235,7 @@ export default function FindColleagueScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const PRIMARY = '#1373D0';
+const PRIMARY = palette.primary;
 const SENT_COLOR = '#F09B46';
 
 const styles = StyleSheet.create({

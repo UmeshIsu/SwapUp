@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
@@ -13,6 +14,7 @@ import type { Conversation, DepartmentUser } from '@/src/services/chatService';
 import type { IncomingSwapRequest, MySwapRequest } from '@/src/services/swapService';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -295,14 +297,8 @@ export default function ChatScreen() {
     ];
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-            <View style={[S.header, { paddingTop: insets.top + 12 }]}>
-                <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
-                    <Ionicons name="arrow-back" size={22} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={[S.headerTitle, { color: theme.text }]}>Messages</Text>
-                <View style={{ width: 30 }} />
-            </View>
+        <View style={{ flex: 1, backgroundColor: theme.background }}>
+            <ScreenHeader title="Messages" />
 
             <View style={[S.tabBar, { borderBottomColor: theme.border }]}>
                 {tabs.map((t) => (
@@ -340,7 +336,7 @@ export default function ChatScreen() {
             {tab === 'msg' && searchQuery.trim().length > 0 && (
                 <View style={[S.searchResultsContainer, { backgroundColor: theme.background }]}>
                     {searching ? (
-                        <ActivityIndicator style={{ paddingVertical: 20 }} color="#2563EB" />
+                        <ActivityIndicator style={{ paddingVertical: 20 }} color={palette.primary} />
                     ) : searchResults.length === 0 ? (
                         <Text style={S.searchEmpty}>No users found in your department</Text>
                     ) : (
@@ -350,7 +346,7 @@ export default function ChatScreen() {
                             keyboardShouldPersistTaps="handled"
                             renderItem={({ item: u }) => (
                                 <TouchableOpacity style={S.searchRow} onPress={() => handleSelectUser(u)} activeOpacity={0.7}>
-                                    <Avatar uri={u.avatarUrl} size={40} color={u.role === 'MANAGER' ? '#3949AB' : '#2563EB'} />
+                                    <Avatar uri={u.avatarUrl} size={40} color={u.role === 'MANAGER' ? '#3949AB' : palette.primary} />
                                     <View style={{ flex: 1, marginLeft: 12 }}>
                                         <Text style={S.name}>{u.name}</Text>
                                         <Text style={S.sub}>{u.email}</Text>
@@ -369,7 +365,7 @@ export default function ChatScreen() {
             )}
 
             {loading ? (
-                <ActivityIndicator style={{ flex: 1 }} color="#2563EB" size="large" />
+                <ActivityIndicator style={{ flex: 1 }} color={palette.primary} size="large" />
             ) : tab === 'msg' && searchQuery.trim().length === 0 ? (
                 <FlatList
                     data={convos}
@@ -395,7 +391,7 @@ export default function ChatScreen() {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={() => { setRefreshing(true); load(); }}
-                            tintColor="#2563EB"
+                            tintColor={palette.primary}
                         />
                     }
                 />
@@ -412,7 +408,7 @@ export default function ChatScreen() {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={() => { setRefreshing(true); load(); }}
-                            tintColor="#2563EB"
+                            tintColor={palette.primary}
                         />
                     }
                 />
@@ -427,12 +423,12 @@ export default function ChatScreen() {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={() => { setRefreshing(true); load(); }}
-                            tintColor="#2563EB"
+                            tintColor={palette.primary}
                         />
                     }
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -448,7 +444,7 @@ const S = StyleSheet.create({
     headerTitle: { flex: 1, fontSize: 20, fontWeight: '700', color: '#111', textAlign: 'center' },
     tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
     tab: { flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    tabOn: { borderBottomColor: '#2563EB' },
+    tabOn: { borderBottomColor: palette.primary },
     tabTxt: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
     row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
     name: { fontSize: 15, fontWeight: '700', color: '#111' },
@@ -501,7 +497,7 @@ const S = StyleSheet.create({
     roleBadgeEmployee: { backgroundColor: '#DBEAFE' },
     roleBadgeText: { fontSize: 11, fontWeight: '600' },
     roleBadgeTextManager: { color: '#6D28D9' },
-    roleBadgeTextEmployee: { color: '#2563EB' },
+    roleBadgeTextEmployee: { color: palette.primary },
 
     // Swap card
     swapCard: {
@@ -599,7 +595,7 @@ const S = StyleSheet.create({
         flex: 1,
         paddingVertical: 11,
         borderRadius: 8,
-        backgroundColor: '#2563EB',
+        backgroundColor: palette.primary,
         alignItems: 'center',
     },
     acceptBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },

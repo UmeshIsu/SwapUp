@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // sent.tsx - Leave Request Sent Confirmation Screen
 // Shown after user successfully submits a leave request
 // Displays a success message and summary of the submitted request
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     viewPendingButton: {
-        backgroundColor: '#1a73e8',
+        backgroundColor: palette.primary,
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',
@@ -177,13 +178,13 @@ const styles = StyleSheet.create({
     },
     homeButton: {
         borderWidth: 1.5,
-        borderColor: '#1a73e8',
+        borderColor: palette.primary,
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',
     },
     homeButtonText: {
-        color: '#1a73e8',
+        color: palette.primary,
         fontSize: 16,
         fontWeight: '600',
     },

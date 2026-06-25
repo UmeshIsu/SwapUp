@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useEffect, useState } from 'react';
 import { 
     View, 
@@ -69,7 +70,7 @@ export default function EmployeeAnalyticsScreen() {
             <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
                 <Stack.Screen options={{ title: 'Employee deatils', headerShadowVisible: false, headerStyle: { backgroundColor: '#F8F9FA' } }} />
                 <View style={[styles.center, { flex: 1 }]}>
-                    <ActivityIndicator size="large" color="#1373D0" />
+                    <ActivityIndicator size="large" color={palette.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -97,7 +98,7 @@ export default function EmployeeAnalyticsScreen() {
                 contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1373D0']} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} />
                 }
             >
                 {/* Profile Header */}
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     contactBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1373D0',
+        backgroundColor: palette.primary,
         paddingVertical: 10,
         paddingHorizontal: 32,
         borderRadius: 8,

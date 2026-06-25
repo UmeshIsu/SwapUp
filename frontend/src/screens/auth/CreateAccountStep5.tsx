@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useRef } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     emailHighlight: {
-        color: '#2563EB',
+        color: palette.primary,
         fontWeight: '600',
     },
     label: {
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     resendLink: {
-        color: '#2563EB',
+        color: palette.primary,
         fontWeight: '600',
     },
 });

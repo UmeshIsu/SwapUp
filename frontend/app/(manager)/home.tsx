@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useCallback } from 'react';
 import {
     View,
@@ -29,7 +30,7 @@ const C = {
     text: '#0F172A',
     textSecondary: '#475569',
     textMuted: '#94A3B8',
-    primary: '#2563EB',
+    primary: palette.primary,
     primarySoft: '#EFF6FF',
     border: '#EEF1F5',
     success: '#16A34A',
@@ -665,7 +666,7 @@ const ms = StyleSheet.create({
     },
     avatar: {
         width: 40, height: 40, borderRadius: 20,
-        backgroundColor: '#3B82F6', justifyContent: 'center', alignItems: 'center',
+        backgroundColor: palette.primary, justifyContent: 'center', alignItems: 'center',
         marginRight: 12,
     },
     info: { flex: 1 },

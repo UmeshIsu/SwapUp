@@ -1,8 +1,10 @@
 import React from "react";
-import { SafeAreaView, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useColors } from "../../constants/colors";
-import { spacing } from "../../constants/spacing";
 
+// Body wrapper for analysis screens. The page header (ScreenHeader, via
+// HeaderSimple) is rendered as a full-width child and owns the top safe area,
+// so this wrapper no longer adds padding or a (platform-limited) SafeAreaView.
 export default function Screen({
   children,
   center,
@@ -12,14 +14,13 @@ export default function Screen({
 }) {
   const c = useColors();
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: c.bg }]}>
-      <View style={[styles.container, center && styles.center]}>{children}</View>
-    </SafeAreaView>
+    <View style={[styles.safe, { backgroundColor: c.bg }, center && styles.center]}>
+      {children}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { flex: 1, padding: spacing.screenPad },
   center: { justifyContent: "center" },
 });

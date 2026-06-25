@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState } from 'react';
 import {
     View,
@@ -228,7 +229,7 @@ export default function ChatDetailScreen() {
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
-const PRIMARY = '#1373D0';
+const PRIMARY = palette.primary;
 
 const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: '#FFFFFF' },

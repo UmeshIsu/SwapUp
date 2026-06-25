@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // requestStatus.tsx - Request Status Screen (replaces old pending.tsx for employees)
 // Tabbed view: Pending | Approved | Declined
 // Employee can see all their requests and their current status
@@ -192,9 +193,9 @@ const styles = StyleSheet.create({
         borderBottomWidth: 3,
         borderBottomColor: 'transparent',
     },
-    activeTab: { borderBottomColor: '#1a73e8' },
+    activeTab: { borderBottomColor: palette.primary },
     tabText: { fontSize: 14, color: '#888', fontWeight: '600' },
-    activeTabText: { color: '#1a73e8' },
+    activeTabText: { color: palette.primary },
     content: { padding: 16, paddingBottom: 40 },
     emptyText: { textAlign: 'center', marginTop: 40, color: '#aaa', fontSize: 14 },
 

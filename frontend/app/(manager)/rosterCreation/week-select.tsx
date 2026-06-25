@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useRef } from 'react';
 import {
     View,
@@ -128,7 +129,7 @@ export default function WeekSelectScreen() {
                                         </Text>
                                     </View>
                                 </View>
-                                {isSelected && <Ionicons name="checkmark-circle" size={22} color="#1976D2" />}
+                                {isSelected && <Ionicons name="checkmark-circle" size={22} color={palette.primary} />}
                             </TouchableOpacity>
                         );
                     }}
@@ -174,24 +175,24 @@ const styles = StyleSheet.create({
         height: 72,
     },
     weekRowSelected: {
-        borderColor: '#1976D2', backgroundColor: '#EBF3FE',
+        borderColor: palette.primary, backgroundColor: '#EBF3FE',
     },
     weekRowPast: { opacity: 0.5 },
     weekRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     dot: {
         width: 10, height: 10, borderRadius: 5, backgroundColor: '#ccc',
     },
-    dotSelected: { backgroundColor: '#1976D2' },
+    dotSelected: { backgroundColor: palette.primary },
     dotCurrent: { backgroundColor: '#22C55E' },
     weekLabel: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
-    weekLabelSel: { color: '#1565C0' },
+    weekLabelSel: { color: palette.primary },
     weekBadge: { fontSize: 12, color: '#888', marginTop: 2 },
     badgeCurrent: { color: '#22C55E', fontWeight: '600' },
     weakText: { color: '#bbb' },
     confirmButton: {
-        backgroundColor: '#1976D2', borderRadius: 14,
+        backgroundColor: palette.primary, borderRadius: 14,
         paddingVertical: 16, alignItems: 'center', marginTop: 14,
-        shadowColor: '#1976D2', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
+        shadowColor: palette.primary, shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
     },
     confirmText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

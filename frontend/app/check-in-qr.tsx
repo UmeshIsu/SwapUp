@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useRef, useState } from 'react';
 import {
     View,
@@ -15,7 +16,7 @@ import { postQrCheckIn } from '@/src/services/attendanceService';
 
 type ScreenState = 'scanning' | 'sending' | 'approved' | 'rejected' | 'error';
 
-const PRIMARY = '#2563EB';
+const PRIMARY = palette.primary;
 
 export default function QrCheckInScreen() {
     const router = useRouter();

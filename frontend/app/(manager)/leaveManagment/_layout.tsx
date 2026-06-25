@@ -2,10 +2,11 @@
 // Simple stack navigator for the manager's leave screens
 
 import { Stack } from 'expo-router';
+import { appHeaderOptions } from '@/src/constants/headerOptions';
 
 export default function ManagerLeaveLayout() {
     return (
-        <Stack>
+        <Stack screenOptions={appHeaderOptions}>
             <Stack.Screen
                 name="index"
                 options={{

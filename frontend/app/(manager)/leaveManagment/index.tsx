@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // index.tsx - Manager Leave Management Screen
 // Matches Column 1, 3, and 4 from the design mockup
 
@@ -195,9 +196,9 @@ const styles = StyleSheet.create({
         borderBottomColor: '#f0f0f0',
     },
     tab: { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
-    activeTab: { borderBottomColor: '#1a73e8' },
+    activeTab: { borderBottomColor: palette.primary },
     tabText: { fontSize: 14, color: '#888', fontWeight: '600' },
-    activeTabText: { color: '#1a73e8' },
+    activeTabText: { color: palette.primary },
     content: { padding: 16, paddingBottom: 100 },
     card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 16, elevation: 2 },
     cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },

@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
@@ -74,7 +75,7 @@ function RadarPulse() {
 function InfoCard({ icon, label, value }: { icon: any; label: string; value: string }) {
     return (
         <View style={styles.infoCard}>
-            <Ionicons name={icon} size={20} color="#1976D2" />
+            <Ionicons name={icon} size={20} color={palette.primary} />
             <Text style={styles.infoLabel}>{label}</Text>
             <Text style={styles.infoValue}>{value}</Text>
         </View>
@@ -145,7 +146,7 @@ export default function CheckInScreen() {
             <SafeAreaView style={styles.centeredContainer}>
                 <RadarPulse />
                 <Text style={styles.loadingText}>{loadingMessage}</Text>
-                <ActivityIndicator style={{ marginTop: 20 }} color="#1976D2" />
+                <ActivityIndicator style={{ marginTop: 20 }} color={palette.primary} />
             </SafeAreaView>
         );
     }
@@ -267,16 +268,16 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: '#1976D2',
+        backgroundColor: palette.primary,
     },
     radarCenter: {
         width: 70,
         height: 70,
         borderRadius: 35,
-        backgroundColor: '#1976D2',
+        backgroundColor: palette.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#1976D2',
+        shadowColor: palette.primary,
         shadowOpacity: 0.4,
         shadowRadius: 12,
         elevation: 6,
@@ -293,17 +294,17 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     infoLabel: { fontSize: 11, color: '#555', fontWeight: '500', textAlign: 'center' },
-    infoValue: { fontSize: 12, color: '#1565C0', fontWeight: '700', textAlign: 'center' },
+    infoValue: { fontSize: 12, color: palette.primary, fontWeight: '700', textAlign: 'center' },
 
     // Check In button
     checkInBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1976D2',
+        backgroundColor: palette.primary,
         borderRadius: 14,
         paddingVertical: 18,
         paddingHorizontal: 36,
-        shadowColor: '#1976D2',
+        shadowColor: palette.primary,
         shadowOpacity: 0.3,
         shadowRadius: 10,
         elevation: 5,

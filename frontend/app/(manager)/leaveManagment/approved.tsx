@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // approved.tsx - Manager Approval Confirmation Screen
 // Matches Column 2 from the design mockup
 
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     itemName: { fontSize: 16, fontWeight: '700' },
     itemRole: { fontSize: 13, color: '#888', marginTop: 2 },
     itemDates: { fontSize: 15, fontWeight: '600', color: '#333' },
-    blueButton: { width: '100%', backgroundColor: '#1a73e8', borderRadius: 12, paddingVertical: 18, alignItems: 'center', marginBottom: 12 },
+    blueButton: { width: '100%', backgroundColor: palette.primary, borderRadius: 12, paddingVertical: 18, alignItems: 'center', marginBottom: 12 },
     blueButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
     grayButton: { width: '100%', backgroundColor: '#f0f0f0', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
     grayButtonText: { color: '#888', fontSize: 16, fontWeight: '700' },

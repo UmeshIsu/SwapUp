@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, FlatList,
@@ -68,7 +69,7 @@ function SwapCard({ msg, userId }: { msg: any; userId: string }) {
                 </View>
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-                    <TouchableOpacity><Text style={{ color: '#2563EB', fontWeight: '600' }}>View All</Text></TouchableOpacity>
+                    <TouchableOpacity><Text style={{ color: palette.primary, fontWeight: '600' }}>View All</Text></TouchableOpacity>
 
                     {sr.status === 'ACCEPTED_BY_EMPLOYEE' && (
                         <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -184,14 +185,14 @@ const S = StyleSheet.create({
     headerTitle: { fontSize: 17, fontWeight: '700', color: '#111' },
     row: { flexDirection: 'row', alignItems: 'flex-end', marginVertical: 2 },
     bubble: { borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
-    bubbleMe: { backgroundColor: '#2563EB', borderBottomRightRadius: 4 },
+    bubbleMe: { backgroundColor: palette.primary, borderBottomRightRadius: 4 },
     bubbleThem: { backgroundColor: '#F3F4F6', borderBottomLeftRadius: 4 },
     ts: { fontSize: 11, color: '#9CA3AF', marginTop: 3 },
     av: { width: 34, height: 34, borderRadius: 17 },
     inputBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F3F4F6', gap: 8 },
     plusBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: '#9CA3AF', alignItems: 'center', justifyContent: 'center' },
     input: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#111', maxHeight: 100 },
-    sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' },
+    sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: palette.primary, alignItems: 'center', justifyContent: 'center' },
     // Swap card
     swapWrap: { marginVertical: 8 },
     swapCard: { backgroundColor: '#fff', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#F3F4F6', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, minWidth: 260 },

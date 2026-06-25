@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
     View,
@@ -112,7 +113,7 @@ export default function ManagerEmployeesScreen() {
             {/* Employee List */}
             {loading ? (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#1373D0" />
+                    <ActivityIndicator size="large" color={palette.primary} />
                 </View>
             ) : (
                 <FlatList
@@ -122,7 +123,7 @@ export default function ManagerEmployeesScreen() {
                     contentContainerStyle={styles.listContent}
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1373D0']} />
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} />
                     }
                     ItemSeparatorComponent={() => <View style={styles.separator} />}
                     ListEmptyComponent={

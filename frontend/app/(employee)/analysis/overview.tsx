@@ -64,7 +64,7 @@ export default function OverviewScreen() {
                 <HeaderBar title="" monthValue={month} onMonthChange={setMonth} />
             </View>
 
-            <View style={{ marginTop: 12, gap: 12 }}>
+            <View style={{ marginTop: 12, gap: 12, paddingHorizontal: 16, paddingBottom: 24 }}>
                 <Card>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <Card.Title>Hours this month</Card.Title>
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
     headerRow: {
         marginTop: -10,
         marginBottom: 10,
+        paddingHorizontal: 16,
     },
     centered: {
         flex: 1,

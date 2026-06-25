@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     button: {
-        backgroundColor: '#3B82F6',
+        backgroundColor: palette.primary,
         paddingVertical: 12,
         paddingHorizontal: 24,
         borderRadius: 8,

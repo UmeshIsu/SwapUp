@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState } from 'react';
 import {
     View,
@@ -483,7 +484,7 @@ export default function CreateRosterScreen() {
                                     style={styles.empSelectItem}
                                     onPress={() => confirmAddEmployee(emp)}
                                 >
-                                    <View style={[styles.empAvatar, { backgroundColor: '#1565C0', width: 24, height: 24, borderRadius: 12 }]}>
+                                    <View style={[styles.empAvatar, { backgroundColor: palette.primary, width: 24, height: 24, borderRadius: 12 }]}>
                                         <Ionicons name="person" size={14} color="#fff" />
                                     </View>
                                     <View>
@@ -523,7 +524,7 @@ const styles = StyleSheet.create({
         flex: 1, alignItems: 'center', paddingVertical: 8,
         borderRadius: 10, marginHorizontal: 2, backgroundColor: '#f5f7ff',
     },
-    dayCellSelected: { backgroundColor: '#1565C0' },
+    dayCellSelected: { backgroundColor: palette.primary },
     dayName: { fontSize: 11, color: '#555', fontWeight: '500' },
     dayNum: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginTop: 2 },
     daySel: { color: '#fff' },
@@ -569,7 +570,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', marginRight: 4,
     },
     empName: { fontSize: 10, fontWeight: '600', color: '#1a1a1a' },
-    noEmpText: { fontSize: 11, color: '#1565C0', fontStyle: 'italic', paddingVertical: 4 },
+    noEmpText: { fontSize: 11, color: palette.primary, fontStyle: 'italic', paddingVertical: 4 },
 
     taskInput: {
         width: '100%', minHeight: 44, fontSize: 11, color: '#1a1a1a',
@@ -586,14 +587,14 @@ const styles = StyleSheet.create({
 
     // Add More
     addMoreBtn: {
-        backgroundColor: '#1565C0', borderRadius: 10,
+        backgroundColor: palette.primary, borderRadius: 10,
         paddingVertical: 14, alignItems: 'center', marginBottom: 14,
     },
     addMoreText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
     // Publish
     publishBtn: {
-        backgroundColor: '#1565C0', borderRadius: 10,
+        backgroundColor: palette.primary, borderRadius: 10,
         paddingVertical: 16, alignItems: 'center',
     },
     publishText: { color: '#fff', fontSize: 16, fontWeight: '700' },
@@ -621,7 +622,7 @@ const styles = StyleSheet.create({
     },
     modalCancelTxt: { color: '#555', fontWeight: '600' },
     modalConfirm: {
-        flex: 1, backgroundColor: '#1565C0', borderRadius: 10,
+        flex: 1, backgroundColor: palette.primary, borderRadius: 10,
         paddingVertical: 12, alignItems: 'center',
     },
     modalConfirmTxt: { color: '#fff', fontWeight: '700' },

@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
@@ -10,6 +11,7 @@ import { getConversations, getManagerSwapApprovals, respondToSwapRequest, search
 import type { DepartmentUser } from '@/src/services/chatService';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 
 
@@ -189,8 +191,8 @@ export default function ManagerChatInbox() {
     useEffect(() => { load(); }, [load]);
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-            <View style={S.header}><Text style={[S.headerTitle, { color: theme.text }]}>Messages</Text></View>
+        <View style={{ flex: 1, backgroundColor: theme.background }}>
+            <ScreenHeader title="Messages" showBack={false} />
             <View style={[S.tabBar, { borderBottomColor: theme.border }]}>
                 <TouchableOpacity style={[S.tab, tab === 'msg' && S.tabOn]} onPress={() => setTab('msg')}>
                     <Text style={[S.tabTxt, { color: theme.textMuted }, tab === 'msg' && { color: theme.primary }]}>Messages</Text>
@@ -224,7 +226,7 @@ export default function ManagerChatInbox() {
             {tab === 'msg' && searchQuery.trim().length > 0 && (
                 <View style={[S.searchResultsContainer, { backgroundColor: theme.background }]}>
                     {searching ? (
-                        <ActivityIndicator style={{ paddingVertical: 20 }} color="#2563EB" />
+                        <ActivityIndicator style={{ paddingVertical: 20 }} color={palette.primary} />
                     ) : searchResults.length === 0 ? (
                         <Text style={S.searchEmpty}>No users found in your department</Text>
                     ) : (
@@ -234,7 +236,7 @@ export default function ManagerChatInbox() {
                             keyboardShouldPersistTaps="handled"
                             renderItem={({ item: u }) => (
                                 <TouchableOpacity style={S.searchRow} onPress={() => handleSelectUser(u)} activeOpacity={0.7}>
-                                    <Avatar uri={u.avatarUrl ?? undefined} size={40} color={u.role === 'MANAGER' ? '#3949AB' : '#2563EB'} />
+                                    <Avatar uri={u.avatarUrl ?? undefined} size={40} color={u.role === 'MANAGER' ? '#3949AB' : palette.primary} />
                                     <View style={{ flex: 1, marginLeft: 12 }}>
                                         <Text style={S.name}>{u.name}</Text>
                                         <Text style={S.sub}>{u.email}</Text>
@@ -252,7 +254,7 @@ export default function ManagerChatInbox() {
                 </View>
             )}
 
-            {loading ? <ActivityIndicator style={{ flex: 1 }} color="#2563EB" size="large" /> :
+            {loading ? <ActivityIndicator style={{ flex: 1 }} color={palette.primary} size="large" /> :
                 tab === 'msg' && searchQuery.trim().length === 0 ? (
                     <FlatList data={convos} keyExtractor={(i: any) => i.id}
                         renderItem={({ item }: any) => <ConvoRow item={item} onPress={() =>
@@ -262,18 +264,18 @@ export default function ManagerChatInbox() {
                             })} />}
                         ItemSeparatorComponent={() => <View style={S.sep} />}
                         ListEmptyComponent={<Text style={S.empty}>No messages</Text>}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#2563EB" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={palette.primary} />}
                     />
                 ) : tab === 'swap' ? (
                     <FlatList data={swaps} keyExtractor={(i: any) => i.id}
                         renderItem={({ item }: any) => <ApprovalRow item={item} onRespond={respond} />}
                         contentContainerStyle={{ padding: 16 }}
                         ListEmptyComponent={<Text style={S.empty}>No swap requests to review</Text>}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#2563EB" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={palette.primary} />}
                     />
                 ) : null
             }
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -282,7 +284,7 @@ const S = StyleSheet.create({
     headerTitle: { fontSize: 20, fontWeight: '700', color: '#111' },
     tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
     tab: { flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    tabOn: { borderBottomColor: '#2563EB' },
+    tabOn: { borderBottomColor: palette.primary },
     tabTxt: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
     row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
     name: { fontSize: 15, fontWeight: '700', color: '#111' },
@@ -295,7 +297,7 @@ const S = StyleSheet.create({
     shiftLbl: { fontSize: 13, fontWeight: '600' as const, color: '#374151', marginBottom: 4 },
     shiftTxt: { fontSize: 12, color: '#374151', marginTop: 3 },
     btnD: { flex: 1, alignItems: 'center' as const, paddingVertical: 10, backgroundColor: '#FEE2E2', borderRadius: 8 },
-    btnA: { flex: 1, alignItems: 'center' as const, paddingVertical: 10, backgroundColor: '#2563EB', borderRadius: 8 },
+    btnA: { flex: 1, alignItems: 'center' as const, paddingVertical: 10, backgroundColor: palette.primary, borderRadius: 8 },
     badge: { paddingVertical: 8, borderRadius: 8, alignItems: 'center' as const },
     empty: { textAlign: 'center' as const, color: '#9CA3AF', marginTop: 80 },
 
@@ -342,5 +344,5 @@ const S = StyleSheet.create({
     roleBadgeEmployee: { backgroundColor: '#DBEAFE' },
     roleBadgeText: { fontSize: 11, fontWeight: '600' as const },
     roleBadgeTextManager: { color: '#6D28D9' },
-    roleBadgeTextEmployee: { color: '#2563EB' },
+    roleBadgeTextEmployee: { color: palette.primary },
 });

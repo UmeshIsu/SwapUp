@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 // apply.tsx - Apply for Leave Screen (Pictures 1 & 3)
 // User fills in: Leave Type, Start Date, End Date, Full/Half day, Reason
 // Then taps "Apply Leave" to submit
@@ -260,7 +261,7 @@ export default function ApplyLeave() {
                     <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
                         <Text style={styles.modalTitle}>Select Leave Type</Text>
                         {loadingTypes ? (
-                            <ActivityIndicator color="#1a73e8" style={{ marginVertical: 20 }} />
+                            <ActivityIndicator color={palette.primary} style={{ marginVertical: 20 }} />
                         ) : fetchError || leaveTypes.length === 0 ? (
                             <View style={{ padding: 25, alignItems: 'center' }}>
                                 <Text style={{ color: '#d32f2f', textAlign: 'center', fontSize: 14 }}>
@@ -416,10 +417,10 @@ const styles = S({
     radioOption: { flexDirection: 'row', alignItems: 'center' },
     radioOuter: {
         width: 20, height: 20, borderRadius: 10,
-        borderWidth: 2, borderColor: '#1a73e8',
+        borderWidth: 2, borderColor: palette.primary,
         justifyContent: 'center', alignItems: 'center', marginRight: 8,
     },
-    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#1a73e8' },
+    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: palette.primary },
     radioLabel: { fontSize: 14, color: '#333' },
 
     reasonInput: {
@@ -428,7 +429,7 @@ const styles = S({
     },
 
     applyButton: {
-        backgroundColor: '#1a73e8', borderRadius: 30,
+        backgroundColor: palette.primary, borderRadius: 30,
         paddingVertical: 16, alignItems: 'center', marginTop: 24,
     },
     applyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
@@ -452,7 +453,7 @@ const styles = S({
     modalItemDays: { fontSize: 13, color: '#999' },
 
     datePreview: {
-        fontSize: 18, fontWeight: '700', color: '#1a73e8',
+        fontSize: 18, fontWeight: '700', color: palette.primary,
         textAlign: 'center', marginBottom: 14,
     },
     columns: { flexDirection: 'row', gap: 8, height: 200, marginBottom: 16 },
@@ -460,12 +461,12 @@ const styles = S({
     colHeader: { fontSize: 12, fontWeight: '600', color: '#999', textAlign: 'center', marginBottom: 6 },
     colScroll: { flex: 1 },
     colItem: { paddingVertical: 9, borderRadius: 8, alignItems: 'center' },
-    colItemSel: { backgroundColor: '#1a73e8' },
+    colItemSel: { backgroundColor: palette.primary },
     colItemText: { fontSize: 14, color: '#333' },
     colItemTextSel: { color: '#fff', fontWeight: '700' },
 
     confirmBtn: {
-        backgroundColor: '#1a73e8', borderRadius: 12,
+        backgroundColor: palette.primary, borderRadius: 12,
         paddingVertical: 15, alignItems: 'center',
     },
     confirmBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },

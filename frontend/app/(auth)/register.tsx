@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import AuthButton from '@/src/components/AuthButton';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { authAPI } from '@/src/services/api';
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
     },
     progressBarFill: {
         height: '100%',
-        backgroundColor: '#1373D0',
+        backgroundColor: palette.primary,
         borderRadius: 99,
     },
 
@@ -461,7 +462,7 @@ const styles = StyleSheet.create({
     },
     loginLink: {
         fontSize: 13,
-        color: '#1373D0',
+        color: palette.primary,
         fontWeight: '700',
     },
 });

@@ -11,6 +11,7 @@ import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { useAppTheme } from '@/src/context/ThemeContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { apiCall } from '@/src/services/api';
+import ScreenHeader from '@/src/components/ScreenHeader';
 
 export default function ProfileScreen() {
     const colorScheme = useColorScheme();
@@ -89,10 +90,12 @@ export default function ProfileScreen() {
     }
 
     return (
-        <ScrollView
-            style={[styles.container, { backgroundColor: theme.background }]}
-            showsVerticalScrollIndicator={false}
-        >
+        <View style={{ flex: 1, backgroundColor: theme.background }}>
+            <ScreenHeader title="Profile" />
+            <ScrollView
+                style={[styles.container, { backgroundColor: theme.background }]}
+                showsVerticalScrollIndicator={false}
+            >
             {/* Profile Header */}
             <ThemedView style={styles.header}>
                 <View style={styles.profileImageContainer}>
@@ -223,7 +226,8 @@ export default function ProfileScreen() {
                 }}
                 onCancel={() => setIsLogoutModalVisible(false)}
             />
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 }
 

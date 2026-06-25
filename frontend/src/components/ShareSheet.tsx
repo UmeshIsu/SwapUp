@@ -1,3 +1,4 @@
+import { palette } from '@/src/constants/palette';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     exportButton: {
-        backgroundColor: '#3B82F6',
+        backgroundColor: palette.primary,
         paddingVertical: 14,
         paddingHorizontal: 32,
         borderRadius: 12,

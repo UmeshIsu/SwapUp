@@ -1,36 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useColors } from "../../constants/colors";
+import ScreenHeader from "@/src/components/ScreenHeader";
 
-interface HeaderSimpleProps {
-  title: string;
-}
-
-export default function HeaderSimple({ title }: HeaderSimpleProps) {
-  const router = useRouter();
-  const c = useColors();
-
-  return (
-    <View style={{
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: "transparent",
-    }}>
-      <TouchableOpacity onPress={() => router.back()} style={{ padding: 8, marginLeft: -8 }}>
-        <Ionicons name="chevron-back" size={24} color={c.text} />
-      </TouchableOpacity>
-      <Text style={{
-        fontSize: 18,
-        fontWeight: "600",
-        color: c.text,
-        marginLeft: 8,
-      }}>
-        {title}
-      </Text>
-    </View>
-  );
+// Thin wrapper kept for backwards compatibility — delegates to the shared
+// ScreenHeader so analysis sub-screens get the exact same header as the rest
+// of the app (safe-area aware, centered bold title, visible blue back button).
+export default function HeaderSimple({ title }: { title: string }) {
+  return <ScreenHeader title={title} />;
 }

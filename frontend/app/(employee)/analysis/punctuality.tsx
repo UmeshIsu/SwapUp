@@ -157,9 +157,12 @@ const styles = StyleSheet.create({
     headerRow: {
         marginTop: -10,
         marginBottom: 10,
+        paddingHorizontal: 16,
     },
     content: {
         gap: 12,
+        paddingHorizontal: 16,
+        paddingBottom: 24,
     },
     centered: {
         flex: 1,

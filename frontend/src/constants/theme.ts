@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { palette } from './palette';
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
@@ -21,7 +22,7 @@ export const Colors = {
     iconSecondary: '#555',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
-    primary: '#1373D0',
+    primary: palette.primary,
     success: '#10B981',
     successBg: '#BFFFC6',
     successLight: '#9BFAA4',
@@ -48,7 +49,7 @@ export const Colors = {
     iconSecondary: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
-    primary: '#4A9EE5',
+    primary: palette.primaryDarkScheme,
     success: '#34D399',
     successBg: '#1A3A2A',
     successLight: '#1A4A2A',
