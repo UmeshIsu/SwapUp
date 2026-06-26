@@ -25,17 +25,6 @@ interface SignupBody {
 
 // --- Helper Functions ---
 
-/**
- * Maps a department display name (from frontend) to the Prisma Department enum value.
- * e.g. "Chinese Restaurant" -> "CHINESE", "Indian Restaurant" -> "INDIAN"
- */
-function mapDepartment(dept?: string): "INDIAN" | "CHINESE" {
-  if (!dept) return "INDIAN";
-  const normalized = dept.toUpperCase().trim();
-  if (normalized.includes("CHINESE")) return "CHINESE";
-  if (normalized.includes("INDIAN")) return "INDIAN";
-  return "INDIAN"; // fallback
-}
 
 // --- Controller Functions ---
 
@@ -235,6 +224,13 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
 
     // 4. Create User in Local Prisma DB
     console.log("[SIGNUP] Attempting to create user in Prisma DB:", email);
+
+    const deptRecord = department
+      ? await prisma.department.findFirst({
+          where: { tenantId, name: { contains: department, mode: "insensitive" } },
+        })
+      : null;
+
     const user = await prisma.user.create({
       data: {
         name,
@@ -246,12 +242,13 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
         role: role.toUpperCase() as "EMPLOYEE" | "MANAGER",
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
         plan: "Basic",
-        department: mapDepartment(department),
+        ...(deptRecord ? { departmentId: deptRecord.id } : {}),
       },
+      include: { department: true },
     });
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department },
+      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department?.name ?? null },
       process.env.JWT_SECRET || "swapup_jwt_secret_key",
       { expiresIn: "7d" }
     );
@@ -268,7 +265,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
         name: user.name,
         email: user.email,
         role: user.role,
-        department: user.department,
+        department: user.department?.name ?? null,
         tenantId: user.tenantId,
         hotelName: tenant?.companyName || '',
         workerId: user.workerId,
@@ -327,7 +324,7 @@ export const login = async (req: Request, res: Response) => {
     console.log(`[LOGIN] Supabase auth success for ${email}`);
 
     // 2. Locate user in local Prisma DB
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email }, include: { department: true } });
 
     if (!user) {
       console.error(`[LOGIN] User ${email} not found in Prisma DB`);
@@ -341,7 +338,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department },
+      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department?.name ?? null },
       process.env.JWT_SECRET || "swapup_jwt_secret_key",
       { expiresIn: "7d" }
     );
@@ -357,7 +354,7 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        department: user.department,
+        department: user.department?.name ?? null,
         tenantId: user.tenantId,
         hotelName: tenant?.companyName || '',
         workerId: user.workerId,

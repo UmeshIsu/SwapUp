@@ -108,7 +108,7 @@ export const bulkCreateShifts = async (req: Request, res: Response): Promise<voi
         const employeeIds = [...new Set(shifts.map((s: any) => s.employeeId))];
         const employees = await prisma.user.findMany({
             where: { id: { in: employeeIds } },
-            select: { id: true, role: true, department: true }
+            select: { id: true, role: true, department: { select: { name: true } } }
         });
         const employeeMap = Object.fromEntries(employees.map(e => [e.id, e]));
 
@@ -133,7 +133,7 @@ export const bulkCreateShifts = async (req: Request, res: Response): Promise<voi
                 instructions: s.instructions || '',
                 type: getShiftType(startDate),
                 location: location,
-                role: emp?.department || 'Staff', // Use department as the role if job role is not defined
+                role: emp?.department?.name || 'Staff', // Use department as the role if job role is not defined
             };
         });
 

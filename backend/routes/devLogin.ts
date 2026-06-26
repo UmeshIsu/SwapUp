@@ -20,7 +20,7 @@ router.post('/dev-login', async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        const user = await prisma.user.findUnique({ where: { workerId } });
+        const user = await prisma.user.findUnique({ where: { workerId }, include: { department: true } });
 
         if (!user) {
             res.status(404).json({ error: `No user found with workerId "${workerId}"` });
@@ -31,7 +31,7 @@ router.post('/dev-login', async (req: Request, res: Response): Promise<void> => 
             id: user.id,
             employeeId: user.workerId,
             name: user.name,
-            department: user.department,
+            department: user.department?.name ?? null,
             role: user.role,
         };
 
