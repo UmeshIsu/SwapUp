@@ -120,44 +120,42 @@ export const bulkCreateShifts = async (req: Request, res: Response): Promise<voi
             return 'Night';
         };
 
-        await prisma.$transaction(async (tx) => {
-            // 1. Delete existing shifts for these dates created by this manager
-            await tx.shift.deleteMany({
-                where: {
-                    createdBy: managerId,
-                    date: {
-                        in: datesToClear.map(d => new Date(d)),
-                    },
-                },
-            });
-
-            // 2. Create new shifts
-            await Promise.all(
-                shifts.map((s: any) => {
-                    const startDate = new Date(s.startTime);
-                    const emp = employeeMap[s.employeeId];
-                    
-                    return tx.shift.create({
-                        data: {
-                            date: new Date(s.date),
-                            startTime: startDate,
-                            endTime: new Date(s.endTime),
-                            employeeId: s.employeeId,
-                            createdBy: managerId,
-                            instructions: s.instructions || '',
-                            type: getShiftType(startDate),
-                            location: location,
-                            role: emp?.department || 'Staff', // Use department as the role if job role is not defined
-                        },
-                    });
-                })
-            );
+        // Build all new shift rows up front
+        const newShifts = shifts.map((s: any) => {
+            const startDate = new Date(s.startTime);
+            const emp = employeeMap[s.employeeId];
+            return {
+                date: new Date(s.date),
+                startTime: startDate,
+                endTime: new Date(s.endTime),
+                employeeId: s.employeeId,
+                createdBy: managerId,
+                instructions: s.instructions || '',
+                type: getShiftType(startDate),
+                location: location,
+                role: emp?.department || 'Staff', // Use department as the role if job role is not defined
+            };
         });
 
+        // Use the ARRAY form of $transaction (a single batched transaction) instead of an
+        // interactive transaction running N individual inserts. createMany inserts every
+        // row in one query, so large rosters no longer hit the 5s interactive-transaction
+        // timeout and it works reliably over the Supabase connection pooler.
+        await prisma.$transaction([
+            prisma.shift.deleteMany({
+                where: {
+                    createdBy: managerId,
+                    date: { in: datesToClear.map(d => new Date(d)) },
+                },
+            }),
+            prisma.shift.createMany({ data: newShifts }),
+        ]);
+
         res.status(201).json({ message: `${shifts.length} shifts published successfully` });
-    } catch (error) {
+    } catch (error: any) {
         console.error('bulkCreateShifts error:', error);
-        res.status(500).json({ error: 'Failed to publish shifts' });
+        // Surface the real reason so publish failures are diagnosable from the app.
+        res.status(500).json({ error: error?.message || 'Failed to publish shifts' });
     }
 };
 
