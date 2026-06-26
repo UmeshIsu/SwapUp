@@ -47,6 +47,24 @@ function generateEmpId() {
     return String(empIdCounter++);
 }
 
+// Parse "08:00 AM" → minutes since midnight, and format minutes back to "09:00 AM".
+// Used to auto-advance each new shift row by one hour.
+function parseTimeToMinutes(t: string): number {
+    const m = t.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return 8 * 60; // fallback 08:00 AM
+    let h = parseInt(m[1], 10) % 12;
+    if (m[3].toUpperCase() === 'PM') h += 12;
+    return h * 60 + parseInt(m[2], 10);
+}
+function formatMinutes(total: number): string {
+    total = ((total % 1440) + 1440) % 1440;
+    const h = Math.floor(total / 60);
+    const min = total % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(h12).padStart(2, '0')}:${String(min).padStart(2, '0')} ${ampm}`;
+}
+
 // Initial empty state for newly created rosters
 const EMPTY_DAY_ROWS: ShiftRow[] = [];
 
@@ -144,10 +162,23 @@ export default function CreateRosterScreen() {
     // --- Row actions ---
     const addRow = () => {
         const newId = generateId();
-        setRows((prev: ShiftRow[]) => [
-            ...prev,
-            { id: newId, startTime: '08:00 AM', endTime: '09:00 AM', employees: [], task: '' },
-        ]);
+        setRows((prev: ShiftRow[]) => {
+            // Start the new slot where the previous one ended (hour by hour),
+            // or at 08:00 AM for the first row.
+            const startMin = prev.length > 0
+                ? parseTimeToMinutes(prev[prev.length - 1].endTime)
+                : 8 * 60;
+            return [
+                ...prev,
+                {
+                    id: newId,
+                    startTime: formatMinutes(startMin),
+                    endTime: formatMinutes(startMin + 60),
+                    employees: [],
+                    task: '',
+                },
+            ];
+        });
     };
 
     const deleteRow = (rowId: string) => {
@@ -166,13 +197,18 @@ export default function CreateRosterScreen() {
 
     const confirmAddEmployee = (emp: any) => {
         if (!addEmpRowId) return;
-        const newEmp: ShiftEmployee = {
-            id: emp.id,
-            name: emp.name,
-            color: EMPLOYEE_COLORS[Math.floor(Math.random() * EMPLOYEE_COLORS.length)],
-        };
         setRows((prev: ShiftRow[]) =>
-            prev.map((r: ShiftRow) => r.id === addEmpRowId ? { ...r, employees: [...r.employees, newEmp] } : r)
+            prev.map((r: ShiftRow) => {
+                if (r.id !== addEmpRowId) return r;
+                // Prevent adding the same employee to the same time slot twice.
+                if (r.employees.some((e: ShiftEmployee) => e.id === emp.id)) return r;
+                const newEmp: ShiftEmployee = {
+                    id: emp.id,
+                    name: emp.name,
+                    color: EMPLOYEE_COLORS[r.employees.length % EMPLOYEE_COLORS.length],
+                };
+                return { ...r, employees: [...r.employees, newEmp] };
+            })
         );
         setAddEmpModalVisible(false);
     };
@@ -326,7 +362,7 @@ export default function CreateRosterScreen() {
                             </TouchableOpacity>
 
                             {/* Employees */}
-                            <TouchableOpacity style={[styles.td, styles.colEmp, { paddingVertical: 6 }]} onPress={() => openAddEmployee(row.id)}>
+                            <View style={[styles.td, styles.colEmp, { paddingVertical: 6 }]}>
                                 <View style={styles.empWrap}>
                                     {row.employees.map((emp: ShiftEmployee) => (
                                         <TouchableOpacity
@@ -341,11 +377,18 @@ export default function CreateRosterScreen() {
                                             <Text style={styles.empName}>{emp.name}</Text>
                                         </TouchableOpacity>
                                     ))}
-                                    {row.employees.length === 0 && (
-                                        <Text style={styles.noEmpText}>+ Add</Text>
-                                    )}
+                                    {/* Persistent + Add button — always shown so multiple
+                                        employees can be added to the same time slot */}
+                                    <TouchableOpacity
+                                        style={styles.addEmpBtn}
+                                        onPress={() => openAddEmployee(row.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Ionicons name="add" size={12} color={palette.primary} />
+                                        <Text style={styles.addEmpText}>Add</Text>
+                                    </TouchableOpacity>
                                 </View>
-                            </TouchableOpacity>
+                            </View>
 
                             {/* Task */}
                             <View style={[styles.td, styles.colTask]}>
@@ -472,24 +515,36 @@ export default function CreateRosterScreen() {
                     <View style={styles.modalBox}>
                         <Text style={styles.modalTitle}>Select Employee</Text>
                         <ScrollView style={{ maxHeight: 300 }}>
-                            {availableEmployees.map((emp) => (
-                                <TouchableOpacity
-                                    key={emp.id}
-                                    style={styles.empSelectItem}
-                                    onPress={() => confirmAddEmployee(emp)}
-                                >
-                                    <View style={[styles.empAvatar, { backgroundColor: palette.primary, width: 24, height: 24, borderRadius: 12 }]}>
-                                        <Ionicons name="person" size={14} color="#fff" />
-                                    </View>
-                                    <View>
-                                        <Text style={styles.empSelectName}>{emp.name}</Text>
-                                        <Text style={styles.empSelectDept}>{emp.department}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-                            {availableEmployees.length === 0 && (
-                                <Text style={styles.noEmpInfo}>No employees found for this hotel.</Text>
-                            )}
+                            {(() => {
+                                // Hide employees already added to THIS time slot (they can
+                                // still be added to other slots). availableEmployees stays intact.
+                                const takenIds = new Set(
+                                    (rows.find((r) => r.id === addEmpRowId)?.employees ?? []).map((e) => e.id)
+                                );
+                                const selectable = availableEmployees.filter((emp) => !takenIds.has(emp.id));
+
+                                if (availableEmployees.length === 0) {
+                                    return <Text style={styles.noEmpInfo}>No employees found for this hotel.</Text>;
+                                }
+                                if (selectable.length === 0) {
+                                    return <Text style={styles.noEmpInfo}>All available employees are already in this slot.</Text>;
+                                }
+                                return selectable.map((emp) => (
+                                    <TouchableOpacity
+                                        key={emp.id}
+                                        style={styles.empSelectItem}
+                                        onPress={() => confirmAddEmployee(emp)}
+                                    >
+                                        <View style={[styles.empAvatar, { backgroundColor: palette.primary, width: 24, height: 24, borderRadius: 12 }]}>
+                                            <Ionicons name="person" size={14} color="#fff" />
+                                        </View>
+                                        <View>
+                                            <Text style={styles.empSelectName}>{emp.name}</Text>
+                                            <Text style={styles.empSelectDept}>{emp.department}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ));
+                            })()}
                         </ScrollView>
                         <TouchableOpacity style={[styles.modalCancel, { marginTop: 12 }]} onPress={() => setAddEmpModalVisible(false)}>
                             <Text style={styles.modalCancelTxt}>Cancel</Text>
@@ -565,6 +620,13 @@ const styles = StyleSheet.create({
     },
     empName: { fontSize: 10, fontWeight: '600', color: '#1a1a1a' },
     noEmpText: { fontSize: 11, color: palette.primary, fontStyle: 'italic', paddingVertical: 4 },
+    addEmpBtn: {
+        flexDirection: 'row', alignItems: 'center', gap: 2,
+        borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4,
+        borderWidth: 1.2, borderColor: palette.primary, borderStyle: 'dashed',
+        backgroundColor: '#EFF6FF',
+    },
+    addEmpText: { fontSize: 10, fontWeight: '700', color: palette.primary },
 
     taskInput: {
         width: '100%', minHeight: 44, fontSize: 11, color: '#1a1a1a',

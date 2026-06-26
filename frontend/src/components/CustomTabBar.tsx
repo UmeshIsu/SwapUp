@@ -114,9 +114,14 @@ const styles = StyleSheet.create({
         width: 62,
         height: 62,
         borderRadius: 13,
+        // overflow:hidden forces Android to clip to the rounded bounds on every
+        // re-render — without it the corner radius is dropped (becomes square)
+        // after switching tabs.
+        overflow: 'hidden',
     },
     iconWrapperActive: {
         backgroundColor: ACTIVE_BG,
+        borderRadius: 13,
     },
     icon: {
         width: 32,
