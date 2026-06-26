@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     sectionLabel: {
         fontSize: 13,
         fontWeight: '700',
-        color: C.textMuted,
+        color: C.textSecondary,
         letterSpacing: 0.4,
         textTransform: 'uppercase',
         marginBottom: 8,
