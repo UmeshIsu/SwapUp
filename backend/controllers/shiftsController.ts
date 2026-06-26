@@ -37,24 +37,22 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        // Compute the Mon–Sun published week that contains the given date, so an
-        // employee can swap their shift with a colleague's shift on ANY day of that
-        // week (not just the same date).
-        const target = new Date(date as string);
-        const dow = target.getUTCDay(); // 0 = Sunday
-        const weekStart = new Date(target);
-        weekStart.setUTCDate(target.getUTCDate() - (dow === 0 ? 6 : dow - 1));
-        weekStart.setUTCHours(0, 0, 0, 0);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
-        weekEnd.setUTCHours(23, 59, 59, 999);
+        // Show colleague shifts from the requester's shift day through the end of that
+        // published week (Sunday) — i.e. the same day and any later day, never past
+        // days. (Swapping into a day that has already happened makes no sense.)
+        const rangeStart = new Date(date as string);
+        rangeStart.setUTCHours(0, 0, 0, 0);
+        const dow = rangeStart.getUTCDay(); // 0 = Sunday (last day of a Mon–Sun week)
+        const rangeEnd = new Date(rangeStart);
+        rangeEnd.setUTCDate(rangeStart.getUTCDate() + (dow === 0 ? 0 : 7 - dow)); // Sunday of this week
+        rangeEnd.setUTCHours(23, 59, 59, 999);
 
-        // Every shift in that week belonging to a same-department colleague (not me).
-        // Each shift is returned individually so a colleague with multiple shifts in
-        // the week appears once per shift and the employee can pick the exact slot.
+        // Every shift in that range belonging to a same-department colleague (not me).
+        // Each shift is returned individually so a colleague with multiple shifts
+        // appears once per shift and the employee can pick the exact slot.
         const shifts = await prisma.shift.findMany({
             where: {
-                date: { gte: weekStart, lte: weekEnd },
+                date: { gte: rangeStart, lte: rangeEnd },
                 employee: {
                     department: department as any,
                     id: { not: myId },
