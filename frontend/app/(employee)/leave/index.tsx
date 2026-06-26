@@ -1,11 +1,4 @@
 import { palette } from '@/src/constants/palette';
-// index.tsx - Leave Dashboard Screen (Picture 2)
-// Shows:
-//  - Assigned leaves table (all start at 0 until backend is connected)
-//  - Green card: total remaining leaves (0 initially)
-//  - Red card: absent this month (0 initially)
-//  - Button to apply for leave
-//  - Button to view pending requests
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -18,10 +11,23 @@ import {
 import { useRouter } from 'expo-router';
 import { getLeaveSummary, getPendingRequests, LeaveSummary } from '@/src/services/leaveApi';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { useColorScheme } from '@/src/hooks/use-color-scheme';
-import { Colors } from '@/src/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
 
-// All zeros until employee data loads from the database
+const C = {
+    bg: '#F8F9FA',
+    card: '#FFFFFF',
+    text: '#0F172A',
+    textSecondary: '#475569',
+    textMuted: '#94A3B8',
+    primary: palette.primary,
+    primarySoft: '#EFF6FF',
+    divider: '#E8ECF1',
+    successText: '#15803D',
+    successSoft: '#ECFDF5',
+    danger: '#DC2626',
+    dangerSoft: '#FEF2F2',
+};
+
 const ZERO_SUMMARY: LeaveSummary = {
     assignedLeaves: [
         { id: '1', name: 'Annual Leave', totalDays: 0, usedDays: 0, remainingDays: 0 },
@@ -37,97 +43,98 @@ export default function LeaveDashboard() {
     const router = useRouter();
     const { user } = useAuth();
     const EMPLOYEE_ID = user?.id || '';
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme ?? 'light'];
 
-    // Start with all zeros — no spinner, content is visible immediately
     const [summary, setSummary] = useState<LeaveSummary>(ZERO_SUMMARY);
-
-    // Pending count also starts at 0
     const [pendingCount, setPendingCount] = useState(0);
 
-    // When the component loads, try to get real data from the backend
-    // If the backend isn't running this silently fails and zeros stay shown
     useEffect(() => {
         loadData();
     }, []);
 
     const loadData = async () => {
         try {
-            // Fetch leave summary (assigned days, remaining, absent)
             const summaryData = await getLeaveSummary(EMPLOYEE_ID);
             setSummary(summaryData);
-        } catch (error) {
-            // Backend not running — keep zeros showing
-        }
+        } catch (error) {}
 
         try {
-            // Fetch pending request count separately
             const pendingData = await getPendingRequests(EMPLOYEE_ID);
             setPendingCount(pendingData.length);
-        } catch (error) {
-            // Backend not running — keep 0
-        }
+        } catch (error) {}
     };
 
     return (
-        <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-            {/* ---- Assigned Leaves Table ---- */}
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Your Assigned Leaves</Text>
-
-            <View style={[styles.leaveTable, { borderColor: theme.border }]}>
-                {summary.assignedLeaves.map((leave) => (
-                    <View key={leave.id} style={[styles.leaveRow, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                        <Text style={[styles.leaveRowName, { color: theme.text }]}>{leave.name}</Text>
-                        {/* Show days from database when connected, or 0 */}
-                        <Text style={[styles.leaveRowDays, { color: theme.text }]}>{leave.totalDays} Days</Text>
+            {/* ---- Assigned Leaves Card ---- */}
+            <Text style={styles.sectionTitle}>Your Assigned Leaves</Text>
+            <View style={styles.card}>
+                {summary.assignedLeaves.map((leave, index) => (
+                    <View
+                        key={leave.id}
+                        style={[
+                            styles.leaveRow,
+                            index < summary.assignedLeaves.length - 1 && styles.leaveRowBorder,
+                        ]}
+                    >
+                        <View style={styles.leaveRowLeft}>
+                            <View style={styles.leaveDot} />
+                            <Text style={styles.leaveRowName}>{leave.name}</Text>
+                        </View>
+                        <View style={styles.leaveRowRight}>
+                            <Text style={styles.leaveRowDays}>{leave.totalDays}</Text>
+                            <Text style={styles.leaveRowUnit}> days</Text>
+                        </View>
                     </View>
                 ))}
             </View>
 
-            {/* ---- Green Card: Remaining Leaves ---- */}
-            <View style={[styles.infoCard, styles.greenCard]}>
-                <View style={[styles.iconCircle, { backgroundColor: '#4caf50' }]}>
-                    <Text style={styles.iconText}>🕐</Text>
+            {/* ---- Stats Grid ---- */}
+            <View style={styles.gridRow}>
+                <View style={[styles.card, styles.gridCard, { backgroundColor: C.successSoft }]}>
+                    <View style={[styles.gridIcon, { backgroundColor: '#FFFFFF' }]}>
+                        <Ionicons name="calendar-clear-outline" size={20} color={C.successText} />
+                    </View>
+                    <Text style={[styles.gridNumber, { color: C.successText }]}>
+                        {summary.totalRemaining}
+                    </Text>
+                    <Text style={[styles.gridLabel, { color: C.successText }]}>Leaves Remaining</Text>
                 </View>
-                <Text style={[styles.cardNumber, { color: theme.text }]}>{summary.totalRemaining}</Text>
-                <Text style={[styles.cardLabel, { color: theme.textSecondary }]}> Leaves Remaining</Text>
+
+                <View style={[styles.card, styles.gridCard, { backgroundColor: C.dangerSoft }]}>
+                    <View style={[styles.gridIcon, { backgroundColor: '#FFFFFF' }]}>
+                        <Ionicons name="person-remove-outline" size={20} color={C.danger} />
+                    </View>
+                    <Text style={[styles.gridNumber, { color: C.danger }]}>
+                        {summary.absentThisMonth}
+                    </Text>
+                    <Text style={[styles.gridLabel, { color: C.danger }]}>Absent This Month</Text>
+                </View>
             </View>
 
-            {/* ---- Red Card: Absent This Month ---- */}
-            <View style={[styles.infoCard, styles.redCard]}>
-                <View style={[styles.iconCircle, { backgroundColor: '#ef5350' }]}>
-                    <Text style={styles.iconText}>📅</Text>
-                </View>
-                <Text style={[styles.cardNumber, { color: theme.text }]}>{summary.absentThisMonth}</Text>
-                <Text style={[styles.cardLabel, { color: theme.textSecondary }]}> Absent this month</Text>
-            </View>
-
-            {/* ---- Button: Apply for Leave ---- */}
+            {/* ---- Actions ---- */}
             <TouchableOpacity
-                style={styles.applyButton}
+                style={styles.primaryButton}
                 onPress={() => router.push('/(employee)/leave/apply' as any)}
                 activeOpacity={0.8}
             >
-                <Text style={styles.applyButtonText}>Apply for a Leave</Text>
+                <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.primaryButtonText}>Apply for a Leave</Text>
             </TouchableOpacity>
 
-            {/* ---- Button: View Pending Requests ---- */}
             <TouchableOpacity
-                style={styles.pendingButton}
+                style={styles.secondaryButton}
                 onPress={() => router.push('/(employee)/leave/requestStatus' as any)}
                 activeOpacity={0.8}
             >
-                <Text style={styles.pendingButtonText}>Request Status</Text>
+                <Ionicons name="document-text-outline" size={20} color={C.primary} style={{ marginRight: 8 }} />
+                <Text style={styles.secondaryButtonText}>Request Status</Text>
                 {pendingCount > 0 && (
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>{pendingCount}</Text>
                     </View>
                 )}
             </TouchableOpacity>
-
-
 
         </ScrollView>
     );
@@ -136,7 +143,7 @@ export default function LeaveDashboard() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: C.bg,
     },
     content: {
         padding: 20,
@@ -144,100 +151,140 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#111',
-        marginBottom: 10,
+        fontWeight: '700',
+        color: C.text,
+        marginBottom: 12,
+        letterSpacing: -0.2,
     },
-    leaveTable: {
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 10,
-        marginBottom: 16,
+    card: {
+        backgroundColor: C.card,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+        marginBottom: 14,
         overflow: 'hidden',
     },
     leaveRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 14,
-        paddingVertical: 13,
+        alignItems: 'center',
+        paddingHorizontal: 18,
+        paddingVertical: 15,
+    },
+    leaveRowBorder: {
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-        backgroundColor: '#fff',
+        borderBottomColor: C.divider,
+    },
+    leaveRowLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    leaveDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: C.primary,
+        opacity: 0.5,
     },
     leaveRowName: {
         fontSize: 14,
-        color: '#333',
+        color: C.textSecondary,
+        fontWeight: '500',
+    },
+    leaveRowRight: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
     },
     leaveRowDays: {
-        fontSize: 14,
-        color: '#333',
-        fontWeight: '600',
+        fontSize: 16,
+        color: C.text,
+        fontWeight: '700',
     },
-    infoCard: {
+    leaveRowUnit: {
+        fontSize: 12,
+        color: C.textMuted,
+        fontWeight: '500',
+    },
+    gridRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        gap: 14,
+        marginBottom: 14,
+    },
+    gridCard: {
+        flex: 1,
+        padding: 18,
+        justifyContent: 'space-between',
+        aspectRatio: 1,
+        shadowOpacity: 0.03,
+        marginBottom: 0,
+    },
+    gridIcon: {
+        width: 44,
+        height: 44,
         borderRadius: 14,
-        padding: 16,
-        marginBottom: 12,
-    },
-    greenCard: {
-        backgroundColor: '#e8f5e9',
-    },
-    redCard: {
-        backgroundColor: '#fce4ec',
-    },
-    iconCircle: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 14,
+        justifyContent: 'center',
     },
-    iconText: {
-        fontSize: 18,
+    gridNumber: {
+        fontSize: 38,
+        fontWeight: '800',
+        letterSpacing: -1,
+        marginTop: 8,
     },
-    cardNumber: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#111',
+    gridLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 2,
+        opacity: 0.85,
     },
-    cardLabel: {
-        fontSize: 14,
-        color: '#444',
-        marginLeft: 4,
-    },
-    applyButton: {
-        backgroundColor: palette.primary,
-        borderRadius: 30,
+    primaryButton: {
+        backgroundColor: C.primary,
+        borderRadius: 16,
         paddingVertical: 16,
         alignItems: 'center',
         marginBottom: 12,
-        marginTop: 8,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: C.primary,
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
     },
-    applyButtonText: {
+    primaryButtonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: '700',
     },
-    pendingButton: {
-        backgroundColor: palette.primary,
-        borderRadius: 30,
+    secondaryButton: {
+        backgroundColor: C.card,
+        borderRadius: 16,
         paddingVertical: 16,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
+        borderWidth: 1.5,
+        borderColor: C.primarySoft,
+        shadowColor: '#000',
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 1,
     },
-    pendingButtonText: {
-        color: '#fff',
+    secondaryButtonText: {
+        color: C.primary,
         fontSize: 16,
         fontWeight: '700',
     },
     badge: {
-        backgroundColor: '#e53935',
+        backgroundColor: C.danger,
         borderRadius: 12,
-        minWidth: 24,
-        height: 24,
+        minWidth: 22,
+        height: 22,
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 8,
@@ -245,7 +292,7 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         color: '#fff',
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: 'bold',
     },
 });
