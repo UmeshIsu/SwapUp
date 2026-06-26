@@ -31,7 +31,7 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const colorScheme = useColorScheme();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
   const wasAuthenticated = useRef(false);
 
@@ -39,13 +39,18 @@ function RootNavigator() {
     if (!isLoading) {
       if (isAuthenticated) {
         wasAuthenticated.current = true;
+        // Admin-provisioned account with a temporary password — force the change
+        // even if the app was restarted (can't be skipped).
+        if (user?.mustChangePassword) {
+          router.replace('/force-change-password' as any);
+        }
       } else if (wasAuthenticated.current) {
         // User was logged in and is now logged out — redirect to role selection
         wasAuthenticated.current = false;
         router.replace('/login');
       }
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, user?.mustChangePassword]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

@@ -1,6 +1,7 @@
 import type { FieldErrors } from '@/app/(auth)/register';
-import React from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
     password: string;
@@ -17,6 +18,8 @@ export default function CreateAccountStep7({
     onChangeConfirmPassword,
     errors = {},
 }: Props) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     return (
         <View style={styles.container}>
             <Text style={styles.heading}>Create a password</Text>
@@ -25,26 +28,44 @@ export default function CreateAccountStep7({
             </Text>
 
             <Text style={styles.label}>Password</Text>
-            <TextInput
-                style={[styles.input, errors.password && styles.inputError]}
-                placeholder="Create password"
-                placeholderTextColor="#999"
-                value={password}
-                onChangeText={onChangePassword}
-                secureTextEntry
-                autoFocus
-            />
+            <View style={[styles.passwordWrapper, errors.password && styles.passwordWrapperError]}>
+                <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Create password"
+                    placeholderTextColor="#999"
+                    value={password}
+                    onChangeText={onChangePassword}
+                    secureTextEntry={!showPassword}
+                    autoFocus
+                />
+                <TouchableOpacity
+                    onPress={() => setShowPassword((s) => !s)}
+                    style={styles.eyeBtn}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#888" />
+                </TouchableOpacity>
+            </View>
             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
             <Text style={[styles.label, { marginTop: errors.password ? 12 : 0 }]}>Confirm Password</Text>
-            <TextInput
-                style={[styles.input, errors.confirmPassword && styles.inputError]}
-                placeholder="Confirm password"
-                placeholderTextColor="#999"
-                value={confirmPassword}
-                onChangeText={onChangeConfirmPassword}
-                secureTextEntry
-            />
+            <View style={[styles.passwordWrapper, errors.confirmPassword && styles.passwordWrapperError]}>
+                <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Confirm password"
+                    placeholderTextColor="#999"
+                    value={confirmPassword}
+                    onChangeText={onChangeConfirmPassword}
+                    secureTextEntry={!showConfirm}
+                />
+                <TouchableOpacity
+                    onPress={() => setShowConfirm((s) => !s)}
+                    style={styles.eyeBtn}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={22} color="#888" />
+                </TouchableOpacity>
+            </View>
             {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
 
             <View style={styles.hints}>
@@ -92,6 +113,31 @@ const styles = StyleSheet.create({
         borderColor: '#EF4444',
         backgroundColor: '#FEF2F2',
         marginBottom: 0,
+    },
+    passwordWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F5F5',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    passwordWrapperError: {
+        borderColor: '#EF4444',
+        backgroundColor: '#FEF2F2',
+        marginBottom: 0,
+    },
+    passwordInput: {
+        flex: 1,
+        paddingVertical: 16,
+        fontSize: 16,
+        color: '#1A1A2E',
+    },
+    eyeBtn: {
+        paddingLeft: 10,
+        paddingVertical: 6,
     },
     errorText: {
         color: '#EF4444',

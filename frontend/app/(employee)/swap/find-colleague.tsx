@@ -101,9 +101,10 @@ export default function FindColleagueScreen() {
             return;
         }
 
-        // Set loading state on this colleague
+        // Set loading state on this specific shift card (a colleague may appear
+        // multiple times — once per shift in the week).
         setColleagues(prev =>
-            prev.map(c => c.employeeId === colleague.employeeId ? { ...c, loading: true } : c)
+            prev.map(c => c.shiftId === colleague.shiftId ? { ...c, loading: true } : c)
         );
 
         try {
@@ -114,16 +115,17 @@ export default function FindColleagueScreen() {
                 reason: params.reason || '',
             });
 
-            // Mark as sent
+            // Mark this shift card as sent
             setColleagues(prev =>
                 prev.map(c =>
-                    c.employeeId === colleague.employeeId
+                    c.shiftId === colleague.shiftId
                         ? { ...c, requestSent: true, loading: false }
                         : c
                 )
             );
 
-            // Navigate to summary
+            // Navigate to summary (use the colleague's actual shift date — it can be
+            // a different day from yours)
             router.push({
                 pathname: '/(employee)/swap/swap-summary',
                 params: {
@@ -132,7 +134,7 @@ export default function FindColleagueScreen() {
                     yourDate: params.date ? formatDate(params.date) : '',
                     colleagueName: colleague.name,
                     colleagueShiftTime: formatShiftTime(colleague.startTime, colleague.endTime),
-                    colleagueDate: params.date ? formatDate(params.date) : '',
+                    colleagueDate: formatDate(colleague.date),
                 },
             });
         } catch (err: any) {
@@ -140,7 +142,7 @@ export default function FindColleagueScreen() {
             Alert.alert('Error', err.message || 'Failed to send swap request');
             setColleagues(prev =>
                 prev.map(c =>
-                    c.employeeId === colleague.employeeId ? { ...c, loading: false } : c
+                    c.shiftId === colleague.shiftId ? { ...c, loading: false } : c
                 )
             );
         }
@@ -156,7 +158,7 @@ export default function FindColleagueScreen() {
             {/* Info */}
             <View style={styles.colleagueInfo}>
                 <Text style={styles.colleagueName}>{item.name}</Text>
-                <Text style={styles.availableText}>Available</Text>
+                <Text style={styles.availableText}>{formatDate(item.date)}</Text>
                 <Text style={styles.hoursText}>
                     {formatShiftTime(item.startTime, item.endTime)}
                 </Text>
@@ -226,7 +228,7 @@ export default function FindColleagueScreen() {
                     contentContainerStyle={styles.listContent}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
-                        <Text style={styles.emptyText}>No colleagues found for this date.</Text>
+                        <Text style={styles.emptyText}>No colleagues found for this week.</Text>
                     }
                 />
             )}

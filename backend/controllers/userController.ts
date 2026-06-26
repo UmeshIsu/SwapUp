@@ -136,7 +136,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
 
         await (prisma as any).user.update({
             where: { id: userId },
-            data: { password: hashedPassword },
+            data: { password: hashedPassword, mustChangePassword: false },
         });
 
         console.log(`[CHANGE_PASSWORD] Prisma DB password updated for ${user.email}`);

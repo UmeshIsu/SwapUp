@@ -361,10 +361,97 @@ export const login = async (req: Request, res: Response) => {
         phone: user.phone,
         availabilityPreferences: user.availabilityPreferences,
         plan: user.plan,
+        mustChangePassword: (user as any).mustChangePassword ?? false,
       }
     });
   } catch (error) {
     console.error(`[LOGIN] Catch-all error for ${req.body.email}:`, error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Forgot Password — Step 1: email a reset code (OTP).
+ * Responds the same whether or not the account exists (no email enumeration).
+ */
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body as { email: string };
+    if (!email || !email.trim()) {
+      return res.status(400).json({ error: "Email is required." });
+    }
+    const cleanEmail = email.trim();
+
+    const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    if (user) {
+      const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail });
+      if (error) {
+        console.error("[FORGOT_PASSWORD] OTP send error:", error.message);
+      } else {
+        console.log(`[FORGOT_PASSWORD] Reset code sent to ${cleanEmail}`);
+      }
+    }
+    return res.status(200).json({
+      message: "If an account exists for this email, a reset code has been sent.",
+    });
+  } catch (error: any) {
+    console.error("[FORGOT_PASSWORD] error:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Forgot Password — Step 2: verify the OTP and set a new password.
+ */
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, otp, newPassword } = req.body as {
+      email: string;
+      otp: string;
+      newPassword: string;
+    };
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: "Email, code, and new password are required." });
+    }
+    const cleanEmail = email.trim();
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters." });
+    }
+    if (!/\d/.test(newPassword)) {
+      return res.status(400).json({ error: "New password must include at least one number." });
+    }
+
+    // 1. Verify the OTP via Supabase
+    const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: otp.trim(),
+      type: "email",
+    });
+    if (otpError || !otpData?.user) {
+      return res.status(400).json({ error: "Invalid or expired verification code." });
+    }
+
+    // 2. Update the password in Supabase Auth (login authenticates against Supabase)
+    const { error: updateError } = await supabase.auth.admin.updateUserById(otpData.user.id, {
+      password: newPassword,
+    });
+    if (updateError) {
+      console.error("[RESET_PASSWORD] Supabase update failed:", updateError.message);
+      return res.status(500).json({ error: "Failed to update password." });
+    }
+
+    // 3. Mirror the new hash locally and clear any forced-change flag
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await (prisma as any).user.update({
+      where: { email: cleanEmail },
+      data: { password: hashedPassword, mustChangePassword: false },
+    });
+
+    console.log(`[RESET_PASSWORD] Password reset for ${cleanEmail}`);
+    return res.status(200).json({ message: "Password reset successfully." });
+  } catch (error: any) {
+    console.error("[RESET_PASSWORD] error:", error.message);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

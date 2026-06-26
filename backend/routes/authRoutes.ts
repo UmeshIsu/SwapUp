@@ -2,12 +2,14 @@
 import express, { Router } from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { 
-  signup, 
-  login, 
-  verifyHotel, 
-  sendVerificationCode, 
+  signup,
+  login,
+  verifyHotel,
+  sendVerificationCode,
   verifyWorkerId,
   verifyOtp,
+  forgotPassword,
+  resetPassword,
   getAllEmployees
 } from "../controllers/authController";
 
@@ -31,6 +33,18 @@ router.post("/send-code", sendVerificationCode);
  * @desc    Step 5: Verifies the OTP code sent to email
  */
 router.post("/verify-otp", verifyOtp);
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Forgot password — emails a reset OTP code
+ */
+router.post("/forgot-password", forgotPassword);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Forgot password — verifies OTP and sets a new password
+ */
+router.post("/reset-password", resetPassword);
 
 /**
  * @route   POST /api/auth/verify-worker

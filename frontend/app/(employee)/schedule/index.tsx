@@ -25,7 +25,6 @@ export default function EmployeeScheduleScreen() {
   const [markedDates, setMarkedDates] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [selectedShift, setSelectedShift] = useState<any>(null);
   const [allShifts, setAllShifts] = useState<any[]>([]);
 
   // Refs for the Bottom Sheet
@@ -127,18 +126,19 @@ export default function EmployeeScheduleScreen() {
 
   const handleDayPress = (day: any) => {
     setSelected(day.dateString);
-    const shift = allShifts.find(s => s.date.split('T')[0] === day.dateString);
-    setSelectedShift(shift || null);
   };
 
-  const handleInitiateSwap = () => {
-    if (selectedShift) {
-      router.push({
-        pathname: '/(employee)/swap/initiate',
-        params: { date: selectedShift.date.split('T')[0] }
-      });
-    }
+  const handleInitiateSwap = (shift: any) => {
+    router.push({
+      pathname: '/(employee)/swap/initiate',
+      params: { date: shift.date.split('T')[0] }
+    });
   };
+
+  // All shifts on the selected day (a day can have more than one).
+  const dayShifts = selected
+    ? allShifts.filter((s: any) => s.date.split('T')[0] === selected)
+    : [];
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.background }}>
@@ -190,27 +190,29 @@ export default function EmployeeScheduleScreen() {
           ))}
         </View>
 
-        {selectedShift ? (
-          <View style={[styles.shiftDetailCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.shiftInfo}>
-              <Text style={[styles.shiftDetailTitle, { color: theme.text }]}>{getShiftType(selectedShift.startTime)} Shift</Text>
-              <Text style={[styles.shiftTime, { color: theme.textSecondary }]}>{formatTime(selectedShift.startTime)} - {formatTime(selectedShift.endTime)}</Text>
-              <Text style={[styles.shiftDetailDate, { color: theme.textMuted }]}>{(() => {
-                const [year, month, day] = selectedShift.date.split('T')[0].split('-').map(Number);
-                const d = new Date(year, month - 1, day);
-                return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-              })()}</Text>
+        {dayShifts.length > 0 ? (
+          dayShifts.map((shift: any) => (
+            <View key={shift.id} style={[styles.shiftDetailCard, { backgroundColor: theme.surface }]}>
+              <View style={styles.shiftInfo}>
+                <Text style={[styles.shiftDetailTitle, { color: theme.text }]}>{getShiftType(shift.startTime)} Shift</Text>
+                <Text style={[styles.shiftTime, { color: theme.textSecondary }]}>{formatTime(shift.startTime)} - {formatTime(shift.endTime)}</Text>
+                <Text style={[styles.shiftDetailDate, { color: theme.textMuted }]}>{(() => {
+                  const [year, month, day] = shift.date.split('T')[0].split('-').map(Number);
+                  const d = new Date(year, month - 1, day);
+                  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                })()}</Text>
+              </View>
+              <TouchableOpacity style={[styles.swapActionBtn, { backgroundColor: theme.primary }]} onPress={() => handleInitiateSwap(shift)}>
+                <Text style={styles.swapActionText}>Initiate Shift Swap</Text>
+                <Ionicons name="swap-horizontal" size={20} color="#FFF" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={[styles.swapActionBtn, { backgroundColor: theme.primary }]} onPress={handleInitiateSwap}>
-              <Text style={styles.swapActionText}>Initiate Shift Swap</Text>
-              <Ionicons name="swap-horizontal" size={20} color="#FFF" />
-            </TouchableOpacity>
-          </View>
-        ) : selected && (
+          ))
+        ) : selected ? (
           <View style={[styles.infoBox, { backgroundColor: '#FEE2E2' }]}>
             <Text style={[styles.infoTitle, { color: '#B91C1C' }]}>No shift scheduled for this date.</Text>
           </View>
-        )}
+        ) : null}
 
         <View style={[styles.infoBox, { backgroundColor: theme.card }]}>
           <Text style={[styles.infoTitle, { color: theme.text }]}>To request a swap, please click on the relevant date in the calendar.</Text>
