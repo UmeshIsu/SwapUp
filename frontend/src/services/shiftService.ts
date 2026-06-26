@@ -25,6 +25,7 @@ export interface Colleague {
     employeeId: string;
     name: string;
     role: string;
+    date: string;
     startTime: string;
     endTime: string;
 }

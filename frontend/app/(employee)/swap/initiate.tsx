@@ -93,6 +93,12 @@ export default function InitiateSwapScreen() {
     // Derive role from first shift (all shifts belong to the same employee)
     const myRole = shifts.length > 0 ? (shifts[0].role || 'Waiter') : 'Waiter';
 
+    // When launched from a specific calendar date, only show that day's shifts so the
+    // employee can choose exactly which slot to swap (a day can have multiple shifts).
+    const visibleShifts = params.date
+        ? shifts.filter((s) => s.date.split('T')[0] === params.date)
+        : shifts;
+
     return (
         <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -131,13 +137,13 @@ export default function InitiateSwapScreen() {
                     <View style={styles.loadingWrap}>
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
-                ) : shifts.length === 0 ? (
+                ) : visibleShifts.length === 0 ? (
                     <View style={styles.loadingWrap}>
                         <Text style={styles.loadingText}>No shifts found.</Text>
                     </View>
                 ) : (
                     <View style={styles.scheduleCard}>
-                        {shifts.map((shift, index) => (
+                        {visibleShifts.map((shift, index) => (
                             <View key={shift.id}>
                                 <View style={styles.shiftRow}>
                                     <View style={{ flex: 1 }}>
@@ -154,7 +160,7 @@ export default function InitiateSwapScreen() {
                                         <Text style={styles.swapBtnText}>Swap</Text>
                                     </TouchableOpacity>
                                 </View>
-                                {index < shifts.length - 1 && <View style={styles.divider} />}
+                                {index < visibleShifts.length - 1 && <View style={styles.divider} />}
                             </View>
                         ))}
                     </View>
