@@ -37,16 +37,24 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        const targetDate = new Date(date as string);
-        const dayStart = new Date(targetDate);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(targetDate);
-        dayEnd.setHours(23, 59, 59, 999);
+        // Compute the Mon–Sun published week that contains the given date, so an
+        // employee can swap their shift with a colleague's shift on ANY day of that
+        // week (not just the same date).
+        const target = new Date(date as string);
+        const dow = target.getUTCDay(); // 0 = Sunday
+        const weekStart = new Date(target);
+        weekStart.setUTCDate(target.getUTCDate() - (dow === 0 ? 6 : dow - 1));
+        weekStart.setUTCHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+        weekEnd.setUTCHours(23, 59, 59, 999);
 
-        // Get users in same department (excluding self) who have a shift on that date
+        // Every shift in that week belonging to a same-department colleague (not me).
+        // Each shift is returned individually so a colleague with multiple shifts in
+        // the week appears once per shift and the employee can pick the exact slot.
         const shifts = await prisma.shift.findMany({
             where: {
-                date: { gte: dayStart, lte: dayEnd },
+                date: { gte: weekStart, lte: weekEnd },
                 employee: {
                     department: department as any,
                     id: { not: myId },
@@ -58,24 +66,18 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
                     select: { id: true, name: true, role: true },
                 },
             },
+            orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
         });
 
-        const colleagueMap = new Map<string, any>();
-        shifts.forEach((s: any) => {
-            // Only keep the first shift per employee to avoid duplicates
-            if (!colleagueMap.has(s.employee.id)) {
-                colleagueMap.set(s.employee.id, {
-                    shiftId: s.id,
-                    employeeId: s.employee.id,
-                    name: s.employee.name,
-                    role: s.employee.role,
-                    startTime: s.startTime,
-                    endTime: s.endTime,
-                });
-            }
-        });
-
-        const colleagues = Array.from(colleagueMap.values());
+        const colleagues = shifts.map((s: any) => ({
+            shiftId: s.id,
+            employeeId: s.employee.id,
+            name: s.employee.name,
+            role: s.employee.role,
+            date: s.date,
+            startTime: s.startTime,
+            endTime: s.endTime,
+        }));
 
         res.json(colleagues);
     } catch (error) {
