@@ -13,17 +13,13 @@ datasource db {
 }
 
 // ==========================================
-// 1. ENUMS (Strict Data Rules)
+// ENUMS
 // ==========================================
+
 enum Role {
   EMPLOYEE
   MANAGER
-}
-
-// --- NEW ENUMS ADDED ---
-enum Department {
-  INDIAN
-  CHINESE
+  ADMIN
 }
 
 enum MessageType {
@@ -40,55 +36,86 @@ enum SwapStatus {
 }
 
 // ==========================================
-// 2. CORE AUTH & ORGANIZATION
+// CORE — ORGANIZATION
 // ==========================================
+
 model Tenant {
   id          String @id @default(uuid()) @db.Uuid
   companyName String @unique
 
   createdAt DateTime @default(now())
 
-  users User[]
+  users       User[]
+  departments Department[]
+  siteQrCode  SiteQrCode?
 }
 
+model Department {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  tenantId  String   @db.Uuid
+  managerId String?  @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant @relation(fields: [tenantId], references: [id])
+  manager User?  @relation("ManagedDepartments", fields: [managerId], references: [id])
+  users   User[] @relation("UserDepartment")
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ==========================================
+// USERS
+// ==========================================
+
 model User {
-  id       String @id @default(uuid()) @db.Uuid
-  workerId String @unique // The unique ID provided by HR
-  role     Role // MANAGER or EMPLOYEE from the Splash screen
-  tenantId String @db.Uuid
+  id       String  @id @default(uuid()) @db.Uuid
+  workerId String  @unique
+  role     Role
+  tenantId String  @db.Uuid
   name     String
-  email    String @unique
-  phone    String @unique // Mobile number from Step 3
-  password String
+  email    String  @unique
+  phone    String  @unique
+  password String?
 
-  // --- NEW FIELDS ADDED ---
+  // Profile
   avatarUrl               String?
-  department              Department @default(INDIAN) // Default added to prevent migration crash on existing users
-  plan                    String     @default("Basic")
+  plan                    String  @default("Basic")
   availabilityPreferences String?
-  fcmToken                String? // For push notifications
+  fcmToken                String?
 
-  // --- EXISTING RELATIONS ---
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  createdShifts Shift[]  @relation("CreatedByManager")
-  shifts        Shift[]  @relation("EmployeeShifts")
+  // Department FK (replaces old Department enum column)
+  departmentId String?     @db.Uuid
+  department   Department? @relation("UserDepartment", fields: [departmentId], references: [id])
 
-  // --- NEW RELATIONS ADDED ---
-  participants            Participant[]
-  messages                Message[]      @relation("SentMessages")
-  swapRequestsAsRequester SwapRequest[]  @relation("RequesterSwaps")
-  swapRequestsAsTarget    SwapRequest[]  @relation("TargetSwaps")
-  leaveRequests           LeaveRequest[]
-  attendances             Attendance[]
+  // Admin lifecycle fields
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(false)
+  invitedAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant             Tenant         @relation(fields: [tenantId], references: [id])
+  managedDepartments Department[]   @relation("ManagedDepartments")
+  createdShifts      Shift[]        @relation("CreatedByManager")
+  shifts             Shift[]        @relation("EmployeeShifts")
+  participants       Participant[]
+  messages           Message[]      @relation("SentMessages")
+  swapRequestsAsRequester SwapRequest[] @relation("RequesterSwaps")
+  swapRequestsAsTarget    SwapRequest[] @relation("TargetSwaps")
+  leaveRequests      LeaveRequest[]
+  attendances        Attendance[]
 
   @@index([tenantId])
 }
 
 // ==========================================
-// 3. SCHEDULE & SHIFTS
+// SCHEDULE & SHIFTS
 // ==========================================
+
 model Shift {
   id         String   @id @default(uuid()) @db.Uuid
   date       DateTime @db.Date
@@ -97,20 +124,17 @@ model Shift {
   employeeId String   @db.Uuid
   createdBy  String   @db.Uuid
 
-  // --- NEW FIELDS ADDED ---
   instructions  String?
-  type          String? // Morning, Afternoon, Night
+  type          String?
   location      String?
-  role          String? // Shift-specific role
-  actualCheckIn DateTime? // Set by the check-in endpoint (server UTC time)
+  role          String?
+  actualCheckIn DateTime?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt // Added to resolve errors if existing data is modified
+  updatedAt     DateTime  @updatedAt
 
-  // --- EXISTING RELATIONS ---
   employee User @relation("EmployeeShifts", fields: [employeeId], references: [id], onDelete: Cascade)
   creator  User @relation("CreatedByManager", fields: [createdBy], references: [id], onDelete: Restrict)
 
-  // --- NEW RELATIONS ADDED ---
   swapRequestsAsRequester SwapRequest[] @relation("RequesterShift")
   swapRequestsAsTarget    SwapRequest[] @relation("TargetShift")
 
@@ -118,17 +142,18 @@ model Shift {
 }
 
 // ==========================================
-// 4. ATTENDANCE & GEO-LOCATION SYSTEM (NEW)
+// ATTENDANCE
 // ==========================================
+
 model Attendance {
   id           Int       @id @default(autoincrement())
   userId       String    @db.Uuid
-  checkedInAt  DateTime  @default(now()) // server UTC time — never phone time
+  checkedInAt  DateTime  @default(now())
   lat          Float
   lng          Float
   accuracy     Float
-  checkedOutAt DateTime? // null = still working; set on checkout
-  status       String // "APPROVED" | "REJECTED"
+  checkedOutAt DateTime?
+  status       String
   rejectReason String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -137,8 +162,23 @@ model Attendance {
 }
 
 // ==========================================
-// 5. CHAT SYSTEM (NEW)
+// QR CODE CONFIG PER HOTEL
 // ==========================================
+
+model SiteQrCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @unique @db.Uuid
+  qrToken   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+// ==========================================
+// CHAT
+// ==========================================
+
 model Conversation {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
@@ -172,8 +212,9 @@ model Message {
 }
 
 // ==========================================
-// 6. SMART SWAP SYSTEM (NEW)
+// SMART SWAP
 // ==========================================
+
 model SwapRequest {
   id               String     @id @default(uuid()) @db.Uuid
   messageId        String?    @unique @db.Uuid
@@ -195,8 +236,9 @@ model SwapRequest {
 }
 
 // ==========================================
-// 7. LEAVE MANAGEMENT (NEW)
+// LEAVE MANAGEMENT
 // ==========================================
+
 model LeaveType {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
