@@ -18,6 +18,7 @@ interface User {
     avatarUrl?: string;
     availabilityPreferences?: string;
     plan?: string;
+    mustChangePassword?: boolean;
 }
 
 interface AuthContextType {
@@ -27,7 +28,7 @@ interface AuthContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
     setSelectedRole: (role: 'EMPLOYEE' | 'MANAGER') => void;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<User>;
     register: (data: {
         email: string;
         password: string;
@@ -109,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(newToken);
             setUser(userData);
             setSelectedRole(userData.role);
+            return userData as User;
         } catch (error: any) {
             throw new Error(error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed');
         }

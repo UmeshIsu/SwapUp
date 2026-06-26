@@ -31,7 +31,12 @@ export default function LoginScreen() {
 
         setIsLoading(true);
         try {
-            await login(email.trim(), password);
+            const u = await login(email.trim(), password);
+            // Admin gave a temporary password — force the user to set their own first.
+            if (u?.mustChangePassword) {
+                router.replace('/force-change-password' as any);
+                return;
+            }
             if (selectedRole === 'MANAGER') {
                 router.replace('/(manager)/home');
             } else {
@@ -99,6 +104,14 @@ export default function LoginScreen() {
                     isLoading={isLoading}
                     style={{ marginTop: 6 }}
                 />
+
+                <TouchableOpacity
+                    onPress={() => router.push('/forgot-password' as any)}
+                    style={styles.forgotBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <Text style={styles.forgotText}>Forgot password?</Text>
+                </TouchableOpacity>
 
             </View>
 
@@ -182,6 +195,16 @@ const styles = StyleSheet.create({
     eyeBtn: {
         paddingLeft: 10,
         paddingVertical: 8,
+    },
+    forgotBtn: {
+        alignSelf: 'center',
+        marginTop: 16,
+        paddingVertical: 4,
+    },
+    forgotText: {
+        color: '#2563EB',
+        fontSize: 14,
+        fontWeight: '600',
     },
 
 
