@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     },
     avatar: {
         width: 44, height: 44, borderRadius: 22,
-        backgroundColor: '#e3f2fd', justifyContent: 'center',
+        backgroundColor: '#c6d0d6ff', justifyContent: 'center',
         alignItems: 'center', marginRight: 12,
     },
     leaveTypeName: { fontSize: 15, fontWeight: '700', color: '#111' },
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
     },
     detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
     calIcon: { fontSize: 18, marginRight: 10 },
-    leaveDates: { fontSize: 13, color: '#555', fontWeight: '500' },
-    reasonText: { fontSize: 13, color: '#777', flex: 1 },
+    leaveDates: { fontSize: 13, color: '#241e1eff', fontWeight: '500' },
+    reasonText: { fontSize: 13, color: '#131212ff', flex: 1 },
 
     withdrawButton: {
         borderWidth: 1.5, borderColor: '#e53935',
