@@ -3,7 +3,7 @@ import { palette } from '@/src/constants/palette';
 // Tabbed view: Pending | Approved | Declined
 // Employee can see all their requests and their current status
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -12,8 +12,9 @@ import {
     TouchableOpacity,
     Alert,
     RefreshControl,
+    ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { getMyRequests, withdrawLeaveRequest, LeaveRequest } from '@/src/services/leaveApi';
 import { useAuth } from '@/src/contexts/AuthContext';
 
@@ -27,18 +28,24 @@ export default function RequestStatus() {
     const [activeTab, setActiveTab] = useState<Tab>('Pending');
     const [requests, setRequests] = useState<LeaveRequest[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        loadRequests();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadRequests();
+        }, [EMPLOYEE_ID])
+    );
 
     const loadRequests = async () => {
         if (!EMPLOYEE_ID) return;
+        setLoading(true);
         try {
             const data = await getMyRequests(EMPLOYEE_ID);
             setRequests(data);
         } catch (error) {
             setRequests([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -113,7 +120,9 @@ export default function RequestStatus() {
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
             >
-                {filteredRequests.length === 0 ? (
+                {loading ? (
+                    <ActivityIndicator size="large" color={palette.primary} style={{ marginTop: 60 }} />
+                ) : filteredRequests.length === 0 ? (
                     <Text style={styles.emptyText}>No {activeTab.toLowerCase()} requests</Text>
                 ) : (
                     filteredRequests.map((request) => {
