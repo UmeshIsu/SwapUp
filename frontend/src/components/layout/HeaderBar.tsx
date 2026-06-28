@@ -2,7 +2,24 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "../../constants/colors";
-import { monthOptions } from "../../data/mock";
+
+const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function formatLabel(value: string) {
+    const [year, month] = value.split('-');
+    return `${MONTH_NAMES[parseInt(month) - 1]} ${year}`;
+}
+
+function shiftMonth(value: string, delta: number) {
+    const [year, month] = value.split('-').map(Number);
+    const d = new Date(year, month - 1 + delta, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    return `${y}-${m < 10 ? '0' + m : m}`;
+}
 
 export default function HeaderBar({
     title,
@@ -14,11 +31,9 @@ export default function HeaderBar({
     onMonthChange: (v: string) => void;
 }) {
     const c = useColors();
-    const idx = monthOptions.findIndex((m) => m.value === monthValue);
-    const label = monthOptions[idx]?.label ?? "Select";
 
-    const prev = () => onMonthChange(monthOptions[Math.max(0, idx - 1)].value);
-    const next = () => onMonthChange(monthOptions[Math.min(monthOptions.length - 1, idx + 1)].value);
+    const prev = () => onMonthChange(shiftMonth(monthValue, -1));
+    const next = () => onMonthChange(shiftMonth(monthValue, +1));
 
     return (
         <View style={styles.row}>
@@ -29,7 +44,7 @@ export default function HeaderBar({
                     <Ionicons name="chevron-back" size={16} color={c.text} />
                 </Pressable>
 
-                <Text style={[styles.pillText, { color: c.text }]}>{label}</Text>
+                <Text style={[styles.pillText, { color: c.text }]}>{formatLabel(monthValue)}</Text>
 
                 <Pressable onPress={next} style={styles.iconBtn}>
                     <Ionicons name="chevron-forward" size={16} color={c.text} />
