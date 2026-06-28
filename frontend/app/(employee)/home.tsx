@@ -1,6 +1,7 @@
 import { palette } from '@/src/constants/palette';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { announcementAPI, leaveAPI, shiftAPI, swapAPI } from '@/src/services/api';
+import { announcementAPI, shiftAPI, swapAPI } from '@/src/services/api';
+import { getLeaveSummary } from '@/src/services/leaveApi';
 import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -82,7 +83,7 @@ export default function EmployeeHomeScreen() {
             safeFetch(() => shiftAPI.getTodayShift()),
             safeFetch(() => announcementAPI.getAnnouncements()),
             safeFetch(() => swapAPI.getPendingPeerRequests()),
-            safeFetch(() => leaveAPI.getLeaveBalance()),
+            safeFetch(() => getLeaveSummary(user?.id || '')),
             safeFetch(() => shiftAPI.getMyShifts({
                 startDate: getWeekStart().toISOString(),
                 endDate: getWeekEnd().toISOString(),
@@ -94,8 +95,11 @@ export default function EmployeeHomeScreen() {
             setTodayShift(shiftRes.data.shift);
         }
         if (announcementsRes) setAnnouncements(announcementsRes.data.announcements.slice(0, 3));
-        if (swapsRes) setPendingSwaps(swapsRes.data.swapRequests?.length || 0);
-        if (leaveRes) setLeaveBalance(leaveRes.data.leaveBalance?.total || 0);
+        if (swapsRes) {
+            const swapData = swapsRes.data;
+            setPendingSwaps(Array.isArray(swapData) ? swapData.length : (swapData?.swapRequests?.length ?? 0));
+        }
+        if (leaveRes) setLeaveBalance((leaveRes as any).totalRemaining ?? 0);
         if (weekRes) setWeekShifts(Array.isArray(weekRes.data) ? weekRes.data : weekRes.data.shifts || []);
         if (attendanceRes) setAttendanceStatus(attendanceRes.status);
     };
@@ -369,7 +373,7 @@ export default function EmployeeHomeScreen() {
                             <Ionicons name="calendar-clear-outline" size={20} color={C.successText} />
                         </View>
                         <View>
-                            <Text style={[styles.gridNumber, { color: C.successText }]}>{leaveBalance || 14}</Text>
+                            <Text style={[styles.gridNumber, { color: C.successText }]}>{leaveBalance}</Text>
                             <Text style={[styles.gridLabel, { color: C.successText }]}>Leaves Remaining</Text>
                         </View>
                     </TouchableOpacity>
@@ -386,7 +390,7 @@ export default function EmployeeHomeScreen() {
                             {(pendingSwaps > 0) && <View style={styles.gridBadge} />}
                         </View>
                         <View>
-                            <Text style={[styles.gridNumber, { color: C.warning }]}>{pendingSwaps || 2}</Text>
+                            <Text style={[styles.gridNumber, { color: C.warning }]}>{pendingSwaps}</Text>
                             <Text style={[styles.gridLabel, { color: C.warning }]}>Pending Swaps</Text>
                         </View>
                     </TouchableOpacity>
