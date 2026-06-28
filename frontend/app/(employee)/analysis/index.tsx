@@ -3,7 +3,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "../../../src/constants/colors";
-import { monthOptions } from "@/src/data/mock";
 import { useEffect, useState } from "react";
 import { fetchMonthlyAnalytics, MonthlyAnalytics } from "@/src/services/analyticsService";
 import HeaderBar from "@/src/components/layout/HeaderBar";
@@ -27,7 +26,9 @@ const C = {
 };
 
 export default function AnalysisIndex() {
-    const [month, setMonth] = useState(monthOptions[0].value);
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const [month, setMonth] = useState(currentMonth);
     const [data, setData] = useState<MonthlyAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
