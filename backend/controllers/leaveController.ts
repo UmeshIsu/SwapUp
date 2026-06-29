@@ -253,37 +253,30 @@ export const getMyRequests = async (req: Request, res: Response) => {
 };
 
 /**
- * Manager's view: only shows requests from employees in the same department.
- * Looks up the manager's department first, then filters accordingly.
+ * Manager's view: shows leave requests from employees in the same hotel (tenantId).
+ * Optionally scoped further to the manager's department if one is assigned.
  */
 export const getManagerLeaveRequests = async (req: Request, res: Response) => {
     const { managerId } = req.params;
+    const { tenantId, departmentId } = (req as any).user ?? {};
 
     if (!managerId || typeof managerId !== 'string') {
         return res.status(400).json({ message: 'A valid Manager ID is required' });
     }
 
-    try {
-        // First find what department this manager belongs to
-        const manager = await prisma.user.findUnique({
-            where: { id: managerId },
-            select: { department: true }
-        });
+    if (!tenantId) {
+        return res.status(403).json({ message: 'Unable to determine hotel scope' });
+    }
 
-        if (!manager) {
-            return res.status(404).json({ message: 'Manager not found' });
+    try {
+        // Always scope by hotel. Also scope by department when the manager has one.
+        const employeeFilter: any = { tenantId };
+        if (departmentId) {
+            employeeFilter.departmentId = departmentId;
         }
 
-        // Now get all leave requests from employees in that same department
-        // If the manager has NO department assigned, fallback to showing all requests
-        const whereClause = manager.department ? {
-            employee: {
-                department: manager.department
-            }
-        } : {};
-
         const allRequests = await prisma.leaveRequest.findMany({
-            where: whereClause,
+            where: { employee: employeeFilter },
             include: {
                 leaveType: true,
                 employee: {
