@@ -4,7 +4,7 @@ import { prisma } from '../config/prisma';
 // GET /api/shifts/manager-dashboard-stats
 export const getManagerDashboardStats = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { department, tenantId } = req.user! as any;
+        const { departmentId, tenantId } = req.user! as any;
 
         // ── Today's date boundaries (UTC) ──────────────────────────────────
         const now = new Date();
@@ -13,15 +13,15 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
         const dayEnd = new Date(now);
         dayEnd.setHours(23, 59, 59, 999);
 
+        // Base employee filter — always scope to this hotel; add department when set.
+        const employeeScope: any = { tenantId, role: 'EMPLOYEE' };
+        if (departmentId) employeeScope.departmentId = departmentId;
+
         // ── 1. Today's shifts for this department ──────────────────────────
         const todayShifts = await prisma.shift.findMany({
             where: {
                 date: { gte: dayStart, lte: dayEnd },
-                employee: {
-                    department: department as any,
-                    tenantId,
-                    role: 'EMPLOYEE',
-                },
+                employee: employeeScope,
             },
             include: {
                 employee: { select: { id: true, name: true, avatarUrl: true } },
@@ -109,11 +109,7 @@ export const getManagerDashboardStats = async (req: Request, res: Response): Pro
                 status: 'APPROVED',
                 checkedOutAt: null,
                 checkedInAt: { lt: fiveMinutesAgo },
-                user: {
-                    department: department as any,
-                    tenantId,
-                    role: 'EMPLOYEE',
-                },
+                user: employeeScope,
             },
             include: {
                 user: { select: { id: true, name: true, avatarUrl: true } },
