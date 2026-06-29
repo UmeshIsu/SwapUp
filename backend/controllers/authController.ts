@@ -248,7 +248,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     });
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department?.name ?? null },
+      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department?.name ?? null, departmentId: user.departmentId ?? null },
       process.env.JWT_SECRET || "swapup_jwt_secret_key",
       { expiresIn: "7d" }
     );
@@ -338,7 +338,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department?.name ?? null },
+      { id: user.id, role: user.role, tenantId: user.tenantId, department: user.department?.name ?? null, departmentId: user.departmentId ?? null },
       process.env.JWT_SECRET || "swapup_jwt_secret_key",
       { expiresIn: "7d" }
     );
