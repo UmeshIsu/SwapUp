@@ -10,6 +10,7 @@ import {
     approveLeaveRequest,
     declineLeaveRequest,
 } from '../controllers/leaveController';
+import { authMiddleware, authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -21,9 +22,9 @@ router.get('/pending/:employeeId', getPendingRequests);
 router.get('/my-requests/:employeeId', getMyRequests);
 router.delete('/:id/withdraw', withdrawLeaveRequest);
 
-// --- Manager Routes ---
-router.get('/manager/:managerId', getManagerLeaveRequests);
-router.patch('/:id/approve', approveLeaveRequest);
-router.patch('/:id/decline', declineLeaveRequest);
+// --- Manager Routes (auth required) ---
+router.get('/manager/:managerId', authMiddleware, authorize('MANAGER'), getManagerLeaveRequests);
+router.patch('/:id/approve', authMiddleware, authorize('MANAGER'), approveLeaveRequest);
+router.patch('/:id/decline', authMiddleware, authorize('MANAGER'), declineLeaveRequest);
 
 export default router;
