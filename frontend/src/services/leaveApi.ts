@@ -2,7 +2,13 @@
 // This file handles all the API calls to the backend
 // We use fetch() which is built into React Native
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL as BASE_URL } from '../utils/config';
+
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const token = await AsyncStorage.getItem('authToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // Type definitions - these describe the shape of data we get from the backend
 export type LeaveType = {
@@ -125,7 +131,8 @@ export const getMyRequests = async (employeeId: string): Promise<LeaveRequest[]>
 // Manager: Get leave requests filtered by department
 // -----------------------------------------------
 export const getManagerLeaveRequests = async (managerId: string): Promise<LeaveRequest[]> => {
-    const response = await fetch(`${BASE_URL}/leaves/manager/${managerId}`);
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${BASE_URL}/leaves/manager/${managerId}`, { headers });
     if (!response.ok) throw new Error('Failed to fetch leave requests');
     return response.json();
 };
@@ -134,8 +141,10 @@ export const getManagerLeaveRequests = async (managerId: string): Promise<LeaveR
 // Manager: Approve a leave request
 // -----------------------------------------------
 export const approveLeaveRequest = async (leaveId: string): Promise<{ message: string }> => {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${BASE_URL}/leaves/${leaveId}/approve`, {
         method: 'PATCH',
+        headers,
     });
     if (!response.ok) throw new Error('Failed to approve request');
     return response.json();
@@ -145,8 +154,10 @@ export const approveLeaveRequest = async (leaveId: string): Promise<{ message: s
 // Manager: Decline a leave request
 // -----------------------------------------------
 export const declineLeaveRequest = async (leaveId: string): Promise<{ message: string }> => {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${BASE_URL}/leaves/${leaveId}/decline`, {
         method: 'PATCH',
+        headers,
     });
     if (!response.ok) throw new Error('Failed to decline request');
     return response.json();
