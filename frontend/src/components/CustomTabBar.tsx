@@ -20,6 +20,7 @@ const TAB_ICONS: Record<string, { light: any; dark: any }> = {
     // ── Manager/Shared tabs ────────────────────────────────────────────────────
     'schedule': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
     'schedule/index': { light: require('@/assets/images/ETaskBar/ESheduleLight.png'), dark: require('@/assets/images/ETaskBar/ESheduleDark.png') },
+    'employeeDetails': { light: require('@/assets/images/ETaskBar/EmployeesLight.png'), dark: require('@/assets/images/ETaskBar/EmployeesDark.png') },
     'employeeDetails/index': { light: require('@/assets/images/ETaskBar/EmployeesLight.png'), dark: require('@/assets/images/ETaskBar/EmployeesDark.png') },
     'leaveManagment': { light: require('@/assets/images/ETaskBar/LeaveLight.png'), dark: require('@/assets/images/ETaskBar/LeaveDark.png') },
 };
