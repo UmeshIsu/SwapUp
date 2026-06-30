@@ -7,7 +7,6 @@ import {
     FlatList,
     TextInput,
     ActivityIndicator,
-    Image,
     RefreshControl,
     TouchableOpacity
 } from 'react-native';
@@ -18,6 +17,7 @@ import { authAPI } from '@/src/services/api';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import { getInitials, getAvatarColor } from '@/src/utils/avatar';
 
 interface Employee {
     id: string;
@@ -65,10 +65,9 @@ export default function ManagerEmployeesScreen() {
     const renderEmployee = ({ item }: { item: Employee }) => (
         <Link href={{ pathname: '/(manager)/employeeDetails/[id]', params: { id: item.id } }} asChild>
             <TouchableOpacity style={styles.employeeCard} activeOpacity={0.7}>
-                <Image
-                    source={{ uri: item.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=4A90D9&color=fff&bold=true&size=128` }}
-                    style={styles.avatar}
-                />
+                <View style={[styles.avatar, { backgroundColor: getAvatarColor(item.name) }]}>
+                    <Text style={styles.avatarInitials}>{getInitials(item.name)}</Text>
+                </View>
                 <View style={styles.employeeInfo}>
                     <Text style={styles.employeeName} numberOfLines={1}>{item.name}</Text>
                     <Text style={styles.employeeRole} numberOfLines={1}>
@@ -190,9 +189,20 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#D1D5DB',
+        justifyContent: 'center',
+        alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#4A90D9',
+        borderColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    avatarInitials: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '700',
     },
     employeeInfo: {
         flex: 1,

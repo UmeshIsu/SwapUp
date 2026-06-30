@@ -1,11 +1,10 @@
 import { palette } from '@/src/constants/palette';
 import React, { useEffect, useState } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
+import {
+    View,
+    Text,
+    StyleSheet,
     ActivityIndicator,
-    Image,
     ScrollView,
     RefreshControl,
     TouchableOpacity
@@ -15,6 +14,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { analyticsAPI } from '@/src/services/api';
 import ScreenHeader from '@/src/components/ScreenHeader';
+import { getInitials, getAvatarColor } from '@/src/utils/avatar';
 
 interface EmployeeAnalytics {
     month: string;
@@ -104,10 +104,9 @@ export default function EmployeeAnalyticsScreen() {
             >
                 {/* Profile Header */}
                 <View style={styles.profileSection}>
-                    <Image 
-                        source={{ uri: data.employee.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.employee.name)}&background=random` }} 
-                        style={styles.avatar}
-                    />
+                    <View style={[styles.avatar, { backgroundColor: getAvatarColor(data.employee.name) }]}>
+                        <Text style={styles.avatarInitials}>{getInitials(data.employee.name)}</Text>
+                    </View>
                     <Text style={styles.employeeName}>{data.employee.name}</Text>
                     <Text style={styles.workerId}>workerID : {data.employee.workerId || 'N/A'}</Text>
                     
@@ -232,7 +231,18 @@ const styles = StyleSheet.create({
         height: 90,
         borderRadius: 45,
         marginBottom: 12,
-        backgroundColor: '#E5E7EB',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    avatarInitials: {
+        color: '#FFFFFF',
+        fontSize: 32,
+        fontWeight: '700',
     },
     employeeName: {
         fontSize: 22,
