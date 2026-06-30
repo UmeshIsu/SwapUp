@@ -2,7 +2,7 @@ import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    Image, ActivityIndicator, SafeAreaView, RefreshControl, Alert, TextInput,
+    ActivityIndicator, SafeAreaView, RefreshControl, Alert, TextInput,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import type { IncomingSwapRequest, MySwapRequest } from '@/src/services/swapServ
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 import ScreenHeader from '@/src/components/ScreenHeader';
+import { getInitials, getAvatarColor } from '@/src/utils/avatar';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -34,21 +35,21 @@ const timeAgo = (iso: string) => {
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 
-const Avatar = ({ uri, size = 46, color }: { uri?: string | null; size?: number; color?: string }) =>
-    uri ? (
-        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
-    ) : (
-        <View style={[S.avatarFb, { width: size, height: size, borderRadius: size / 2, backgroundColor: color || '#D1D5DB' }]}>
-            <Ionicons name="person" size={size * 0.45} color="#FFF" />
-        </View>
-    );
+// Avatar URLs in this app are Dicebear SVGs, which React Native's Image
+// component can't rasterize from a remote URI — they render blank. Use
+// colored initials instead; reliable, no network dependency.
+const Avatar = ({ name, size = 46 }: { name: string; size?: number }) => (
+    <View style={[S.avatarFb, { width: size, height: size, borderRadius: size / 2, backgroundColor: getAvatarColor(name) }]}>
+        <Text style={{ color: '#FFF', fontWeight: '700', fontSize: size * 0.32 }}>{getInitials(name)}</Text>
+    </View>
+);
 
 // ─── Conversation Row ─────────────────────────────────────────────────────────
 
 function ConvoRow({ item, onPress }: { item: Conversation; onPress: () => void }) {
     return (
         <TouchableOpacity style={S.row} onPress={onPress} activeOpacity={0.7}>
-            <Avatar uri={item.participantAvatar} />
+            <Avatar name={item.participantName} />
             <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={S.name}>{item.participantName}</Text>
                 <Text style={S.sub} numberOfLines={1}>{item.lastMessage}</Text>
@@ -66,7 +67,7 @@ function IncomingSwapCard({ item, onRespond }: { item: IncomingSwapRequest; onRe
     return (
         <View style={S.swapCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                <Avatar uri={null} size={42} color="#3949AB" />
+                <Avatar name={item.requester.name} size={42} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={S.name}>{item.requester.name}</Text>
                     <Text style={S.sub}>wants to swap with you</Text>
@@ -147,7 +148,7 @@ function SentSwapRow({ item }: { item: MySwapRequest }) {
     return (
         <View style={S.swapCardDesign}>
             <View style={S.swapCardHeader}>
-                <Avatar uri={null} size={42} color="#C9DDFA" />
+                <Avatar name={targetName} size={42} />
                 <View style={S.swapCardHeaderTextWrapper}>
                     <Text style={S.swapCardName}>{targetName}</Text>
                     <Text style={S.swapCardSub}>You want to swap with {targetName}</Text>
@@ -341,7 +342,7 @@ export default function ChatScreen() {
                             keyboardShouldPersistTaps="handled"
                             renderItem={({ item: u }) => (
                                 <TouchableOpacity style={S.searchRow} onPress={() => handleSelectUser(u)} activeOpacity={0.7}>
-                                    <Avatar uri={u.avatarUrl} size={40} color={u.role === 'MANAGER' ? '#3949AB' : palette.primary} />
+                                    <Avatar name={u.name} size={40} />
                                     <View style={{ flex: 1, marginLeft: 12 }}>
                                         <Text style={S.name}>{u.name}</Text>
                                         <Text style={S.sub}>{u.email}</Text>

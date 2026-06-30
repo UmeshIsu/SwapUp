@@ -2,7 +2,7 @@ import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    Image, ActivityIndicator, SafeAreaView, RefreshControl, TextInput, Alert,
+    ActivityIndicator, SafeAreaView, RefreshControl, TextInput, Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import type { DepartmentUser } from '@/src/services/chatService';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 import ScreenHeader from '@/src/components/ScreenHeader';
+import { getInitials, getAvatarColor } from '@/src/utils/avatar';
 
 
 
@@ -20,19 +21,19 @@ const fmt = (iso: string) => {
     return `${h}.${d.getMinutes().toString().padStart(2, '0')} ${d.getHours() >= 12 ? 'PM' : 'AM'}`;
 };
 
-const Avatar = ({ uri, size = 46, color }: { uri?: string; size?: number; color?: string }) =>
-    uri ? (
-        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
-    ) : (
-        <View style={[S.avatarFb, { width: size, height: size, borderRadius: size / 2, backgroundColor: color || '#D1D5DB' }]}>
-            <Ionicons name="person" size={size * 0.45} color="#FFF" />
-        </View>
-    );
+// Avatar URLs in this app are Dicebear SVGs, which React Native's Image
+// component can't rasterize from a remote URI — they render blank. Use
+// colored initials instead; reliable, no network dependency.
+const Avatar = ({ name, size = 46 }: { name: string; size?: number }) => (
+    <View style={[S.avatarFb, { width: size, height: size, borderRadius: size / 2, backgroundColor: getAvatarColor(name) }]}>
+        <Text style={{ color: '#FFF', fontWeight: '700', fontSize: size * 0.32 }}>{getInitials(name)}</Text>
+    </View>
+);
 
 function ConvoRow({ item, onPress }: any) {
     return (
         <TouchableOpacity style={S.row} onPress={onPress} activeOpacity={0.7}>
-            <Avatar uri={item.participantAvatar} />
+            <Avatar name={item.participantName} />
             <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={S.name}>{item.participantName}</Text>
                 <Text style={S.sub} numberOfLines={1}>{item.lastMessage}</Text>
@@ -65,7 +66,7 @@ function ApprovalRow({ item, onRespond }: { item: any; onRespond: (id: string, s
     return (
         <View style={S.swapCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                <Avatar uri={item.senderAvatar} size={38} />
+                <Avatar name={item.senderName} size={38} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={S.name}>{item.senderName}</Text>
                     <Text style={S.sub}>wants to swap with {item.recipientName}</Text>
@@ -238,7 +239,7 @@ export default function ManagerChatInbox() {
                             keyboardShouldPersistTaps="handled"
                             renderItem={({ item: u }) => (
                                 <TouchableOpacity style={S.searchRow} onPress={() => handleSelectUser(u)} activeOpacity={0.7}>
-                                    <Avatar uri={u.avatarUrl ?? undefined} size={40} color={u.role === 'MANAGER' ? '#3949AB' : palette.primary} />
+                                    <Avatar name={u.name} size={40} />
                                     <View style={{ flex: 1, marginLeft: 12 }}>
                                         <Text style={S.name}>{u.name}</Text>
                                         <Text style={S.sub}>{u.email}</Text>
