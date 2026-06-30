@@ -461,7 +461,7 @@ export const resetPassword = async (req: Request, res: Response) => {
  */
 export const getAllEmployees = async (req: Request, res: Response) => {
   try {
-    const { tenantId, role, department } = req.user as any;
+    const { tenantId, role, departmentId } = req.user as any;
 
     if (!tenantId) {
       return res.status(400).json({ error: "Tenant ID not found in token." });
@@ -473,8 +473,8 @@ export const getAllEmployees = async (req: Request, res: Response) => {
     };
 
     // If requester is a Manager, filter by their department
-    if (role === "MANAGER" && department) {
-      whereClause.department = department;
+    if (role === "MANAGER" && departmentId) {
+      whereClause.departmentId = departmentId;
     }
 
     const employees = await prisma.user.findMany({
@@ -483,12 +483,17 @@ export const getAllEmployees = async (req: Request, res: Response) => {
         id: true,
         name: true,
         email: true,
-        department: true,
+        department: { select: { name: true } },
         avatarUrl: true,
       },
     });
 
-    return res.status(200).json(employees);
+    const formatted = employees.map((e) => ({
+      ...e,
+      department: e.department?.name ?? null,
+    }));
+
+    return res.status(200).json(formatted);
   } catch (error) {
     console.error("getAllEmployees error:", error);
     return res.status(500).json({ error: "Internal server error" });
