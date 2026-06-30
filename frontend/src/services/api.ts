@@ -144,6 +144,14 @@ export const leaveAPI = {
     rejectLeaveRequest: (id: string) => api.put(`/leave/${id}/reject`),
 };
 
+// Notification APIs
+export const notificationAPI = {
+    getMyNotifications: () => api.get('/notifications'),
+    getUnreadCount: () => api.get('/notifications/unread-count'),
+    markAsRead: (id: string) => api.patch(`/notifications/${id}/read`),
+    markAllAsRead: () => api.patch('/notifications/read-all'),
+};
+
 // Announcement APIs
 export const announcementAPI = {
     getAnnouncements: () => api.get('/announcements'),

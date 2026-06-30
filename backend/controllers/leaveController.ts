@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import prisma from '../prisma/prismaClient';
+import { createNotification, notifyManagers } from '../services/notificationService';
 
 /**
  * Grabs all the different types of leave available (like Sick, Annual, etc.)
@@ -126,6 +127,24 @@ export const createLeaveRequest = async (req: Request, res: Response) => {
                 status: 'pending' // Every new request starts as pending
             }
         });
+
+        // Notify the employee's manager that a new leave request needs review.
+        const employee = await prisma.user.findUnique({
+            where: { id: employeeId as string },
+            select: { name: true, tenantId: true, departmentId: true },
+        });
+        if (employee) {
+            const io = req.app.get('io');
+            await notifyManagers(
+                io,
+                employee.tenantId,
+                employee.departmentId,
+                'LEAVE_REQUESTED',
+                'New Leave Request',
+                `${employee.name} requested leave.`,
+                { leaveRequestId: newRequest.id }
+            );
+        }
 
         res.status(201).json({
             message: 'Your leave request has been sent to your manager!',
@@ -325,6 +344,16 @@ export const approveLeaveRequest = async (req: Request, res: Response) => {
                 }
             }
         });
+
+        const io = req.app.get('io');
+        await createNotification(
+            io,
+            updated.employeeId,
+            'LEAVE_APPROVED',
+            'Leave Request Approved',
+            'Your leave request has been approved.',
+            { leaveRequestId: updated.id }
+        );
 
         res.json({ message: 'Leave request approved', leaveRequest: updated });
     } catch (error: any) {

@@ -105,6 +105,7 @@ model User {
   swapRequestsAsTarget    SwapRequest[] @relation("TargetSwaps")
   leaveRequests      LeaveRequest[]
   attendances        Attendance[]
+  notifications      Notification[]
 
   @@index([tenantId])
 }
@@ -143,15 +144,35 @@ model Shift {
 // ==========================================
 
 model Attendance {
-  id           Int       @id @default(autoincrement())
-  userId       String    @db.Uuid
-  checkedInAt  DateTime  @default(now())
-  lat          Float
-  lng          Float
-  accuracy     Float
-  checkedOutAt DateTime?
-  status       String
-  rejectReason String?
+  id                Int       @id @default(autoincrement())
+  userId            String    @db.Uuid
+  checkedInAt       DateTime  @default(now())
+  lat               Float
+  lng               Float
+  accuracy          Float
+  checkedOutAt      DateTime?
+  status            String
+  rejectReason      String?
+  fatigueNotifiedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

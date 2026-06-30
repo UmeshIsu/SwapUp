@@ -18,6 +18,7 @@ export default function ManagerLayout() {
             <Tabs.Screen name="leaveManagment" />
             <Tabs.Screen name="profile" options={{ href: null }} />
             <Tabs.Screen name="userProfile" options={{ href: null }} />
+            <Tabs.Screen name="notifications" options={{ href: null }} />
         </Tabs>
     );
 }

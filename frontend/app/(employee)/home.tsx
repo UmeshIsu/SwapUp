@@ -1,6 +1,6 @@
 import { palette } from '@/src/constants/palette';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { announcementAPI, shiftAPI, swapAPI } from '@/src/services/api';
+import { announcementAPI, notificationAPI, shiftAPI, swapAPI } from '@/src/services/api';
 import { getLeaveSummary } from '@/src/services/leaveApi';
 import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -65,6 +65,7 @@ export default function EmployeeHomeScreen() {
     const [leaveBalance, setLeaveBalance] = useState(0);
     const [weekShifts, setWeekShifts] = useState<Shift[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useFocusEffect(
         useCallback(() => {
@@ -79,7 +80,7 @@ export default function EmployeeHomeScreen() {
             try { return await fn(); } catch { return null; }
         };
 
-        const [shiftRes, announcementsRes, swapsRes, leaveRes, weekRes, attendanceRes] = await Promise.all([
+        const [shiftRes, announcementsRes, swapsRes, leaveRes, weekRes, attendanceRes, unreadRes] = await Promise.all([
             safeFetch(() => shiftAPI.getTodayShift()),
             safeFetch(() => announcementAPI.getAnnouncements()),
             safeFetch(() => swapAPI.getPendingPeerRequests()),
@@ -89,6 +90,7 @@ export default function EmployeeHomeScreen() {
                 endDate: getWeekEnd().toISOString(),
             })),
             safeFetch(() => getAttendanceStatus()),
+            safeFetch(() => notificationAPI.getUnreadCount()),
         ]);
 
         if (shiftRes) {
@@ -102,6 +104,7 @@ export default function EmployeeHomeScreen() {
         if (leaveRes) setLeaveBalance((leaveRes as any).totalRemaining ?? 0);
         if (weekRes) setWeekShifts(Array.isArray(weekRes.data) ? weekRes.data : weekRes.data.shifts || []);
         if (attendanceRes) setAttendanceStatus(attendanceRes.status);
+        if (unreadRes) setUnreadCount(unreadRes.data.count ?? 0);
     };
 
     const getWeekStart = () => {
@@ -229,9 +232,17 @@ export default function EmployeeHomeScreen() {
                         {user?.hotelName || 'Company name'}
                     </Text>
                     <View style={styles.headerActions}>
-                        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+                        <TouchableOpacity
+                            style={styles.iconButton}
+                            activeOpacity={0.7}
+                            onPress={() => router.push('/(employee)/notifications' as any)}
+                        >
                             <Ionicons name="notifications-outline" size={22} color={C.textSecondary} />
-                            <View style={styles.bellBadge} />
+                            {unreadCount > 0 && (
+                                <View style={styles.bellBadge}>
+                                    <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                                </View>
+                            )}
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => router.push('/(employee)/profile' as any)}
@@ -460,14 +471,22 @@ const styles = StyleSheet.create({
     },
     bellBadge: {
         position: 'absolute',
-        top: 9,
-        right: 10,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        top: 4,
+        right: 4,
+        minWidth: 16,
+        height: 16,
+        borderRadius: 8,
+        paddingHorizontal: 3,
         backgroundColor: C.danger,
         borderWidth: 1.5,
         borderColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    bellBadgeText: {
+        color: '#fff',
+        fontSize: 9,
+        fontWeight: '700',
     },
     avatar: {
         width: 42,

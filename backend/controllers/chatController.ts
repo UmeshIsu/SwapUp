@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
 import { Prisma } from '@prisma/client';
+import { createNotification, notifyManagers } from '../services/notificationService';
 
 // ─── Request Body Types ───────────────────────────────────────────────────────
 
@@ -361,6 +362,21 @@ export const sendMessage = async (
             },
             include: { sender: true, swapRequest: true },
         });
+
+        // ── A new swap request was raised → notify the requester's manager ──
+        if (type === 'SWAP_REQUEST' && msg.sender.tenantId) {
+            const io = req.app.get('io');
+            await notifyManagers(
+                io,
+                msg.sender.tenantId,
+                msg.sender.departmentId,
+                'SWAP_REQUESTED',
+                'New Swap Request',
+                `${msg.sender.name} requested a shift swap.`,
+                { swapRequestId: msg.swapRequest?.id, conversationId }
+            );
+        }
+
         res.status(201).json(msg);
     } catch (e) {
         res.status(500).json({ error: (e as Error).message });
@@ -404,6 +420,39 @@ export const respondSwapRequest = async (
                 status: updated.status,
                 conversationId,
             });
+        }
+
+        // ── Persisted notifications for the employees involved ──
+        if (status === 'ACCEPTED_BY_EMPLOYEE') {
+            // The target employee accepted — let the original requester know.
+            await createNotification(
+                io,
+                updated.requesterId,
+                'SWAP_ACCEPTED',
+                'Swap Request Accepted',
+                `${updated.target.name} accepted your shift swap request.`,
+                { swapRequestId: updated.id }
+            );
+        } else if (status === 'APPROVED_BY_MANAGER') {
+            // Manager approved — notify both employees involved.
+            await Promise.all([
+                createNotification(
+                    io,
+                    updated.requesterId,
+                    'SWAP_APPROVED',
+                    'Swap Request Approved',
+                    `Your shift swap with ${updated.target.name} has been approved by your manager.`,
+                    { swapRequestId: updated.id }
+                ),
+                createNotification(
+                    io,
+                    updated.targetId,
+                    'SWAP_APPROVED',
+                    'Swap Request Approved',
+                    `Your shift swap with ${updated.requester.name} has been approved by your manager.`,
+                    { swapRequestId: updated.id }
+                ),
+            ]);
         }
 
         // ── When employee declines → create a "Declined" notification message ──

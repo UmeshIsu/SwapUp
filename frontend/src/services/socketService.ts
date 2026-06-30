@@ -6,6 +6,7 @@ class SocketService {
     private socket: Socket | null = null;
     private messageListeners: ((message: any) => void)[] = [];
     private typingListeners: ((data: any) => void)[] = [];
+    private notificationListeners: ((notification: any) => void)[] = [];
 
     async connect(): Promise<void> {
         const token = await AsyncStorage.getItem('authToken');
@@ -58,6 +59,11 @@ class SocketService {
         this.socket.on('userStoppedTyping', (data) => {
             this.typingListeners.forEach(listener => listener({ ...data, isTyping: false }));
         });
+
+        // Server-persisted notifications (swap requests, leave requests, fatigue alerts)
+        this.socket.on('new_notification', (notification) => {
+            this.notificationListeners.forEach(listener => listener(notification));
+        });
     }
 
     disconnect(): void {
@@ -67,6 +73,7 @@ class SocketService {
         }
         this.messageListeners = [];
         this.typingListeners = [];
+        this.notificationListeners = [];
     }
 
     sendMessage(receiverId: string, content: string, swapRequestId?: string): void {
@@ -100,6 +107,13 @@ class SocketService {
         this.typingListeners.push(callback);
         return () => {
             this.typingListeners = this.typingListeners.filter(l => l !== callback);
+        };
+    }
+
+    onNotification(callback: (notification: any) => void): () => void {
+        this.notificationListeners.push(callback);
+        return () => {
+            this.notificationListeners = this.notificationListeners.filter(l => l !== callback);
         };
     }
 

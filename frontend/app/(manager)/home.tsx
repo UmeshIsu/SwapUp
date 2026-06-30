@@ -17,7 +17,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { shiftAPI } from '@/src/services/api';
+import { shiftAPI, notificationAPI } from '@/src/services/api';
 import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
@@ -121,7 +121,7 @@ export default function ManagerHomeScreen() {
 
     // Modal state
     const [modalType, setModalType] = useState<'onDuty' | 'late' | 'absentees' | 'fatigue' | null>(null);
-    const [bellModalVisible, setBellModalVisible] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -131,6 +131,13 @@ export default function ManagerHomeScreen() {
             try {
                 const attRes = await getAttendanceStatus();
                 if (attRes) setAttendanceStatus(attRes.status);
+            } catch (e) {
+                // Ignore
+            }
+
+            try {
+                const unreadRes = await notificationAPI.getUnreadCount();
+                setUnreadCount(unreadRes.data.count ?? 0);
             } catch (e) {
                 // Ignore
             }
@@ -309,15 +316,14 @@ export default function ManagerHomeScreen() {
             <View style={styles.header}>
                 <Text style={styles.eyebrow} numberOfLines={1}>{user?.hotelName || 'Company name'}</Text>
                 <View style={styles.headerRight}>
-                    <TouchableOpacity style={styles.notificationBtn} onPress={() => {
-                        if (fatigueCount > 0) {
-                            setBellModalVisible(true);
-                        }
-                    }}>
-                        <Ionicons name="notifications-outline" size={22} color={fatigueCount > 0 ? C.danger : C.textSecondary} />
-                        {fatigueCount > 0 ? (
+                    <TouchableOpacity
+                        style={styles.notificationBtn}
+                        onPress={() => router.push('/(manager)/notifications' as any)}
+                    >
+                        <Ionicons name="notifications-outline" size={22} color={unreadCount > 0 ? C.danger : C.textSecondary} />
+                        {unreadCount > 0 ? (
                             <View style={styles.notificationBadge}>
-                                <Text style={styles.notificationBadgeText}>{fatigueCount}</Text>
+                                <Text style={styles.notificationBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                             </View>
                         ) : (
                             <View style={styles.notificationDot} />
@@ -496,31 +502,6 @@ export default function ManagerHomeScreen() {
                 </View>
             </Modal>
 
-            {/* ─── Bell Notification Modal (Fatigue Alerts) ───────────────── */}
-            <Modal visible={bellModalVisible} animationType="slide" transparent>
-                <View style={ms.overlay}>
-                    <View style={ms.sheet}>
-                        <View style={ms.header}>
-                            <Text style={ms.title}>
-                                🔔 Fatigue Alerts ({fatigueCount})
-                            </Text>
-                            <TouchableOpacity onPress={() => setBellModalVisible(false)} style={ms.closeBtn}>
-                                <Ionicons name="close" size={24} color="#333" />
-                            </TouchableOpacity>
-                        </View>
-                        <FlatList
-                            data={stats?.fatigueAlerts ?? []}
-                            keyExtractor={(item: FatigueAlert, index: number) => `bell-fatigue-${item.id}-${index}`}
-                            renderItem={renderFatigueItem}
-                            contentContainerStyle={{ paddingBottom: 30 }}
-                            showsVerticalScrollIndicator={false}
-                            ListEmptyComponent={
-                                <Text style={ms.emptyText}>No fatigue alerts right now.</Text>
-                            }
-                        />
-                    </View>
-                </View>
-            </Modal>
         </SafeAreaView>
     );
 }

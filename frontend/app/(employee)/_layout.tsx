@@ -18,6 +18,7 @@ export default function EmployeeLayout() {
             <Tabs.Screen name="analysis" />
             <Tabs.Screen name="swap" options={{ href: null }} />
             <Tabs.Screen name="profile" options={{ href: null }} />
+            <Tabs.Screen name="notifications" options={{ href: null }} />
         </Tabs>
     );
 }

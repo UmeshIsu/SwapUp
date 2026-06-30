@@ -12,10 +12,9 @@ const C = {
     card: '#FFFFFF',
     text: '#0F172A',
     textMuted: '#94A3B8',
-    divider: '#E8ECF1',
 };
 
-export default function NotificationsScreen() {
+export default function ManagerNotificationsScreen() {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -101,7 +100,7 @@ export default function NotificationsScreen() {
                             <Ionicons name="notifications-outline" size={48} color="#C5C5C7" />
                             <Text style={styles.emptyTitle}>No notifications yet</Text>
                             <Text style={styles.emptySubtitle}>
-                                You&apos;ll see updates about leave and swap requests here.
+                                Swap requests, leave requests, and fatigue alerts will show up here.
                             </Text>
                         </View>
                     }
