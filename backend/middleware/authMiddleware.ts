@@ -9,6 +9,7 @@ export interface AuthPayload {
     employeeId?: string; // Optional if not always present in token
     name?: string;
     department?: string;
+    departmentId?: string;
     role: string;
     email?: string;
     tenantId: string;

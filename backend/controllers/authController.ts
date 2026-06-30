@@ -41,7 +41,9 @@ export const getEmployees = async (req: Request, res: Response) => {
     const employees = await prisma.user.findMany({
       where: {
         role: "EMPLOYEE",
-        department: department as any,
+        department: {
+          name: { equals: department as string, mode: "insensitive" },
+        },
       },
       select: {
         id: true,
@@ -49,11 +51,16 @@ export const getEmployees = async (req: Request, res: Response) => {
         email: true,
         phone: true,
         avatarUrl: true,
-        department: true,
+        department: { select: { name: true } },
       },
     });
 
-    return res.status(200).json(employees);
+    const formatted = employees.map((e: any) => ({
+      ...e,
+      department: e.department?.name ?? null,
+    }));
+
+    return res.status(200).json(formatted);
   } catch (error) {
     console.error("getEmployees error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -457,11 +464,14 @@ export const resetPassword = async (req: Request, res: Response) => {
 };
 
 /**
- * Get all employees for the same hotel (tenant)
+ * Get all employees for the same hotel (tenant).
+ * A manager only sees employees that belong to their own department
+ * (e.g. a Chinese manager sees Chinese employees, an Indian manager
+ * sees Indian employees).
  */
 export const getAllEmployees = async (req: Request, res: Response) => {
   try {
-    const { tenantId, role, departmentId } = req.user as any;
+    const { id: userId, tenantId, role } = req.user as any;
 
     if (!tenantId) {
       return res.status(400).json({ error: "Tenant ID not found in token." });
@@ -472,9 +482,17 @@ export const getAllEmployees = async (req: Request, res: Response) => {
       role: "EMPLOYEE",
     };
 
-    // If requester is a Manager, filter by their department
-    if (role === "MANAGER" && departmentId) {
-      whereClause.departmentId = departmentId;
+    // If requester is a Manager, look up their departmentId from the DB
+    // (the JWT may have been signed before department migration)
+    if (role === "MANAGER") {
+      const manager = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { departmentId: true },
+      });
+
+      if (manager?.departmentId) {
+        whereClause.departmentId = manager.departmentId;
+      }
     }
 
     const employees = await prisma.user.findMany({
@@ -483,12 +501,13 @@ export const getAllEmployees = async (req: Request, res: Response) => {
         id: true,
         name: true,
         email: true,
+        phone: true,
         department: { select: { name: true } },
         avatarUrl: true,
       },
     });
 
-    const formatted = employees.map((e) => ({
+    const formatted = employees.map((e: any) => ({
       ...e,
       department: e.department?.name ?? null,
     }));

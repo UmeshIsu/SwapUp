@@ -39,7 +39,7 @@ export default function ManagerEmployeesScreen() {
 
     const fetchEmployees = async () => {
         try {
-            const response = await authAPI.getAllEmployees({ department: user?.department || undefined });
+            const response = await authAPI.getAllEmployees();
             setEmployees(response.data);
         } catch (error) {
             console.error('Failed to fetch employees:', error);
@@ -50,17 +50,13 @@ export default function ManagerEmployeesScreen() {
     };
 
     useEffect(() => {
-        if (user?.department) {
-            fetchEmployees();
-        } else {
-            setLoading(false);
-        }
-    }, [user?.department]);
+        fetchEmployees();
+    }, []);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         fetchEmployees();
-    }, [user?.department]);
+    }, []);
 
     const filteredEmployees = employees.filter((emp) =>
         emp.name.toLowerCase().includes(searchQuery.toLowerCase())

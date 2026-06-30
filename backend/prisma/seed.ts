@@ -67,12 +67,27 @@ async function main() {
     const commonPassword = await bcrypt.hash('Password123!', 10);
     const plainPassword = 'Password123!';
 
+    // Create Department records for the tenant
+    console.log('--- Creating Department records ---');
+    const indianDept = await prisma.department.upsert({
+      where: { tenantId_name: { tenantId: hotel.id, name: 'INDIAN' } },
+      update: {},
+      create: { name: 'INDIAN', tenantId: hotel.id },
+    });
+    const chineseDept = await prisma.department.upsert({
+      where: { tenantId_name: { tenantId: hotel.id, name: 'CHINESE' } },
+      update: {},
+      create: { name: 'CHINESE', tenantId: hotel.id },
+    });
+    console.log(`✅ Departments ready: ${indianDept.name}, ${chineseDept.name}`);
+
     // Helper to generic seed user
     async function seedUser(
       idx: string,
       role: 'MANAGER' | 'EMPLOYEE',
       department: 'INDIAN' | 'CHINESE'
     ) {
+      const deptRecord = department === 'INDIAN' ? indianDept : chineseDept;
       const email = `${role.toLowerCase()}${idx}_${department.toLowerCase()}@hilton.com`;
       const name = `${role === 'MANAGER' ? 'Manager' : 'Employee'} ${idx} (${department})`;
       const phone = `+9477${role === 'MANAGER' ? '1' : '2'}${department === 'INDIAN' ? '1' : '2'}000${idx}`;
@@ -93,7 +108,7 @@ async function main() {
         update: {
           name,
           role,
-          department,
+          departmentId: deptRecord.id,
           workerId,
           phone,
           password: commonPassword,
@@ -110,13 +125,21 @@ async function main() {
           workerId,
           phone,
           tenantId: hotel.id,
-          department,
+          departmentId: deptRecord.id,
           avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
           plan: 'Premium',
           availabilityPreferences: 'Monday to Friday, 9AM to 5PM',
           fcmToken: `fake_fcm_token_${workerId}`,
         },
       });
+
+      // If this user is a Manager, also set them as the department's managerId
+      if (role === 'MANAGER') {
+        await prisma.department.update({
+          where: { id: deptRecord.id },
+          data: { managerId: (await prisma.user.findUnique({ where: { email } }))!.id },
+        });
+      }
     }
 
     // Seed INDIAN Department
