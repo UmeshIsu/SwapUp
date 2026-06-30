@@ -460,7 +460,7 @@ export default function ManagerHomeScreen() {
                         </View>
                         <Text style={styles.actionLabel}>Manage{'\n'}Leaves</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionItem} activeOpacity={0.8}>
+                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/employeeDetails' as any)} activeOpacity={0.8}>
                         <View style={styles.actionIconBox}>
                             <MaterialIcons name="insert-chart-outlined" size={24} color={C.primary} />
                         </View>
