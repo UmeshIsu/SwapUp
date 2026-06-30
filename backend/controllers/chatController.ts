@@ -89,7 +89,13 @@ export const getConversations = async (req: Request, res: Response): Promise<voi
         }
 
         const rows = await prisma.participant.findMany({
-            where: { userId },
+            where: {
+                userId,
+                // Only list conversations that actually have a message — selecting
+                // a search result creates/reuses a conversation immediately, before
+                // anything is sent, and that shouldn't show up in the inbox yet.
+                conversation: { messages: { some: {} } },
+            },
             include: {
                 conversation: {
                     include: {
