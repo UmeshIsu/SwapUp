@@ -7,7 +7,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSocket } from '@/src/hooks/useSocket';
-import { getMessages, respondToSwapRequest, sendMessage } from '@/src/services/chatService';
+import { getMessages, respondToSwapRequest } from '@/src/services/chatService';
 import { useAuth } from '@/src/contexts/AuthContext';
 
 
@@ -146,10 +146,10 @@ export default function ManagerChatScreen() {
 
     const sendMsg = () => {
         if (!text.trim()) return;
-        
-        sendMessage(conversationId, userId, text.trim())
-            .catch(e => console.error('Failed to send text', e));
 
+        // Sent via socket only — index.ts's `send_message` handler persists
+        // the message and broadcasts it back to the room (including our own
+        // joined socket), so an additional REST call here would double-save it.
         send({ conversationId, senderId: userId, content: text.trim(), type: 'TEXT' });
         setText('');
     };
