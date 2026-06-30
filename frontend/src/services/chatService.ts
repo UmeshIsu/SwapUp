@@ -202,17 +202,16 @@ export interface DepartmentUser {
 }
 
 /**
- * Search employees/managers within the same department by name
+ * Search employees/managers within the caller's own hotel (and department,
+ * when they have one) by name. Scope is derived server-side from the auth
+ * token, not from client-supplied department/tenant values.
  */
 export const searchDepartmentUsers = async (
     query: string,
-    department: string,
     excludeUserId: string,
-    tenantId?: string,
 ): Promise<DepartmentUser[]> => {
     if (!query.trim()) return [];
-    const params = new URLSearchParams({ query, department, excludeUserId });
-    if (tenantId) params.append('tenantId', tenantId);
+    const params = new URLSearchParams({ query, excludeUserId });
     const response = await fetch(`${API_BASE_URL}/api/chat/users/search?${params}`, {
         headers: await getHeaders(false),
     });

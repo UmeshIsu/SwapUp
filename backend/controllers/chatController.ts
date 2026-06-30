@@ -566,35 +566,40 @@ export const getManagerSwapApprovals = async (_req: Request, res: Response): Pro
 export const searchDepartmentUsers = async (req: Request, res: Response): Promise<void> => {
     try {
         const query = toString(req.query.query as string);
-        const department = toString(req.query.department as string);
         const excludeUserId = toString(req.query.excludeUserId as string);
-        const tenantId = toString(req.query.tenantId as string);
+        const { tenantId, departmentId } = req.user! as any;
 
-        if (!query || !department) {
+        if (!query || !tenantId) {
             res.json([]);
             return;
         }
 
+        // Always scope to the searcher's own hotel; also scope to their
+        // department when they have one (mirrors getAllEmployees' scoping).
+        const where: any = {
+            tenantId,
+            name: { contains: query, mode: 'insensitive' },
+            ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
+        };
+        if (departmentId) where.departmentId = departmentId;
+
         const users = await prisma.user.findMany({
-            where: {
-                department: department as any,
-                name: { contains: query, mode: 'insensitive' },
-                ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
-                ...(tenantId ? { tenantId } : {}),
-            },
+            where,
             select: {
                 id: true,
                 name: true,
                 email: true,
                 role: true,
-                department: true,
+                department: { select: { name: true } },
                 avatarUrl: true,
             },
             orderBy: { name: 'asc' },
             take: 20,
         });
 
-        res.json(users);
+        const formatted = users.map((u) => ({ ...u, department: u.department?.name ?? null }));
+
+        res.json(formatted);
     } catch (e) {
         res.status(500).json({ error: (e as Error).message });
     }

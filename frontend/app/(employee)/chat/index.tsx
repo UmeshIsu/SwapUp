@@ -204,12 +204,7 @@ export default function ChatScreen() {
         setSearching(true);
         searchTimer.current = setTimeout(async () => {
             try {
-                const results = await searchDepartmentUsers(
-                    searchQuery,
-                    user?.department ?? '',
-                    userId,
-                    user?.tenantId ?? '',
-                );
+                const results = await searchDepartmentUsers(searchQuery, userId);
                 setSearchResults(results);
             } catch (e) {
                 console.error('Search failed:', e);
