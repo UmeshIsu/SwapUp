@@ -448,7 +448,7 @@ export default function ManagerHomeScreen() {
                 {/* Quick Actions */}
                 <Text style={styles.sectionTitle}>Quick Actions</Text>
                 <View style={styles.quickActions}>
-                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(manager)/chat/' as any)} activeOpacity={0.8}>
+                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push({ pathname: '/(manager)/chat/', params: { tab: 'swap' } } as any)} activeOpacity={0.8}>
                         <View style={styles.actionIconBox}>
                             <MaterialCommunityIcons name="swap-horizontal" size={24} color={C.primary} />
                         </View>

@@ -4,7 +4,7 @@ import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
     Image, ActivityIndicator, SafeAreaView, RefreshControl, TextInput, Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { getConversations, getManagerSwapApprovals, respondToSwapRequest, searchDepartmentUsers, createConversation } from '@/src/services/chatService';
@@ -101,7 +101,8 @@ export default function ManagerChatInbox() {
     const router = useRouter();
     const { user } = useAuth();
     const userId = user?.id ?? '';
-    const [tab, setTab] = useState<'msg' | 'swap'>('msg');
+    const { tab: initialTab } = useLocalSearchParams<{ tab?: string }>();
+    const [tab, setTab] = useState<'msg' | 'swap'>(initialTab === 'swap' ? 'swap' : 'msg');
     const [convos, setConvos] = useState<any[]>([]);
     const [swaps, setSwaps] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -114,6 +115,12 @@ export default function ManagerChatInbox() {
     const [searchResults, setSearchResults] = useState<DepartmentUser[]>([]);
     const [searching, setSearching] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Re-sync the tab when navigated to with a new ?tab= param (this screen
+    // stays mounted as a tab, so the initial useState value alone won't catch it).
+    useEffect(() => {
+        if (initialTab === 'swap') setTab('swap');
+    }, [initialTab]);
 
     // ── Debounced search ──
     useEffect(() => {
