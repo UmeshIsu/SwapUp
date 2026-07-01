@@ -1,22 +1,22 @@
 import { palette } from '@/src/constants/palette';
-// sent.tsx - Leave Request Sent Confirmation Screen
-// Shown after user successfully submits a leave request
-// Displays a success message and summary of the submitted request
-
-import React from 'react';
 import {
     View,
     Text,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 export default function LeaveSent() {
     const router = useRouter();
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    const styles = makeStyles(theme, isDark);
 
-    // Get request details passed from the apply screen
     const params = useLocalSearchParams<{
         leaveTypeName: string;
         startDate: string;
@@ -32,7 +32,7 @@ export default function LeaveSent() {
     return (
         <SafeAreaView style={styles.container}>
 
-            {/* ---- Success checkmark and title ---- */}
+            {/* Success checkmark and title */}
             <View style={styles.centerContent}>
                 <View style={styles.checkCircle}>
                     <Text style={styles.checkMark}>✓</Text>
@@ -43,7 +43,7 @@ export default function LeaveSent() {
                 </Text>
             </View>
 
-            {/* ---- Summary card ---- */}
+            {/* Summary card */}
             {params.leaveTypeName ? (
                 <View style={styles.summaryCard}>
                     <Text style={styles.summaryTitle}>Request Summary</Text>
@@ -70,7 +70,7 @@ export default function LeaveSent() {
                 </View>
             ) : null}
 
-            {/* ---- Action Buttons ---- */}
+            {/* Action Buttons */}
             <TouchableOpacity
                 style={styles.viewPendingButton}
                 onPress={() => router.replace('/(employee)/leave/requestStatus' as any)}
@@ -89,10 +89,10 @@ export default function LeaveSent() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.background,
         padding: 24,
         justifyContent: 'center',
     },
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#4caf50',
+        backgroundColor: '#4CAF50',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
@@ -117,27 +117,29 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#111',
+        color: theme.text,
         marginBottom: 10,
         textAlign: 'center',
     },
     subtitle: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
         textAlign: 'center',
         lineHeight: 20,
         paddingHorizontal: 10,
     },
     summaryCard: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: isDark ? '#1E1E1E' : '#F5F5F5',
         borderRadius: 14,
         padding: 18,
         marginBottom: 24,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: isDark ? '#2C2C2C' : 'transparent',
     },
     summaryTitle: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#111',
+        color: theme.text,
         marginBottom: 14,
     },
     summaryRow: {
@@ -147,18 +149,18 @@ const styles = StyleSheet.create({
     },
     summaryLabel: {
         fontSize: 14,
-        color: '#777',
+        color: theme.textSecondary,
     },
     summaryValue: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#111',
+        color: theme.text,
     },
     statusBadge: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#f57c00',
-        backgroundColor: '#fff3e0',
+        color: isDark ? '#FDE68A' : '#F57C00',
+        backgroundColor: isDark ? '#2A1F00' : '#FFF3E0',
         paddingHorizontal: 10,
         paddingVertical: 3,
         borderRadius: 12,
@@ -178,13 +180,13 @@ const styles = StyleSheet.create({
     },
     homeButton: {
         borderWidth: 1.5,
-        borderColor: palette.primary,
+        borderColor: theme.primary,
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',
     },
     homeButtonText: {
-        color: palette.primary,
+        color: theme.primary,
         fontSize: 16,
         fontWeight: '600',
     },
