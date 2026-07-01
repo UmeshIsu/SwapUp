@@ -6,18 +6,17 @@ import { notificationAPI } from '@/src/services/api';
 import socketService from '@/src/services/socketService';
 import ScreenHeader from '@/src/components/ScreenHeader';
 import { getNotificationMeta, formatRelativeTime, AppNotification } from '@/src/utils/notificationMeta';
-
-const C = {
-    bg: '#F8F9FA',
-    card: '#FFFFFF',
-    text: '#0F172A',
-    textMuted: '#94A3B8',
-};
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 export default function ManagerNotificationsScreen() {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    const styles = makeStyles(theme, isDark);
 
     const fetchNotifications = useCallback(async () => {
         try {
@@ -85,7 +84,7 @@ export default function ManagerNotificationsScreen() {
             <ScreenHeader title="Notifications" />
             {loading ? (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#1373D0" />
+                    <ActivityIndicator size="large" color={theme.primary} />
                 </View>
             ) : (
                 <FlatList
@@ -94,10 +93,10 @@ export default function ManagerNotificationsScreen() {
                     renderItem={renderItem}
                     contentContainerStyle={styles.list}
                     showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="notifications-outline" size={48} color="#C5C5C7" />
+                            <Ionicons name="notifications-outline" size={48} color={theme.textMuted} />
                             <Text style={styles.emptyTitle}>No notifications yet</Text>
                             <Text style={styles.emptySubtitle}>
                                 Swap requests, leave requests, and fatigue alerts will show up here.
@@ -110,10 +109,10 @@ export default function ManagerNotificationsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: C.bg,
+        backgroundColor: theme.background,
     },
     center: {
         flex: 1,
@@ -127,18 +126,18 @@ const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        backgroundColor: C.card,
+        backgroundColor: theme.surface,
         padding: 14,
         borderRadius: 14,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
+        shadowOpacity: isDark ? 0.2 : 0.04,
         shadowRadius: 4,
         elevation: 1,
     },
     cardUnread: {
         borderLeftWidth: 3,
-        borderLeftColor: '#1373D0',
+        borderLeftColor: theme.primary,
     },
     iconContainer: {
         width: 40,
@@ -154,24 +153,24 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 14,
         fontWeight: '700',
-        color: C.text,
+        color: theme.text,
         marginBottom: 2,
     },
     message: {
         fontSize: 13,
-        color: '#475569',
+        color: theme.textSecondary,
         lineHeight: 18,
     },
     time: {
         fontSize: 11,
-        color: C.textMuted,
+        color: theme.textMuted,
         marginTop: 6,
     },
     unreadDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#1373D0',
+        backgroundColor: theme.primary,
         marginLeft: 8,
         marginTop: 4,
     },
@@ -182,12 +181,12 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: C.text,
+        color: theme.text,
         marginTop: 12,
     },
     emptySubtitle: {
         fontSize: 13,
-        color: C.textMuted,
+        color: theme.textMuted,
         marginTop: 4,
         textAlign: 'center',
         paddingHorizontal: 40,
