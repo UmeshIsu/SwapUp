@@ -604,7 +604,7 @@ const makeStyles = (C: any, isDark: boolean) => StyleSheet.create({
         borderLeftWidth: 4, borderLeftColor: C.alertAccent,
     },
     alertCardClear: {
-        backgroundColor: '#1d2720ff',
+        backgroundColor: isDark ? '#1D2720' : '#F0FDF4',
         borderLeftColor: C.success,
     },
     alertIcon: {
