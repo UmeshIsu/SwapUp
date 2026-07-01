@@ -2,7 +2,7 @@ import { palette } from '@/src/constants/palette';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    ActivityIndicator, SafeAreaView, RefreshControl, TextInput, Alert,
+    ActivityIndicator, RefreshControl, TextInput, Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,23 +14,18 @@ import { Colors } from '@/src/constants/theme';
 import ScreenHeader from '@/src/components/ScreenHeader';
 import { getInitials, getAvatarColor } from '@/src/utils/avatar';
 
-
-
 const fmt = (iso: string) => {
     const d = new Date(iso), h = d.getHours() % 12 || 12;
     return `${h}.${d.getMinutes().toString().padStart(2, '0')} ${d.getHours() >= 12 ? 'PM' : 'AM'}`;
 };
 
-// Avatar URLs in this app are Dicebear SVGs, which React Native's Image
-// component can't rasterize from a remote URI — they render blank. Use
-// colored initials instead; reliable, no network dependency.
 const Avatar = ({ name, size = 46 }: { name: string; size?: number }) => (
-    <View style={[S.avatarFb, { width: size, height: size, borderRadius: size / 2, backgroundColor: getAvatarColor(name) }]}>
+    <View style={[{ alignItems: 'center', justifyContent: 'center' }, { width: size, height: size, borderRadius: size / 2, backgroundColor: getAvatarColor(name) }]}>
         <Text style={{ color: '#FFF', fontWeight: '700', fontSize: size * 0.32 }}>{getInitials(name)}</Text>
     </View>
 );
 
-function ConvoRow({ item, onPress }: any) {
+function ConvoRow({ item, onPress, S }: { item: any; onPress: () => void; S: any }) {
     return (
         <TouchableOpacity style={S.row} onPress={onPress} activeOpacity={0.7}>
             <Avatar name={item.participantName} />
@@ -43,7 +38,7 @@ function ConvoRow({ item, onPress }: any) {
     );
 }
 
-function ApprovalRow({ item, onRespond }: { item: any; onRespond: (id: string, s: string) => void }) {
+function ApprovalRow({ item, onRespond, S, isDark }: { item: any; onRespond: (id: string, s: string) => void; S: any; isDark: boolean }) {
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'APPROVED_BY_MANAGER': return '✅ Approved';
@@ -55,9 +50,9 @@ function ApprovalRow({ item, onRespond }: { item: any; onRespond: (id: string, s
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'APPROVED_BY_MANAGER': return { bg: '#DCFCE7', text: '#166534' };
-            case 'REJECTED_BY_MANAGER': return { bg: '#FEE2E2', text: '#EF4444' };
-            default: return { bg: '#FEF3C7', text: '#92400E' };
+            case 'APPROVED_BY_MANAGER': return { bg: isDark ? '#14532D' : '#DCFCE7', text: isDark ? '#86EFAC' : '#166534' };
+            case 'REJECTED_BY_MANAGER': return { bg: isDark ? '#450A0A' : '#FEE2E2', text: isDark ? '#FCA5A5' : '#EF4444' };
+            default: return { bg: isDark ? '#451A03' : '#FEF3C7', text: isDark ? '#FDE68A' : '#92400E' };
         }
     };
 
@@ -110,20 +105,18 @@ export default function ManagerChatInbox() {
     const [refreshing, setRefreshing] = useState(false);
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    const S = makeStyles(theme, isDark);
 
-    // ── Search state ──
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<DepartmentUser[]>([]);
     const [searching, setSearching] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Re-sync the tab when navigated to with a new ?tab= param (this screen
-    // stays mounted as a tab, so the initial useState value alone won't catch it).
     useEffect(() => {
         if (initialTab === 'swap') setTab('swap');
     }, [initialTab]);
 
-    // ── Debounced search ──
     useEffect(() => {
         if (searchTimer.current) clearTimeout(searchTimer.current);
         if (!searchQuery.trim()) {
@@ -171,7 +164,6 @@ export default function ManagerChatInbox() {
                 getConversations(userId),
                 getManagerSwapApprovals(),
             ]);
-
             setConvos(Array.isArray(c) ? c : []);
             setSwaps(Array.isArray(s) ? s : []);
         } catch (e) {
@@ -196,21 +188,20 @@ export default function ManagerChatInbox() {
     return (
         <View style={{ flex: 1, backgroundColor: theme.background }}>
             <ScreenHeader title="Messages" showBack={false} />
-            <View style={[S.tabBar, { borderBottomColor: theme.border }]}>
+            <View style={S.tabBar}>
                 <TouchableOpacity style={[S.tab, tab === 'msg' && S.tabOn]} onPress={() => setTab('msg')}>
-                    <Text style={[S.tabTxt, { color: theme.textMuted }, tab === 'msg' && { color: theme.primary }]}>Messages</Text>
+                    <Text style={[S.tabTxt, tab === 'msg' && { color: theme.primary }]}>Messages</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[S.tab, tab === 'swap' && S.tabOn]} onPress={() => setTab('swap')}>
-                    <Text style={[S.tabTxt, { color: theme.textMuted }, tab === 'swap' && { color: theme.primary }]}>Swap Approvals</Text>
+                    <Text style={[S.tabTxt, tab === 'swap' && { color: theme.primary }]}>Swap Approvals</Text>
                 </TouchableOpacity>
             </View>
 
-            {/* ── Search Bar (Messages tab only) ── */}
             {tab === 'msg' && (
-                <View style={[S.searchContainer, { backgroundColor: theme.inputBg }]}>
+                <View style={S.searchContainer}>
                     <Ionicons name="search" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
                     <TextInput
-                        style={[S.searchInput, { color: theme.text }]}
+                        style={S.searchInput}
                         placeholder="Search employees & managers..."
                         placeholderTextColor={theme.textMuted}
                         value={searchQuery}
@@ -225,9 +216,8 @@ export default function ManagerChatInbox() {
                 </View>
             )}
 
-            {/* ── Search Results Overlay ── */}
             {tab === 'msg' && searchQuery.trim().length > 0 && (
-                <View style={[S.searchResultsContainer, { backgroundColor: theme.background }]}>
+                <View style={S.searchResultsContainer}>
                     {searching ? (
                         <ActivityIndicator style={{ paddingVertical: 20 }} color={palette.primary} />
                     ) : searchResults.length === 0 ? (
@@ -259,19 +249,26 @@ export default function ManagerChatInbox() {
 
             {loading ? <ActivityIndicator style={{ flex: 1 }} color={palette.primary} size="large" /> :
                 tab === 'msg' && searchQuery.trim().length === 0 ? (
-                    <FlatList data={convos} keyExtractor={(i: any) => i.id}
-                        renderItem={({ item }: any) => <ConvoRow item={item} onPress={() =>
-                            router.push({
-                                pathname: '/(manager)/chat/[conversationId]' as any,
-                                params: { conversationId: item.id, participantName: item.participantName, participantAvatar: item.participantAvatar ?? '' }
-                            })} />}
+                    <FlatList
+                        data={convos}
+                        keyExtractor={(i: any) => i.id}
+                        renderItem={({ item }: any) => (
+                            <ConvoRow item={item} S={S} onPress={() =>
+                                router.push({
+                                    pathname: '/(manager)/chat/[conversationId]' as any,
+                                    params: { conversationId: item.id, participantName: item.participantName, participantAvatar: item.participantAvatar ?? '' }
+                                })}
+                            />
+                        )}
                         ItemSeparatorComponent={() => <View style={S.sep} />}
                         ListEmptyComponent={<Text style={S.empty}>No messages</Text>}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={palette.primary} />}
                     />
                 ) : tab === 'swap' ? (
-                    <FlatList data={swaps} keyExtractor={(i: any) => i.id}
-                        renderItem={({ item }: any) => <ApprovalRow item={item} onRespond={respond} />}
+                    <FlatList
+                        data={swaps}
+                        keyExtractor={(i: any) => i.id}
+                        renderItem={({ item }: any) => <ApprovalRow item={item} onRespond={respond} S={S} isDark={isDark} />}
                         contentContainerStyle={{ padding: 16 }}
                         ListEmptyComponent={<Text style={S.empty}>No swap requests to review</Text>}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={palette.primary} />}
@@ -282,29 +279,34 @@ export default function ManagerChatInbox() {
     );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     header: { alignItems: 'center', paddingVertical: 14 },
-    headerTitle: { fontSize: 20, fontWeight: '700', color: '#111' },
-    tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: theme.text },
+    tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.border },
     tab: { flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
     tabOn: { borderBottomColor: palette.primary },
-    tabTxt: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
+    tabTxt: { fontSize: 14, fontWeight: '600', color: theme.textMuted },
     row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-    name: { fontSize: 15, fontWeight: '700', color: '#111' },
-    sub: { fontSize: 13, color: '#6B7280', marginTop: 2 },
-    time: { fontSize: 12, color: '#9CA3AF', marginLeft: 8 },
-    sep: { height: 1, backgroundColor: '#F3F4F6', marginLeft: 74 },
-    avatarFb: { backgroundColor: '#D1D5DB', alignItems: 'center' as const, justifyContent: 'center' as const },
-    swapCard: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-    shiftBox: { backgroundColor: '#fff', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#E5E7EB' },
-    shiftLbl: { fontSize: 13, fontWeight: '600' as const, color: '#374151', marginBottom: 4 },
-    shiftTxt: { fontSize: 12, color: '#374151', marginTop: 3 },
-    btnD: { flex: 1, alignItems: 'center' as const, paddingVertical: 10, backgroundColor: '#FEE2E2', borderRadius: 8 },
+    name: { fontSize: 15, fontWeight: '700', color: theme.text },
+    sub: { fontSize: 13, color: theme.textSecondary, marginTop: 2 },
+    time: { fontSize: 12, color: theme.textMuted, marginLeft: 8 },
+    sep: { height: 1, backgroundColor: theme.border, marginLeft: 74 },
+    swapCard: {
+        backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB',
+        borderRadius: 12, padding: 14, marginBottom: 12,
+        borderWidth: 1, borderColor: isDark ? '#2C2C2C' : '#E5E7EB',
+    },
+    shiftBox: {
+        backgroundColor: isDark ? '#2C2C2C' : '#FFFFFF',
+        borderRadius: 8, padding: 10,
+        borderWidth: 1, borderColor: isDark ? '#3C3C3C' : '#E5E7EB',
+    },
+    shiftLbl: { fontSize: 13, fontWeight: '600' as const, color: theme.text, marginBottom: 4 },
+    shiftTxt: { fontSize: 12, color: theme.textSecondary, marginTop: 3 },
+    btnD: { flex: 1, alignItems: 'center' as const, paddingVertical: 10, backgroundColor: isDark ? '#3A1515' : '#FEE2E2', borderRadius: 8 },
     btnA: { flex: 1, alignItems: 'center' as const, paddingVertical: 10, backgroundColor: palette.primary, borderRadius: 8 },
     badge: { paddingVertical: 8, borderRadius: 8, alignItems: 'center' as const },
-    empty: { textAlign: 'center' as const, color: '#9CA3AF', marginTop: 80 },
-
-    // Search bar
+    empty: { textAlign: 'center' as const, color: theme.textMuted, marginTop: 80 },
     searchContainer: {
         flexDirection: 'row' as const,
         alignItems: 'center' as const,
@@ -313,18 +315,18 @@ const S = StyleSheet.create({
         marginBottom: 6,
         paddingHorizontal: 12,
         paddingVertical: 10,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: isDark ? '#2C2C2C' : '#F3F4F6',
         borderRadius: 10,
     },
     searchInput: {
         flex: 1,
         fontSize: 14,
-        color: '#111',
+        color: theme.text,
         padding: 0,
     },
     searchResultsContainer: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: theme.background,
     },
     searchRow: {
         flexDirection: 'row' as const,
@@ -334,7 +336,7 @@ const S = StyleSheet.create({
     },
     searchEmpty: {
         textAlign: 'center' as const,
-        color: '#9CA3AF',
+        color: theme.textMuted,
         marginTop: 30,
         fontSize: 14,
     },
@@ -343,9 +345,9 @@ const S = StyleSheet.create({
         paddingVertical: 3,
         borderRadius: 12,
     },
-    roleBadgeManager: { backgroundColor: '#EDE9FE' },
-    roleBadgeEmployee: { backgroundColor: '#DBEAFE' },
+    roleBadgeManager: { backgroundColor: isDark ? '#2D1B69' : '#EDE9FE' },
+    roleBadgeEmployee: { backgroundColor: isDark ? '#1E3A5F' : '#DBEAFE' },
     roleBadgeText: { fontSize: 11, fontWeight: '600' as const },
-    roleBadgeTextManager: { color: '#6D28D9' },
+    roleBadgeTextManager: { color: isDark ? '#C4B5FD' : '#6D28D9' },
     roleBadgeTextEmployee: { color: palette.primary },
 });

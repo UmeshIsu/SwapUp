@@ -180,8 +180,8 @@ export default function ManagerHomeScreen() {
             "Are you sure you want to check out?",
             [
                 { text: "Cancel", style: "cancel" },
-                { 
-                    text: "Check Out", 
+                {
+                    text: "Check Out",
                     style: "destructive",
                     onPress: async () => {
                         try {
@@ -604,7 +604,7 @@ const makeStyles = (C: any, isDark: boolean) => StyleSheet.create({
         borderLeftWidth: 4, borderLeftColor: C.alertAccent,
     },
     alertCardClear: {
-        backgroundColor: '#F0FDF4',
+        backgroundColor: '#1d2720ff',
         borderLeftColor: C.success,
     },
     alertIcon: {
