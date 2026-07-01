@@ -36,6 +36,8 @@ export default function ManagerEmployeesScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    const styles = makeStyles(theme, isDark);
 
     const fetchEmployees = async () => {
         try {
@@ -74,7 +76,7 @@ export default function ManagerEmployeesScreen() {
                         {item.department || 'Employee'}
                     </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#C5C5C7" />
+                <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
             </TouchableOpacity>
         </Link>
     );
@@ -86,17 +88,17 @@ export default function ManagerEmployeesScreen() {
             {/* Search Bar */}
             <View style={styles.searchWrapper}>
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={18} color="#8E8E93" style={styles.searchIcon} />
+                    <Ionicons name="search" size={18} color={theme.textMuted} style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search employees.."
-                        placeholderTextColor="#8E8E93"
+                        placeholderTextColor={theme.textMuted}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <Ionicons name="close-circle" size={18} color="#8E8E93" />
+                            <Ionicons name="close-circle" size={18} color={theme.textMuted} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -120,7 +122,7 @@ export default function ManagerEmployeesScreen() {
                     ItemSeparatorComponent={() => <View style={styles.separator} />}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="people-outline" size={48} color="#C5C5C7" />
+                            <Ionicons name="people-outline" size={48} color={theme.textMuted} />
                             <Text style={styles.emptyTitle}>
                                 {searchQuery ? 'No results found' : 'No employees'}
                             </Text>
@@ -137,10 +139,10 @@ export default function ManagerEmployeesScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: theme.background,
     },
     headerContainer: {
         alignItems: 'center',
@@ -150,7 +152,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#000',
+        color: theme.text,
     },
     searchWrapper: {
         paddingHorizontal: 16,
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E5E5EA',
+        backgroundColor: isDark ? '#2C2C2C' : '#E5E5EA',
         borderRadius: 10,
         paddingHorizontal: 10,
         height: 36,
@@ -170,7 +172,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         fontSize: 15,
-        color: '#000',
+        color: theme.text,
         paddingVertical: 0,
     },
     listContent: {
@@ -180,7 +182,7 @@ const styles = StyleSheet.create({
     employeeCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.surface,
         paddingVertical: 10,
         paddingHorizontal: 12,
         borderRadius: 12,
@@ -192,10 +194,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: theme.surface,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
+        shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 2,
         elevation: 1,
     },
@@ -211,18 +213,18 @@ const styles = StyleSheet.create({
     employeeName: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#1C1C1E',
+        color: theme.text,
         marginBottom: 2,
     },
     employeeRole: {
         fontSize: 13,
-        color: '#8E8E93',
+        color: theme.textMuted,
         fontWeight: '400',
     },
     separator: {
         height: 1,
-        backgroundColor: '#E5E5EA',
-        marginLeft: 68, // avatar width + padding
+        backgroundColor: theme.border,
+        marginLeft: 68,
     },
     center: {
         flex: 1,
@@ -236,12 +238,12 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#1C1C1E',
+        color: theme.text,
         marginTop: 12,
     },
     emptySubtitle: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: theme.textMuted,
         marginTop: 4,
     },
 });

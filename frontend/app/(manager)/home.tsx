@@ -23,25 +23,6 @@ import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 import AttendanceStatusCard from '@/src/components/AttendanceStatusCard';
 
-// ─── Premium light palette ──────────────────────────────────────────────────
-const C = {
-    bg: '#F8F9FA',
-    card: '#FFFFFF',
-    text: '#0F172A',
-    textSecondary: '#475569',
-    textMuted: '#94A3B8',
-    primary: palette.primary,
-    primarySoft: '#EFF6FF',
-    border: '#EEF1F5',
-    success: '#16A34A',
-    successSoft: '#ECFDF5',
-    warning: '#EA580C',
-    warningSoft: '#FFF7ED',
-    danger: '#DC2626',
-    dangerSoft: '#FEF2F2',
-    alertTint: '#FFF5F5',
-    alertAccent: '#EF4444',
-};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,6 +99,29 @@ export default function ManagerHomeScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+
+    const C = {
+        bg: theme.background,
+        card: theme.surface,
+        text: theme.text,
+        textSecondary: theme.textSecondary,
+        textMuted: theme.textMuted,
+        primary: theme.primary,
+        primarySoft: isDark ? '#1E2D4A' : '#EFF6FF',
+        border: theme.border,
+        success: theme.success,
+        successSoft: theme.successBg,
+        warning: theme.warning,
+        warningSoft: theme.warningBg,
+        danger: theme.danger,
+        dangerSoft: isDark ? '#3A1515' : '#FEF2F2',
+        alertTint: isDark ? '#2A1515' : '#FFF5F5',
+        alertAccent: '#EF4444',
+    };
+
+    const styles = makeStyles(C, isDark);
+    const ms = makeMs(theme, isDark);
 
     // Modal state
     const [modalType, setModalType] = useState<'onDuty' | 'late' | 'absentees' | 'fatigue' | null>(null);
@@ -508,7 +512,7 @@ export default function ManagerHomeScreen() {
 
 // ─── Main Styles ──────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (C: any, isDark: boolean) => StyleSheet.create({
     container: { flex: 1, backgroundColor: C.bg },
 
     /* Reusable premium card */
@@ -623,13 +627,13 @@ const styles = StyleSheet.create({
 
 // ─── Modal Styles ─────────────────────────────────────────────────────────────
 
-const ms = StyleSheet.create({
+const makeMs = (theme: any, isDark: boolean) => StyleSheet.create({
     overlay: {
-        flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: '#fff',
+        backgroundColor: isDark ? '#1E1E1E' : '#fff',
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
         maxHeight: '75%',
         paddingHorizontal: 20, paddingTop: 20,
@@ -638,11 +642,11 @@ const ms = StyleSheet.create({
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: 16,
     },
-    title: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
+    title: { fontSize: 18, fontWeight: '700', color: theme.text },
     closeBtn: { padding: 4 },
     row: {
         flexDirection: 'row', alignItems: 'center',
-        backgroundColor: '#F8FAFC', borderRadius: 14,
+        backgroundColor: isDark ? '#2C2C2C' : '#F8FAFC', borderRadius: 14,
         padding: 14, marginBottom: 10,
     },
     avatar: {
@@ -651,14 +655,14 @@ const ms = StyleSheet.create({
         marginRight: 12,
     },
     info: { flex: 1 },
-    name: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', marginBottom: 2 },
-    sub: { fontSize: 12, color: '#666' },
+    name: { fontSize: 15, fontWeight: '600', color: theme.text, marginBottom: 2 },
+    sub: { fontSize: 12, color: theme.textSecondary },
     badge: {
         paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8,
     },
     badgeText: { fontSize: 11, fontWeight: '700' },
     emptyText: {
-        textAlign: 'center', fontSize: 14, color: '#999',
+        textAlign: 'center', fontSize: 14, color: theme.textMuted,
         marginTop: 40, marginBottom: 20,
     },
 });
