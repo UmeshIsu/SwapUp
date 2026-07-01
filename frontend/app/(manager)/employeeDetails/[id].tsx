@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { analyticsAPI } from '@/src/services/api';
 import ScreenHeader from '@/src/components/ScreenHeader';
 import { getInitials, getAvatarColor } from '@/src/utils/avatar';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 interface EmployeeAnalytics {
     month: string;
@@ -42,6 +44,10 @@ export default function EmployeeAnalyticsScreen() {
     const [data, setData] = useState<EmployeeAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    const styles = makeStyles(theme, isDark);
 
     const fetchAnalytics = async () => {
         try {
@@ -56,9 +62,7 @@ export default function EmployeeAnalyticsScreen() {
     };
 
     useEffect(() => {
-        if (id) {
-            fetchAnalytics();
-        }
+        if (id) fetchAnalytics();
     }, [id]);
 
     const onRefresh = () => {
@@ -68,10 +72,10 @@ export default function EmployeeAnalyticsScreen() {
 
     if (loading) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }} edges={['bottom']}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['bottom']}>
                 <ScreenHeader title="Employee Details" />
                 <View style={[styles.center, { flex: 1 }]}>
-                    <ActivityIndicator size="large" color={palette.primary} />
+                    <ActivityIndicator size="large" color={theme.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -79,17 +83,16 @@ export default function EmployeeAnalyticsScreen() {
 
     if (!data) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F9FA' }} edges={['bottom']}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['bottom']}>
                 <ScreenHeader title="Employee Details" />
                 <View style={[styles.center, { flex: 1 }]}>
-                    <Text style={{ color: '#6B7280' }}>Failed to load employee details.</Text>
+                    <Text style={{ color: theme.textMuted }}>Failed to load employee details.</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
-    // Chart helpers
-    const maxOvertime = Math.max(...(data.dailyOvertime || [0, 0, 0, 0, 0, 0, 0]), 1); // Avoid div by 0
+    const maxOvertime = Math.max(...(data.dailyOvertime || [0, 0, 0, 0, 0, 0, 0]), 1);
     const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return (
@@ -99,7 +102,7 @@ export default function EmployeeAnalyticsScreen() {
                 contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} tintColor={theme.primary} />
                 }
             >
                 {/* Profile Header */}
@@ -109,7 +112,7 @@ export default function EmployeeAnalyticsScreen() {
                     </View>
                     <Text style={styles.employeeName}>{data.employee.name}</Text>
                     <Text style={styles.workerId}>workerID : {data.employee.workerId || 'N/A'}</Text>
-                    
+
                     <TouchableOpacity style={styles.contactBtn}>
                         <Ionicons name="call" size={16} color="#FFF" style={{ marginRight: 8 }} />
                         <Text style={styles.contactBtnText}>Contact</Text>
@@ -131,7 +134,7 @@ export default function EmployeeAnalyticsScreen() {
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Absences</Text>
                         <Text style={styles.statValue}>{data.absentCount}</Text>
-                        <Text style={[styles.statChange, { color: '#6B7280' }]}>-</Text>
+                        <Text style={[styles.statChange, { color: theme.textMuted }]}>-</Text>
                     </View>
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Avg Shift Rating</Text>
@@ -144,9 +147,7 @@ export default function EmployeeAnalyticsScreen() {
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Overtime Performance</Text>
                     <View style={styles.chartContainer}>
-                        {/* Red dotted line for threshold */}
                         <View style={styles.thresholdLine} />
-                        
                         <View style={styles.barsContainer}>
                             {data.dailyOvertime?.map((val, idx) => (
                                 <View key={idx} style={styles.barWrapper}>
@@ -169,7 +170,7 @@ export default function EmployeeAnalyticsScreen() {
                             </View>
                         </View>
                     </View>
-                    
+
                     <View style={styles.punctualityLegend}>
                         <View style={styles.legendItem}>
                             <Text style={styles.legendValue}>{data.onTimeCount}</Text>
@@ -190,9 +191,9 @@ export default function EmployeeAnalyticsScreen() {
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Absent Days</Text>
                     <Text style={styles.absentDaysCount}>{data.absentCount} Days</Text>
-                    
+
                     <Text style={styles.absentWeekText}>
-                        <Text style={{ color: '#9CA3AF' }}>This Week </Text>
+                        <Text style={{ color: theme.textMuted }}>This Week </Text>
                         <Text style={{ color: '#22C55E' }}>No absences record</Text>
                     </Text>
 
@@ -209,10 +210,10 @@ export default function EmployeeAnalyticsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: theme.background,
     },
     container: {
         padding: 16,
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.12,
+        shadowOpacity: isDark ? 0.3 : 0.12,
         shadowRadius: 4,
         elevation: 2,
     },
@@ -247,12 +248,12 @@ const styles = StyleSheet.create({
     employeeName: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#111827',
+        color: theme.text,
         marginBottom: 4,
     },
     workerId: {
         fontSize: 13,
-        color: '#6B7280',
+        color: theme.textSecondary,
         marginBottom: 16,
     },
     contactBtn: {
@@ -278,27 +279,27 @@ const styles = StyleSheet.create({
     },
     statCard: {
         width: '48%',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.surface,
         borderRadius: 12,
         padding: 14,
         marginBottom: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.2 : 0.05,
         shadowRadius: 4,
         elevation: 1,
         borderWidth: 1,
-        borderColor: '#F3F4F6'
+        borderColor: theme.border,
     },
     statLabel: {
         fontSize: 12,
-        color: '#6B7280',
+        color: theme.textSecondary,
         marginBottom: 6,
     },
     statValue: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#111827',
+        color: theme.text,
         marginBottom: 4,
     },
     statChange: {
@@ -306,39 +307,39 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     card: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.surface,
         borderRadius: 16,
         padding: 20,
         marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.2 : 0.05,
         shadowRadius: 8,
         elevation: 2,
         borderWidth: 1,
-        borderColor: '#F3F4F6'
+        borderColor: theme.border,
     },
     cardTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#111827',
+        color: theme.text,
         marginBottom: 16,
     },
     chartContainer: {
         height: 160,
         justifyContent: 'flex-end',
-        position: 'relative'
+        position: 'relative',
     },
     thresholdLine: {
         position: 'absolute',
-        top: '30%', // Arbitrary threshold
+        top: '30%',
         left: 0,
         right: 0,
         height: 1,
         borderStyle: 'dotted',
         borderWidth: 1,
         borderColor: '#EF4444',
-        borderRadius: 1
+        borderRadius: 1,
     },
     barsContainer: {
         flexDirection: 'row',
@@ -359,14 +360,14 @@ const styles = StyleSheet.create({
         minHeight: 10,
     },
     barNormal: {
-        backgroundColor: '#A7C8FE',
+        backgroundColor: isDark ? '#2A5080' : '#A7C8FE',
     },
     barHigh: {
-        backgroundColor: '#5A95FF',
+        backgroundColor: isDark ? '#4A7ACC' : '#5A95FF',
     },
     barLabel: {
         fontSize: 10,
-        color: '#111827',
+        color: theme.textMuted,
         marginTop: 8,
     },
     circleChart: {
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
         height: 140,
         borderRadius: 70,
         borderWidth: 12,
-        borderColor: '#10B981', // green
+        borderColor: '#10B981',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
@@ -385,18 +386,18 @@ const styles = StyleSheet.create({
     circlePercent: {
         fontSize: 28,
         fontWeight: '800',
-        color: '#111827',
+        color: theme.text,
     },
     circleText: {
         fontSize: 12,
-        color: '#6B7280',
+        color: theme.textSecondary,
         marginTop: 2,
     },
     punctualityLegend: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: theme.border,
         paddingTop: 16,
     },
     legendItem: {
@@ -406,17 +407,17 @@ const styles = StyleSheet.create({
     legendValue: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#111827',
+        color: theme.text,
     },
     legendLabel: {
         fontSize: 12,
-        color: '#6B7280',
+        color: theme.textSecondary,
         marginTop: 4,
     },
     absentDaysCount: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#111827',
+        color: theme.text,
         marginBottom: 12,
     },
     absentWeekText: {
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
     daySquare: {
         width: 36,
         height: 36,
-        backgroundColor: '#E5E7EB',
+        backgroundColor: isDark ? '#2C2C2C' : '#E5E7EB',
         borderRadius: 6,
         justifyContent: 'center',
         alignItems: 'center',
@@ -438,6 +439,6 @@ const styles = StyleSheet.create({
     daySquareText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#4B5563',
-    }
+        color: theme.textSecondary,
+    },
 });
