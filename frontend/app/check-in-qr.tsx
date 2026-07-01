@@ -13,10 +13,10 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { postQrCheckIn } from '@/src/services/attendanceService';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 type ScreenState = 'scanning' | 'sending' | 'approved' | 'rejected' | 'error';
-
-const PRIMARY = palette.primary;
 
 export default function QrCheckInScreen() {
     const router = useRouter();
@@ -24,7 +24,11 @@ export default function QrCheckInScreen() {
     const [state, setState] = useState<ScreenState>('scanning');
     const [message, setMessage] = useState('');
     const [checkedInAt, setCheckedInAt] = useState('');
-    const lockRef = useRef(false); // guards against multiple rapid scans
+    const lockRef = useRef(false);
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    const styles = makeStyles(theme, isDark);
 
     const handleBarcodeScanned = async ({ data }: { data: string }) => {
         if (lockRef.current) return;
@@ -65,7 +69,7 @@ export default function QrCheckInScreen() {
     if (!permission) {
         return (
             <SafeAreaView style={styles.centered}>
-                <ActivityIndicator color={PRIMARY} />
+                <ActivityIndicator color={theme.primary} />
             </SafeAreaView>
         );
     }
@@ -74,7 +78,7 @@ export default function QrCheckInScreen() {
         return (
             <SafeAreaView style={styles.centered}>
                 <View style={styles.permIcon}>
-                    <Ionicons name="camera-outline" size={40} color={PRIMARY} />
+                    <Ionicons name="camera-outline" size={40} color={theme.primary} />
                 </View>
                 <Text style={styles.permTitle}>Camera access needed</Text>
                 <Text style={styles.permSub}>
@@ -140,7 +144,6 @@ export default function QrCheckInScreen() {
                 onBarcodeScanned={state === 'scanning' ? handleBarcodeScanned : undefined}
             />
 
-            {/* Dark overlay with header + framing guide */}
             <SafeAreaView style={styles.overlay}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -164,10 +167,10 @@ export default function QrCheckInScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     centered: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: theme.background,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 32,
@@ -178,23 +181,23 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#EFF6FF',
+        backgroundColor: isDark ? '#1E2D4A' : '#EFF6FF',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
     },
-    permTitle: { fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8 },
-    permSub: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 28 },
+    permTitle: { fontSize: 20, fontWeight: '800', color: theme.text, marginBottom: 8 },
+    permSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', lineHeight: 21, marginBottom: 28 },
 
     primaryBtn: {
-        backgroundColor: PRIMARY,
+        backgroundColor: palette.primary,
         borderRadius: 14,
         paddingVertical: 15,
         paddingHorizontal: 40,
         marginTop: 24,
     },
     primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-    linkText: { color: '#64748B', fontSize: 14, fontWeight: '600' },
+    linkText: { color: theme.textSecondary, fontSize: 14, fontWeight: '600' },
 
     // Camera
     cameraContainer: { flex: 1, backgroundColor: '#000' },
@@ -239,6 +242,6 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
         elevation: 8,
     },
-    resultTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 10 },
-    resultSub: { fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 6 },
+    resultTitle: { fontSize: 24, fontWeight: '800', color: theme.text, textAlign: 'center', marginBottom: 10 },
+    resultSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', marginBottom: 6 },
 });
