@@ -1,12 +1,17 @@
 import { palette } from '@/src/constants/palette';
-// Shared navigator header styling so every stack header looks identical:
-// a centered, bold, dark title with a clearly visible blue back button.
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
-export const appHeaderOptions = {
-    headerTitleAlign: 'center' as 'center',
-    headerTitleStyle: { fontSize: 18, fontWeight: '700' as '700', color: '#0F172A' },
-    headerStyle: { backgroundColor: '#FFFFFF' },
-    headerShadowVisible: false,
-    headerTintColor: palette.primary, // back arrow color — visible on white
-    contentStyle: { backgroundColor: '#F8F9FA' },
-};
+export function useHeaderOptions() {
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+    return {
+        headerTitleAlign: 'center' as const,
+        headerTitleStyle: { fontSize: 18, fontWeight: '700' as const, color: theme.text },
+        headerStyle: { backgroundColor: isDark ? '#121212' : '#FFFFFF' },
+        headerShadowVisible: false,
+        headerTintColor: theme.primary,
+        contentStyle: { backgroundColor: isDark ? '#121212' : theme.background },
+    };
+}

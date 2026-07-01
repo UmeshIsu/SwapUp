@@ -3,32 +3,26 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { palette } from '@/src/constants/palette';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 interface Props {
     title: string;
-    /** Show the back button (default true). */
     showBack?: boolean;
-    /** Custom back handler; defaults to router.back(). */
     onBack?: () => void;
-    /** Optional element rendered on the right (e.g. a share/export icon). */
     right?: React.ReactNode;
 }
 
-const TITLE_COLOR = '#0F172A';
-
-/**
- * Shared app header — gives every custom screen a pixel-identical top bar:
- * safe-area aware, centered bold title, and a clearly visible blue back button.
- * Matches the navigator header style in constants/headerOptions.ts.
- */
 export default function ScreenHeader({ title, showBack = true, onBack, right }: Props) {
     const insets = useSafeAreaInsets();
     const router = useRouter();
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
     const handleBack = onBack ?? (() => router.back());
 
     return (
-        <View style={[styles.wrap, { paddingTop: insets.top }]}>
+        <View style={[styles.wrap, { paddingTop: insets.top, backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
             <View style={styles.row}>
                 <View style={styles.side}>
                     {showBack && (
@@ -38,12 +32,12 @@ export default function ScreenHeader({ title, showBack = true, onBack, right }: 
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="arrow-back" size={24} color={palette.primary} />
+                            <Ionicons name="arrow-back" size={24} color={theme.primary} />
                         </TouchableOpacity>
                     )}
                 </View>
 
-                <Text style={styles.title} numberOfLines={1}>
+                <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
                     {title}
                 </Text>
 
@@ -54,9 +48,7 @@ export default function ScreenHeader({ title, showBack = true, onBack, right }: 
 }
 
 const styles = StyleSheet.create({
-    wrap: {
-        backgroundColor: '#FFFFFF',
-    },
+    wrap: {},
     row: {
         height: 52,
         flexDirection: 'row',
@@ -69,9 +61,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'flex-start',
     },
-    sideRight: {
-        alignItems: 'flex-end',
-    },
+    sideRight: { alignItems: 'flex-end' },
     iconBtn: {
         width: 44,
         height: 44,
@@ -83,6 +73,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 18,
         fontWeight: '700',
-        color: TITLE_COLOR,
     },
 });

@@ -46,59 +46,52 @@ const Avatar = ({ name, size = 46 }: { name: string; size?: number }) => (
 
 // ─── Conversation Row ─────────────────────────────────────────────────────────
 
-function ConvoRow({ item, onPress }: { item: Conversation; onPress: () => void }) {
+function ConvoRow({ item, onPress, theme }: { item: Conversation; onPress: () => void; theme: typeof Colors.light }) {
     return (
         <TouchableOpacity style={S.row} onPress={onPress} activeOpacity={0.7}>
             <Avatar name={item.participantName} />
             <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={S.name}>{item.participantName}</Text>
-                <Text style={S.sub} numberOfLines={1}>{item.lastMessage}</Text>
+                <Text style={[S.name, { color: theme.text }]}>{item.participantName}</Text>
+                <Text style={[S.sub, { color: theme.textSecondary }]} numberOfLines={1}>{item.lastMessage}</Text>
             </View>
-            <Text style={S.time}>{fmt(item.lastMessageTime)}</Text>
+            <Text style={[S.time, { color: theme.textMuted }]}>{fmt(item.lastMessageTime)}</Text>
         </TouchableOpacity>
     );
 }
 
 // ─── Incoming Swap Card (Accept/Decline) ──────────────────────────────────────
 
-function IncomingSwapCard({ item, onRespond }: { item: IncomingSwapRequest; onRespond: (id: string, action: 'ACCEPT' | 'REJECT') => void }) {
+function IncomingSwapCard({ item, onRespond, theme }: { item: IncomingSwapRequest; onRespond: (id: string, action: 'ACCEPT' | 'REJECT') => void; theme: typeof Colors.light }) {
     const isResponded = item.status !== 'PENDING';
+    const isDark = theme === Colors.dark;
 
     return (
-        <View style={S.swapCard}>
+        <View style={[S.swapCard, { backgroundColor: isDark ? '#1E1E2E' : '#F9FAFB', borderColor: theme.borderLight }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                 <Avatar name={item.requester.name} size={42} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={S.name}>{item.requester.name}</Text>
-                    <Text style={S.sub}>wants to swap with you</Text>
+                    <Text style={[S.name, { color: theme.text }]}>{item.requester.name}</Text>
+                    <Text style={[S.sub, { color: theme.textSecondary }]}>wants to swap with you</Text>
                 </View>
-                <Text style={S.time}>{timeAgo(item.createdAt)}</Text>
+                <Text style={[S.time, { color: theme.textMuted }]}>{timeAgo(item.createdAt)}</Text>
             </View>
 
-            <View style={S.shiftBox}>
-                <Text style={S.shiftLbl}>Requested Shift:</Text>
+            <View style={[S.shiftBox, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}>
+                <Text style={[S.shiftLbl, { color: theme.text }]}>Requested Shift:</Text>
                 {item.myShift && (
-                    <Text style={S.shiftTxt}>📅 Your Shift: {item.myShift.date.split('T')[0]} {item.myShift.startTime.substring(11, 16)} - {item.myShift.endTime.substring(11, 16)}</Text>
+                    <Text style={[S.shiftTxt, { color: theme.textSecondary }]}>📅 Your Shift: {item.myShift.date.split('T')[0]} {item.myShift.startTime.substring(11, 16)} - {item.myShift.endTime.substring(11, 16)}</Text>
                 )}
                 {item.proposedShift && (
-                    <Text style={S.shiftTxt}>📅 Proposed Shift: {item.proposedShift.date.split('T')[0]} {item.proposedShift.startTime.substring(11, 16)} - {item.proposedShift.endTime.substring(11, 16)}</Text>
+                    <Text style={[S.shiftTxt, { color: theme.textSecondary }]}>📅 Proposed Shift: {item.proposedShift.date.split('T')[0]} {item.proposedShift.startTime.substring(11, 16)} - {item.proposedShift.endTime.substring(11, 16)}</Text>
                 )}
             </View>
 
             {!isResponded ? (
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-                    <TouchableOpacity
-                        style={S.declineBtn}
-                        onPress={() => onRespond(item.id, 'REJECT')}
-                        activeOpacity={0.8}
-                    >
+                    <TouchableOpacity style={S.declineBtn} onPress={() => onRespond(item.id, 'REJECT')} activeOpacity={0.8}>
                         <Text style={S.declineBtnText}>Decline</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        style={S.acceptBtn}
-                        onPress={() => onRespond(item.id, 'ACCEPT')}
-                        activeOpacity={0.8}
-                    >
+                    <TouchableOpacity style={S.acceptBtn} onPress={() => onRespond(item.id, 'ACCEPT')} activeOpacity={0.8}>
                         <Text style={S.acceptBtnText}>Approve</Text>
                     </TouchableOpacity>
                 </View>
@@ -133,7 +126,7 @@ const formatDateSpec = (dateStr: string, start: string, end: string, role: strin
     }
 };
 
-function SentSwapRow({ item }: { item: MySwapRequest }) {
+function SentSwapRow({ item, theme }: { item: MySwapRequest; theme: typeof Colors.light }) {
     const targetName = item.target?.name || 'Colleague';
 
     let reqShiftStr = '';
@@ -145,24 +138,26 @@ function SentSwapRow({ item }: { item: MySwapRequest }) {
         tgtShiftStr = formatDateSpec(item.targetShift.date, item.targetShift.startTime, item.targetShift.endTime);
     }
 
+    const isDark = theme === Colors.dark;
+
     return (
-        <View style={S.swapCardDesign}>
+        <View style={[S.swapCardDesign, { backgroundColor: isDark ? '#1E1E2E' : '#F3F4F6', borderColor: theme.borderLight }]}>
             <View style={S.swapCardHeader}>
                 <Avatar name={targetName} size={42} />
                 <View style={S.swapCardHeaderTextWrapper}>
-                    <Text style={S.swapCardName}>{targetName}</Text>
-                    <Text style={S.swapCardSub}>You want to swap with {targetName}</Text>
+                    <Text style={[S.swapCardName, { color: theme.text }]}>{targetName}</Text>
+                    <Text style={[S.swapCardSub, { color: theme.textSecondary }]}>You want to swap with {targetName}</Text>
                 </View>
-                <Text style={S.swapCardTime}>{timeAgo(item.createdAt)}</Text>
+                <Text style={[S.swapCardTime, { color: theme.textMuted }]}>{timeAgo(item.createdAt)}</Text>
             </View>
 
-            <View style={S.swapCardBody}>
-                <Text style={S.swapCardBodyTitle}>Requested Shift:</Text>
+            <View style={[S.swapCardBody, { backgroundColor: isDark ? '#2C2C3E' : '#E5E7EB', borderColor: isDark ? '#3A3A4E' : '#D1D5DB' }]}>
+                <Text style={[S.swapCardBodyTitle, { color: theme.textSecondary }]}>Requested Shift:</Text>
                 <View style={S.swapCardBodyContent}>
-                    <Ionicons name="calendar-outline" size={24} color="#666" style={S.swapCardBodyIcon} />
+                    <Ionicons name="calendar-outline" size={24} color={theme.textMuted} style={S.swapCardBodyIcon} />
                     <View style={S.swapCardBodyTextCol}>
-                        <Text style={[S.swapCardBodyText, { marginBottom: 8 }]}>Their Shift: {tgtShiftStr}</Text>
-                        <Text style={S.swapCardBodyText}>Requested Shift: {reqShiftStr}</Text>
+                        <Text style={[S.swapCardBodyText, { color: theme.text, marginBottom: 8 }]}>Their Shift: {tgtShiftStr}</Text>
+                        <Text style={[S.swapCardBodyText, { color: theme.text }]}>Requested Shift: {reqShiftStr}</Text>
                     </View>
                 </View>
             </View>
@@ -344,8 +339,8 @@ export default function ChatScreen() {
                                 <TouchableOpacity style={S.searchRow} onPress={() => handleSelectUser(u)} activeOpacity={0.7}>
                                     <Avatar name={u.name} size={40} />
                                     <View style={{ flex: 1, marginLeft: 12 }}>
-                                        <Text style={S.name}>{u.name}</Text>
-                                        <Text style={S.sub}>{u.email}</Text>
+                                        <Text style={[S.name, { color: theme.text }]}>{u.name}</Text>
+                                        <Text style={[S.sub, { color: theme.textSecondary }]}>{u.email}</Text>
                                     </View>
                                     <View style={[S.roleBadge, u.role === 'MANAGER' ? S.roleBadgeManager : S.roleBadgeEmployee]}>
                                         <Text style={[S.roleBadgeText, u.role === 'MANAGER' ? S.roleBadgeTextManager : S.roleBadgeTextEmployee]}>
@@ -369,6 +364,7 @@ export default function ChatScreen() {
                     renderItem={({ item }) => (
                         <ConvoRow
                             item={item}
+                            theme={theme}
                             onPress={() =>
                                 router.push({
                                     pathname: '/(employee)/chat/[conversationId]' as any,
@@ -382,7 +378,7 @@ export default function ChatScreen() {
                         />
                     )}
                     ItemSeparatorComponent={() => <View style={S.sep} />}
-                    ListEmptyComponent={<Text style={S.empty}>No messages yet</Text>}
+                    ListEmptyComponent={<Text style={[S.empty, { color: theme.textMuted }]}>No messages yet</Text>}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -396,10 +392,10 @@ export default function ChatScreen() {
                     data={incomingSwaps}
                     keyExtractor={(i) => i.id}
                     renderItem={({ item }) => (
-                        <IncomingSwapCard item={item} onRespond={handleSwapRespond} />
+                        <IncomingSwapCard item={item} onRespond={handleSwapRespond} theme={theme} />
                     )}
                     contentContainerStyle={{ padding: 16 }}
-                    ListEmptyComponent={<Text style={S.empty}>No incoming swap requests</Text>}
+                    ListEmptyComponent={<Text style={[S.empty, { color: theme.textMuted }]}>No incoming swap requests</Text>}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -412,9 +408,9 @@ export default function ChatScreen() {
                 <FlatList
                     data={sentSwaps}
                     keyExtractor={(i) => i.id}
-                    renderItem={({ item }) => <SentSwapRow item={item} />}
+                    renderItem={({ item }) => <SentSwapRow item={item} theme={theme} />}
                     contentContainerStyle={{ padding: 16 }}
-                    ListEmptyComponent={<Text style={S.empty}>No swap requests sent</Text>}
+                    ListEmptyComponent={<Text style={[S.empty, { color: theme.textMuted }]}>No swap requests sent</Text>}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}

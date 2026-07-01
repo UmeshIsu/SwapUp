@@ -1,4 +1,6 @@
 import { palette } from '@/src/constants/palette';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { announcementAPI, notificationAPI, shiftAPI, swapAPI } from '@/src/services/api';
 import { getLeaveSummary } from '@/src/services/leaveApi';
@@ -18,24 +20,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AttendanceStatusCard from '@/src/components/AttendanceStatusCard';
 
-// ─── Premium light palette ──────────────────────────────────────────────────
-const C = {
-    bg: '#F8F9FA',
-    card: '#FFFFFF',
-    text: '#0F172A',
-    textSecondary: '#475569',
-    textMuted: '#94A3B8',
-    primary: palette.primary,
-    primarySoft: '#EFF6FF',
-    border: '#EEF1F5',
-    divider: '#E8ECF1',
-    success: '#16A34A',
-    successText: '#15803D',
-    successSoft: '#ECFDF5',
-    warning: '#EA580C',
-    warningSoft: '#FFF7ED',
-    danger: '#DC2626',
-};
 
 interface Shift {
     id: string;
@@ -58,6 +42,30 @@ interface Announcement {
 export default function EmployeeHomeScreen() {
     const router = useRouter();
     const { user, logout } = useAuth();
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+
+    const C = {
+        bg: theme.background,
+        card: theme.surface,
+        text: theme.text,
+        textSecondary: theme.textSecondary,
+        textMuted: theme.textMuted,
+        primary: theme.primary,
+        primarySoft: isDark ? '#1E2D4A' : '#EFF6FF',
+        border: theme.border,
+        divider: theme.borderLight,
+        success: theme.success,
+        successText: theme.success,
+        successSoft: theme.successBg,
+        warning: theme.warning,
+        warningSoft: theme.warningBg,
+        danger: theme.danger,
+    };
+
+    const styles = makeStyles(C);
+
     const [todayShift, setTodayShift] = useState<Shift | null>(null);
     const [attendanceStatus, setAttendanceStatus] = useState<'open' | 'completed' | 'none'>('none');
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -413,7 +421,7 @@ export default function EmployeeHomeScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: C.bg,
