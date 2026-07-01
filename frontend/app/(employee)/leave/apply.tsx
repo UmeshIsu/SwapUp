@@ -1,4 +1,6 @@
 import { palette } from '@/src/constants/palette';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
+import { Colors } from '@/src/constants/theme';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -19,18 +21,6 @@ import { submitLeaveRequest, getLeaveTypes, LeaveType } from '@/src/services/lea
 import { useAuth } from '@/src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
-const C = {
-    bg: '#F8F9FA',
-    card: '#FFFFFF',
-    text: '#0F172A',
-    textSecondary: '#475569',
-    textMuted: '#94A3B8',
-    primary: palette.primary,
-    primarySoft: '#EFF6FF',
-    border: '#EEF1F5',
-    divider: '#E8ECF1',
-    danger: '#DC2626',
-};
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -43,6 +33,24 @@ export default function ApplyLeave() {
     const router = useRouter();
     const { user } = useAuth();
     const EMPLOYEE_ID = user?.id || '';
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+
+    const C = {
+        bg: theme.background,
+        card: theme.surface,
+        text: theme.text,
+        textSecondary: theme.textSecondary,
+        textMuted: theme.textMuted,
+        primary: theme.primary,
+        primarySoft: isDark ? '#1E2D4A' : '#EFF6FF',
+        border: theme.border,
+        divider: theme.borderLight,
+        danger: theme.danger,
+    };
+
+    const styles = makeStyles(C);
 
     const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
     const [loadingTypes, setLoadingTypes] = useState(true);
@@ -389,7 +397,7 @@ export default function ApplyLeave() {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: C.bg,
