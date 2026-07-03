@@ -104,11 +104,11 @@ export const shiftAPI = {
     getManagerDashboardStats: () => api.get('/shifts/manager-dashboard-stats'),
 };
 
-// Attendance APIs
+// Attendance APIs (QR-only)
 export const attendanceAPI = {
-    checkIn: (data: { lat: number; lng: number; accuracy: number }) =>
-        api.post('/attendance/check-in', data),
+    qrCheckIn: (code: string) => api.post('/attendance/qr-check-in', { code }),
     checkOut: () => api.post('/attendance/check-out'),
+    getSiteQr: () => api.get('/attendance/site-qr'),
 };
 
 // Swap Request APIs
