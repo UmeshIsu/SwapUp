@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------
 // attendanceService.ts
-// Wraps the backend POST /attendance/check-in endpoint.
-// The real auth token is injected automatically by apiClient (AsyncStorage).
+// Attendance is QR-only: staff scan the restaurant's entrance QR.
+// The auth token is injected automatically by apiClient (AsyncStorage).
 // -----------------------------------------------------------------------
 
 import { apiRequest } from './apiClient';
@@ -9,38 +9,12 @@ import { apiRequest } from './apiClient';
 export interface CheckInResponse {
     status: 'APPROVED' | 'REJECTED';
     checkedInAt?: string; // ISO string — only when APPROVED
-    distanceM?: number;
     reason?: string;      // only when REJECTED
 }
 
 /**
- * Send the employee's GPS coordinates to the backend for verification.
- *
- * @param userId   - the logged-in user's id (for auditing; backend re-derives it from the JWT)
- * @param lat      - latitude from expo-location
- * @param lng      - longitude from expo-location
- * @param accuracy - GPS accuracy in metres (passed for logging)
- * @param token    - Kept for compatibility with the component's signature, though apiClient handles tokens
- */
-export async function postCheckIn(
-    userId: string,
-    lat: number,
-    lng: number,
-    accuracy: number,
-    token: string
-): Promise<CheckInResponse> {
-    return apiRequest<CheckInResponse>('POST', '/attendance/check-in', {
-        userId,
-        lat,
-        lng,
-        accuracy,
-        token,
-    });
-}
-
-/**
- * QR-based check-in. Sends the value decoded from the restaurant's QR code.
- * Replaces the geo check-in flow (the geolocation code above is kept intact).
+ * QR-based check-in. Sends the value decoded from the restaurant's QR code;
+ * the backend verifies it belongs to the user's restaurant.
  */
 export async function postQrCheckIn(code: string): Promise<CheckInResponse> {
     return apiRequest<CheckInResponse>('POST', '/attendance/qr-check-in', { code });
@@ -63,4 +37,9 @@ export interface CheckOutResponse {
 
 export async function postCheckOut(): Promise<CheckOutResponse> {
     return apiRequest<CheckOutResponse>('POST', '/attendance/check-out');
+}
+
+/** The current restaurant's attendance QR value (manager/admin — to print). */
+export async function getSiteQr(): Promise<{ qrToken: string; companyName: string }> {
+    return apiRequest<{ qrToken: string; companyName: string }>('GET', '/attendance/site-qr');
 }
