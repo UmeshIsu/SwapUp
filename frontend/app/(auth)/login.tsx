@@ -113,6 +113,14 @@ export default function LoginScreen() {
                     <Text style={styles.forgotText}>Forgot password?</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity
+                    onPress={() => router.replace('/' as any)}
+                    style={styles.roleBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <Text style={styles.forgotText}>Select Role</Text>
+                </TouchableOpacity>
+
             </View>
 
 
@@ -193,6 +201,11 @@ const styles = StyleSheet.create({
     forgotBtn: {
         alignSelf: 'center',
         marginTop: 16,
+        paddingVertical: 4,
+    },
+    roleBtn: {
+        alignSelf: 'center',
+        marginTop: 10,
         paddingVertical: 4,
     },
     forgotText: {
