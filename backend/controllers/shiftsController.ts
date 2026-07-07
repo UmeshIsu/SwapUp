@@ -30,7 +30,7 @@ export const getMyShifts = async (req: Request, res: Response): Promise<void> =>
 export const getColleagues = async (req: Request, res: Response): Promise<void> => {
     try {
         const { date } = req.query;
-        const { id: myId, department } = req.user!;
+        const { id: myId, departmentId } = req.user! as any;
 
         if (!date) {
             res.status(400).json({ error: 'date query param is required (YYYY-MM-DD)' });
@@ -54,9 +54,10 @@ export const getColleagues = async (req: Request, res: Response): Promise<void> 
             where: {
                 date: { gte: rangeStart, lte: rangeEnd },
                 employee: {
-                    department: department as any,
                     id: { not: myId },
                     role: 'EMPLOYEE',
+                    // department is now a relation (departmentId FK), not an enum
+                    ...(departmentId ? { departmentId } : {}),
                 },
             },
             include: {

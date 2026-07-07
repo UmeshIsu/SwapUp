@@ -5,8 +5,9 @@
   "scripts": {
     "start": "ts-node index.ts",
     "dev": "nodemon --exec ts-node index.ts",
-    "build": "tsc",
-    "start:prod": "node dist/index.js"
+    "build": "prisma generate && tsc",
+    "start:prod": "node dist/index.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",

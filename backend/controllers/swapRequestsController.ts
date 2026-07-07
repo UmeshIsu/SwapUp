@@ -189,7 +189,7 @@ export const getMyRequests = async (req: Request, res: Response): Promise<void> 
 // GET /api/swap-requests/manager-queue — Manager sees accepted requests from their department
 export const getManagerQueue = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { department, role } = req.user!;
+        const { departmentId, role } = req.user! as any;
 
         if (role !== 'MANAGER') {
             res.status(403).json({ error: 'Only managers can access this resource' });
@@ -199,7 +199,8 @@ export const getManagerQueue = async (req: Request, res: Response): Promise<void
         const requests = await prisma.swapRequest.findMany({
             where: {
                 status: 'ACCEPTED_BY_EMPLOYEE',
-                requester: { department: department as any },
+                // department is now a relation (departmentId FK), not an enum
+                ...(departmentId ? { requester: { departmentId } } : {}),
             },
             include: {
                 requester: { select: { id: true, name: true, role: true } },

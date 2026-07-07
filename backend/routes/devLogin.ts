@@ -32,6 +32,8 @@ router.post('/dev-login', async (req: Request, res: Response): Promise<void> => 
             employeeId: user.workerId,
             name: user.name,
             department: user.department?.name ?? null,
+            departmentId: user.departmentId ?? null,
+            tenantId: user.tenantId,
             role: user.role,
         };
 
