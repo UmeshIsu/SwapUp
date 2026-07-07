@@ -15,9 +15,9 @@ import { Colors } from '@/src/constants/theme';
 
 const ZERO_SUMMARY: LeaveSummary = {
     assignedLeaves: [
-        { id: '1', name: 'Annual Leave', totalDays: 0, usedDays: 0, remainingDays: 0 },
-        { id: '2', name: 'Sick Leave', totalDays: 0, usedDays: 0, remainingDays: 0 },
-        { id: '3', name: 'Casual Leave', totalDays: 0, usedDays: 0, remainingDays: 0 },
+        { id: '1', name: 'Annual', totalDays: 0, usedDays: 0, remainingDays: 0 },
+        { id: '2', name: 'Sick', totalDays: 0, usedDays: 0, remainingDays: 0 },
+        { id: '3', name: 'Casual', totalDays: 0, usedDays: 0, remainingDays: 0 },
         { id: '4', name: 'Maternity Leave', totalDays: 0, usedDays: 0, remainingDays: 0 },
     ],
     totalRemaining: 0,

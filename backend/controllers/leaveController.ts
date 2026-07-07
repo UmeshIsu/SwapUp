@@ -15,9 +15,9 @@ export const getLeaveTypes = async (req: Request, res: Response) => {
         if (types.length === 0) {
             await prisma.leaveType.createMany({
                 data: [
-                    { name: 'Annual Leave', totalDays: 14 },
-                    { name: 'Sick Leave', totalDays: 7 },
-                    { name: 'Casual Leave', totalDays: 5 },
+                    { name: 'Annual', totalDays: 14 },
+                    { name: 'Sick', totalDays: 7 },
+                    { name: 'Casual', totalDays: 5 },
                     { name: 'Maternity Leave', totalDays: 90 },
                 ]
             });

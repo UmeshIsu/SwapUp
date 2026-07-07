@@ -159,9 +159,9 @@ async function main() {
     // --- Seed Leave Types ---
     console.log('--- Seeding Leave Types ---');
     const leaveTypesData = [
-      { name: 'Annual Leave', totalDays: 14 },
-      { name: 'Sick Leave', totalDays: 7 },
-      { name: 'Casual Leave', totalDays: 5 },
+      { name: 'Annual', totalDays: 14 },
+      { name: 'Sick', totalDays: 7 },
+      { name: 'Casual', totalDays: 5 },
       { name: 'Maternity Leave', totalDays: 90 },
     ];
     
