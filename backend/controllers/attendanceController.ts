@@ -78,12 +78,19 @@ export const postQrCheckIn = async (req: Request, res: Response): Promise<void> 
 
         // ── Approved ────────────────────────────────────────────────────────
         // lat/lng/accuracy are legacy geo columns (kept for schema compat) — 0.
+        const colomboOffset = 5.5 * 60 * 60 * 1000; // +05:30 in ms
+        const checkInLocal = new Date(Date.now() + colomboOffset);
+        const hour = checkInLocal.getUTCHours();
+        const minute = checkInLocal.getUTCMinutes();
+        
+        const status = (hour < 9 || (hour === 9 && minute === 0)) ? 'ON_TIME' : 'LATE';
+
         const attendance = await prisma.attendance.create({
-            data: { userId, lat: 0, lng: 0, accuracy: 0, status: 'APPROVED' },
+            data: { userId, lat: 0, lng: 0, accuracy: 0, status },
         });
 
         res.json({
-            status: 'APPROVED',
+            status,
             checkedInAt: attendance.checkedInAt.toISOString(),
         });
     } catch (error) {
