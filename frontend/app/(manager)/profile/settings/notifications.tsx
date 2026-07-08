@@ -26,14 +26,6 @@ export default function NotificationSettingsScreen() {
             style={[styles.container, { backgroundColor: theme.background }]}
             showsVerticalScrollIndicator={false}
         >
-            {/* Header */}
-            <ThemedView style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <IconSymbol name="chevron.left" size={24} color={theme.text} />
-                </TouchableOpacity>
-                <ThemedText style={styles.headerTitle}>Notification Settings</ThemedText>
-                <View style={{ width: 24 }} />
-            </ThemedView>
 
             {/* Shift and Schedule Updates */}
             <ThemedView style={styles.section}>

@@ -42,9 +42,6 @@ export default function SettingsScreen() {
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-            <ThemedView style={styles.header}>
-                <ThemedText type="subtitle">Settings</ThemedText>
-            </ThemedView>
 
             <ThemedView style={[styles.item, { backgroundColor: theme.background === '#fff' ? '#F9F9F9' : '#252525' }]}>
                 <View style={[styles.iconContainer, { backgroundColor: theme.background === '#fff' ? '#E8E8E8' : '#3C3C3C' }]}>

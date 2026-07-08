@@ -67,15 +67,6 @@ export default function ChangePasswordScreen() {
             style={[styles.container, { backgroundColor: theme.background }]}
             showsVerticalScrollIndicator={false}
         >
-            {/* Header */}
-            <ThemedView style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <IconSymbol name="chevron.left" size={24} color={theme.text} />
-                </TouchableOpacity>
-                <ThemedText style={styles.headerTitle}>Change Password</ThemedText>
-                <View style={{ width: 24 }} />
-            </ThemedView>
-
             {/* Current Password */}
             <ThemedView style={styles.inputGroup}>
                 <ThemedText style={styles.label}>Current Password</ThemedText>
