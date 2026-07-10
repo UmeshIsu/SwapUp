@@ -56,3 +56,65 @@ export async function notifyManagers(
         managerIds.map((id) => createNotification(io, id, type, title, message, metadata))
     );
 }
+
+/**
+ * Handles notifications when an employee sends a chat message:
+ * 1. Notifies every other participant in the conversation (NEW_MESSAGE).
+ * 2. Notifies the sender's manager(s) that an employee sent a message
+ *    (EMPLOYEE_MESSAGE_SENT).
+ */
+export async function handleChatMessageNotification(
+    io: Server | undefined,
+    senderId: string,
+    conversationId: string,
+    contentPreview: string
+) {
+    // Look up the sender and conversation participants
+    const [sender, participants] = await Promise.all([
+        prisma.user.findUnique({
+            where: { id: senderId },
+            select: { name: true, tenantId: true, departmentId: true, role: true },
+        }),
+        prisma.participant.findMany({
+            where: { conversationId },
+            select: { userId: true },
+        }),
+    ]);
+
+    if (!sender) return;
+
+    const recipientIds = participants
+        .map((p) => p.userId)
+        .filter((id) => id !== senderId);
+
+    // 1. Notify each recipient about the new message
+    const preview = contentPreview.length > 80
+        ? contentPreview.slice(0, 77) + '...'
+        : contentPreview;
+
+    await Promise.all(
+        recipientIds.map((recipientId) =>
+            createNotification(
+                io,
+                recipientId,
+                'NEW_MESSAGE',
+                'New Message',
+                `${sender.name}: ${preview}`,
+                { conversationId, senderId }
+            )
+        )
+    );
+
+    // 2. Notify the sender's manager(s) — only when the sender is an employee
+    if (sender.role === 'EMPLOYEE') {
+        await notifyManagers(
+            io,
+            sender.tenantId,
+            sender.departmentId,
+            'EMPLOYEE_MESSAGE_SENT',
+            'Employee Sent a Message',
+            `${sender.name} sent a message.`,
+            { conversationId, senderId }
+        );
+    }
+}
