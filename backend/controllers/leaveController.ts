@@ -385,6 +385,16 @@ export const declineLeaveRequest = async (req: Request, res: Response) => {
             }
         });
 
+        const io = req.app.get('io');
+        await createNotification(
+            io,
+            updated.employeeId,
+            'LEAVE_DECLINED',
+            'Leave Request Declined',
+            'Your leave request has been declined.',
+            { leaveRequestId: updated.id }
+        );
+
         res.json({ message: 'Leave request declined', leaveRequest: updated });
     } catch (error: any) {
         console.error('Error declining leave request:', error.message);
