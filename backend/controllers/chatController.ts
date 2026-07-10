@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
 import { Prisma } from '@prisma/client';
-import { createNotification, notifyManagers } from '../services/notificationService';
+import { createNotification, notifyManagers, handleChatMessageNotification } from '../services/notificationService';
 
 // ─── Request Body Types ───────────────────────────────────────────────────────
 
@@ -383,6 +383,12 @@ export const sendMessage = async (
             );
         }
 
+        // ── Text message → notify recipient and manager ──
+        if (type === 'TEXT') {
+            const io = req.app.get('io');
+            await handleChatMessageNotification(io, senderId, conversationId, content);
+        }
+
         res.status(201).json(msg);
     } catch (e) {
         res.status(500).json({ error: (e as Error).message });
@@ -439,6 +445,29 @@ export const respondSwapRequest = async (
                 `${updated.target.name} accepted your shift swap request.`,
                 { swapRequestId: updated.id }
             );
+
+            // Notify the requester's manager(s) that a swap is awaiting approval
+            if (updated.requester.tenantId) {
+                await notifyManagers(
+                    io,
+                    updated.requester.tenantId,
+                    updated.requester.departmentId,
+                    'SWAP_AWAITING_APPROVAL',
+                    'Swap Awaiting Approval',
+                    `Swap between ${updated.requester.name} and ${updated.target.name} needs your approval.`,
+                    { swapRequestId: updated.id }
+                );
+            }
+        } else if (status === 'DECLINED_BY_EMPLOYEE') {
+            // Notify the requester that their swap was declined
+            await createNotification(
+                io,
+                updated.requesterId,
+                'SWAP_DECLINED',
+                'Swap Request Declined',
+                `${updated.target.name} declined your shift swap request.`,
+                { swapRequestId: updated.id }
+            );
         } else if (status === 'APPROVED_BY_MANAGER') {
             // Manager approved — notify both employees involved.
             await Promise.all([
@@ -456,6 +485,26 @@ export const respondSwapRequest = async (
                     'SWAP_APPROVED',
                     'Swap Request Approved',
                     `Your shift swap with ${updated.requester.name} has been approved by your manager.`,
+                    { swapRequestId: updated.id }
+                ),
+            ]);
+        } else if (status === 'REJECTED_BY_MANAGER') {
+            // Manager rejected — notify both employees involved.
+            await Promise.all([
+                createNotification(
+                    io,
+                    updated.requesterId,
+                    'SWAP_REJECTED',
+                    'Swap Request Rejected',
+                    `Your shift swap with ${updated.target.name} has been rejected by your manager.`,
+                    { swapRequestId: updated.id }
+                ),
+                createNotification(
+                    io,
+                    updated.targetId,
+                    'SWAP_REJECTED',
+                    'Swap Request Rejected',
+                    `Your shift swap with ${updated.requester.name} has been rejected by your manager.`,
                     { swapRequestId: updated.id }
                 ),
             ]);
