@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { createNotification } from '../services/notificationService';
 
 // GET /api/shifts/my-shifts
 export const getMyShifts = async (req: Request, res: Response): Promise<void> => {
@@ -151,6 +152,21 @@ export const bulkCreateShifts = async (req: Request, res: Response): Promise<voi
             }),
             prisma.shift.createMany({ data: newShifts }),
         ]);
+
+        // Notify each employee that a new roster has been published
+        const io = req.app.get('io');
+        await Promise.all(
+            employeeIds.map((empId: string) =>
+                createNotification(
+                    io,
+                    empId,
+                    'ROSTER_PUBLISHED',
+                    'New Roster Published',
+                    'Your manager has published a new roster. Check your schedule!',
+                    { dates: datesToClear }
+                )
+            )
+        );
 
         res.status(201).json({ message: `${shifts.length} shifts published successfully` });
     } catch (error: any) {
