@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { createNotification, notifyManagers } from '../services/notificationService';
 
 // POST /api/swap-requests
 export const createSwapRequest = async (req: Request, res: Response): Promise<void> => {
@@ -47,12 +48,35 @@ export const createSwapRequest = async (req: Request, res: Response): Promise<vo
             },
             include: {
                 // Uses real schema relation names
-                requester: { select: { name: true, role: true } },
+                requester: { select: { name: true, role: true, tenantId: true, departmentId: true } },
                 target: { select: { name: true } },
                 requesterShift: true,
                 targetShift: true,
             },
         });
+
+        const io = req.app.get('io');
+
+        // Notify the target employee about the incoming swap request
+        await createNotification(
+            io,
+            targetEmployeeId,
+            'SWAP_RECEIVED',
+            'New Swap Request',
+            `${(swapRequest as any).requester.name} wants to swap shifts with you.`,
+            { swapRequestId: swapRequest.id }
+        );
+
+        // Notify the requester's manager(s)
+        await notifyManagers(
+            io,
+            (swapRequest as any).requester.tenantId,
+            (swapRequest as any).requester.departmentId,
+            'SWAP_REQUESTED',
+            'New Swap Request',
+            `${(swapRequest as any).requester.name} requested a shift swap with ${(swapRequest as any).target.name}.`,
+            { swapRequestId: swapRequest.id }
+        );
 
         res.status(201).json(swapRequest);
     } catch (error) {
@@ -133,7 +157,46 @@ export const respondToRequest = async (req: Request, res: Response): Promise<voi
         const updated = await prisma.swapRequest.update({
             where: { id },
             data: { status: action === 'ACCEPT' ? 'ACCEPTED_BY_EMPLOYEE' : 'DECLINED_BY_EMPLOYEE' },
+            include: {
+                requester: { select: { name: true, tenantId: true, departmentId: true } },
+                target: { select: { name: true } },
+            },
         });
+
+        const io = req.app.get('io');
+
+        if (action === 'ACCEPT') {
+            // Notify the requester that the target accepted
+            await createNotification(
+                io,
+                swapRequest.requesterId,
+                'SWAP_ACCEPTED',
+                'Swap Request Accepted',
+                `${(updated as any).target.name} accepted your shift swap request. Awaiting manager approval.`,
+                { swapRequestId: id }
+            );
+
+            // Notify the manager(s) that there is a swap awaiting approval
+            await notifyManagers(
+                io,
+                (updated as any).requester.tenantId,
+                (updated as any).requester.departmentId,
+                'SWAP_AWAITING_APPROVAL',
+                'Swap Awaiting Approval',
+                `Swap between ${(updated as any).requester.name} and ${(updated as any).target.name} needs your approval.`,
+                { swapRequestId: id }
+            );
+        } else {
+            // Notify the requester that the target declined
+            await createNotification(
+                io,
+                swapRequest.requesterId,
+                'SWAP_DECLINED',
+                'Swap Request Declined',
+                `${(updated as any).target.name} declined your shift swap request.`,
+                { swapRequestId: id }
+            );
+        }
 
         const message = action === 'ACCEPT'
             ? 'Request accepted. Sent to manager for approval.'
@@ -265,7 +328,13 @@ export const managerRespond = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        const swapRequest = await prisma.swapRequest.findUnique({ where: { id } });
+        const swapRequest = await prisma.swapRequest.findUnique({
+            where: { id },
+            include: {
+                requester: { select: { name: true } },
+                target: { select: { name: true } },
+            },
+        });
 
         if (!swapRequest) {
             res.status(404).json({ error: 'Swap request not found' });
@@ -276,6 +345,8 @@ export const managerRespond = async (req: Request, res: Response): Promise<void>
             res.status(400).json({ error: 'This request is not awaiting manager approval' });
             return;
         }
+
+        const io = req.app.get('io');
 
         if (action === 'APPROVED') {
             // Atomic transaction — swaps both shifts and marks the request approved
@@ -293,12 +364,54 @@ export const managerRespond = async (req: Request, res: Response): Promise<void>
                     data: { status: 'APPROVED_BY_MANAGER' },
                 }),
             ]);
+
+            // Notify both employees that the swap has been approved
+            await Promise.all([
+                createNotification(
+                    io,
+                    swapRequest.requesterId,
+                    'SWAP_APPROVED',
+                    'Swap Request Approved',
+                    `Your shift swap with ${(swapRequest as any).target.name} has been approved by your manager.`,
+                    { swapRequestId: id }
+                ),
+                createNotification(
+                    io,
+                    swapRequest.targetId,
+                    'SWAP_APPROVED',
+                    'Swap Request Approved',
+                    `Your shift swap with ${(swapRequest as any).requester.name} has been approved by your manager.`,
+                    { swapRequestId: id }
+                ),
+            ]);
+
             res.json({ message: 'Swap approved. Shifts have been updated.' });
         } else {
             await prisma.swapRequest.update({
                 where: { id },
                 data: { status: 'REJECTED_BY_MANAGER' },
             });
+
+            // Notify both employees that the swap has been rejected
+            await Promise.all([
+                createNotification(
+                    io,
+                    swapRequest.requesterId,
+                    'SWAP_REJECTED',
+                    'Swap Request Rejected',
+                    `Your shift swap with ${(swapRequest as any).target.name} has been rejected by your manager.`,
+                    { swapRequestId: id }
+                ),
+                createNotification(
+                    io,
+                    swapRequest.targetId,
+                    'SWAP_REJECTED',
+                    'Swap Request Rejected',
+                    `Your shift swap with ${(swapRequest as any).requester.name} has been rejected by your manager.`,
+                    { swapRequestId: id }
+                ),
+            ]);
+
             res.json({ message: 'Swap request denied.' });
         }
     } catch (error) {

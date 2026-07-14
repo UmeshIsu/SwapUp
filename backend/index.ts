@@ -19,6 +19,7 @@ import rosterRoutes from './routes/rosterRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import { checkFatigueAndNotify } from './jobs/fatigueNotifier';
+import { handleChatMessageNotification } from './services/notificationService';
 
 // ─── Typed Socket.IO event maps ───────────────────────────────────────────────
 
@@ -160,6 +161,11 @@ io.on(
                     createdAt: msg.createdAt.toISOString(),
                     swapRequest: null,
                 });
+
+                // Notify recipient(s) and the sender's manager about the message
+                if (type === 'TEXT') {
+                    await handleChatMessageNotification(io, senderId, conversationId, content);
+                }
             } catch (err) {
                 socket.emit('error', { message: (err as Error).message });
             }
