@@ -767,8 +767,8 @@ const makeStyles = (C: any) => StyleSheet.create({
     },
     gridCard: {
         flex: 1,
-        aspectRatio: 1,
         padding: 18,
+        minHeight: 160,
         justifyContent: 'space-between',
         shadowOpacity: 0.03,
     },
@@ -778,8 +778,8 @@ const makeStyles = (C: any) => StyleSheet.create({
         alignItems: 'flex-start',
     },
     gridIcon: {
-        width: 44,
-        height: 44,
+        width: 38,
+        height: 38,
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
@@ -794,12 +794,12 @@ const makeStyles = (C: any) => StyleSheet.create({
         marginTop: 4,
     },
     gridNumber: {
-        fontSize: 38,
+        fontSize: 32,
         fontWeight: '800',
         letterSpacing: -1,
     },
     gridLabel: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '600',
         marginTop: 2,
         opacity: 0.85,
