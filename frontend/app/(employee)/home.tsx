@@ -183,6 +183,16 @@ export default function EmployeeHomeScreen() {
         return dates;
     };
 
+    const getWeekDateStrings = () => {
+        const start = getWeekStart();
+        const dates: string[] = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
+            dates.push(d.toISOString().split('T')[0]);
+        }
+        return dates;
+    };
+
     const hasShiftOnDay = (dayIndex: number) => {
         const start = getWeekStart();
         const targetDate = new Date(start.getTime() + dayIndex * 24 * 60 * 60 * 1000);
@@ -200,6 +210,7 @@ export default function EmployeeHomeScreen() {
     };
 
     const weekDates = getWeekDates();
+    const weekDateStrings = getWeekDateStrings();
 
     // ─── Presentation helpers (display only — no data changes) ───────────────
     const getGreeting = () => {
@@ -358,7 +369,12 @@ export default function EmployeeHomeScreen() {
 
                     <View style={styles.weekRow}>
                         {[0, 1, 2, 3, 4, 5, 6].map((index) => (
-                            <View key={`date-${index}`} style={styles.dayColumn}>
+                            <TouchableOpacity
+                                key={`date-${index}`}
+                                style={styles.dayColumn}
+                                activeOpacity={0.75}
+                                onPress={() => router.push({ pathname: '/schedule', params: { date: weekDateStrings[index] } } as any)}
+                            >
                                 <View style={[
                                     styles.dayNumberCircle,
                                     isToday(index) && { backgroundColor: C.primary },
@@ -376,7 +392,7 @@ export default function EmployeeHomeScreen() {
                                         isToday(index) && { backgroundColor: C.warning },
                                     ]} />
                                 )}
-                            </View>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 </View>
