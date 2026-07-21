@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, View, Text, RefreshControl, ActivityIndicator } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { notificationAPI } from '@/src/services/api';
 import socketService from '@/src/services/socketService';
 import ScreenHeader from '@/src/components/ScreenHeader';
-import { getNotificationMeta, formatRelativeTime, AppNotification } from '@/src/utils/notificationMeta';
+import { getNotificationMeta, formatRelativeTime, AppNotification, getRosterPublishedDates } from '@/src/utils/notificationMeta';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 
@@ -13,6 +13,7 @@ export default function NotificationsScreen() {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const router = useRouter();
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
     const isDark = colorScheme === 'dark';
@@ -49,12 +50,28 @@ export default function NotificationsScreen() {
     };
 
     const handlePress = async (item: AppNotification) => {
-        if (item.isRead) return;
-        setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
-        try {
-            await notificationAPI.markAsRead(item.id);
-        } catch (error) {
-            console.error('Failed to mark notification as read:', error);
+        if (!item.isRead) {
+            setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
+            try {
+                await notificationAPI.markAsRead(item.id);
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        }
+
+        if (item.type === 'ROSTER_PUBLISHED') {
+            const rosterDates = getRosterPublishedDates(item);
+            const firstDate = rosterDates[0];
+
+            router.push({
+                pathname: '/(employee)/schedule',
+                params: firstDate
+                    ? {
+                        date: firstDate,
+                        rosterDates: rosterDates.join(','),
+                    }
+                    : undefined,
+            } as any);
         }
     };
 
