@@ -29,6 +29,19 @@ export function getNotificationMeta(type: string): NotificationMeta {
     return META[type] ?? DEFAULT_META;
 }
 
+export function getRosterPublishedDates(notification: AppNotification): string[] {
+    if (notification.type !== 'ROSTER_PUBLISHED') {
+        return [];
+    }
+
+    const dates = notification.metadata?.dates;
+    if (!Array.isArray(dates)) {
+        return [];
+    }
+
+    return dates.filter((date): date is string => typeof date === 'string' && date.length > 0);
+}
+
 export function formatRelativeTime(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();
     const minutes = Math.floor(diffMs / 60000);
