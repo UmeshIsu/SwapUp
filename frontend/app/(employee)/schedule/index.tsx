@@ -9,7 +9,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import ShareSheet from '@/src/components/ShareSheet';
 import SuccessModal from '@/src/components/SuccessModal';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
@@ -19,9 +19,10 @@ import ScreenHeader from '@/src/components/ScreenHeader';
 export default function EmployeeScheduleScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ date?: string; rosterDates?: string }>();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState(params.date ?? '');
   const [markedDates, setMarkedDates] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -29,6 +30,13 @@ export default function EmployeeScheduleScreen() {
 
   // Refs for the Bottom Sheet
   const sheetRef = useRef<BottomSheet>(null);
+  const rosterDates = params.rosterDates ? String(params.rosterDates).split(',').filter(Boolean) : [];
+
+  useEffect(() => {
+    if (params.date) {
+      setSelected(String(params.date));
+    }
+  }, [params.date]);
 
   const TYPE_COLORS: { [key: string]: string } = {
     'Morning': '#FDE68A',
@@ -155,6 +163,15 @@ export default function EmployeeScheduleScreen() {
         contentContainerStyle={{ paddingTop: 12, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
+        {rosterDates.length > 0 ? (
+          <View style={[styles.rosterBanner, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
+            <Text style={[styles.rosterBannerTitle, { color: theme.text }]}>New roster published</Text>
+            <Text style={[styles.rosterBannerText, { color: theme.textSecondary }]}>
+              Published for {rosterDates.length} day{rosterDates.length > 1 ? 's' : ''}: {rosterDates.map((date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).join(', ')}
+            </Text>
+          </View>
+        ) : null}
+
         <View style={[styles.calendarCard, { backgroundColor: theme.surface }]}>
           {loading && <ActivityIndicator style={styles.loader} color={theme.primary} />}
           <Calendar
@@ -232,6 +249,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 50, marginBottom: 20 },
   headerTitle: { fontSize: 20, fontWeight: '700' },
+  rosterBanner: { borderWidth: 1, borderRadius: 18, padding: 16, marginBottom: 14 },
+  rosterBannerTitle: { fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  rosterBannerText: { fontSize: 13, lineHeight: 18 },
   calendarCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 10, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   loader: { position: 'absolute', top: '50%', left: '50%', zIndex: 1, marginLeft: -10, marginTop: -10 },
   legendContainer: { marginTop: 25, backgroundColor: '#F1F5F9', borderRadius: 20, padding: 20 },
