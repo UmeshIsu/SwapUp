@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Image, TouchableOpacity, ScrollView, Alert, View, TextInput, ActivityIndicator, Switch } from 'react-native';
 import { CustomModal } from '@/src/components/ui/CustomModal';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/src/components/themed-text';
 import { ThemedView } from '@/src/components/themed-view';
@@ -22,22 +23,49 @@ export default function ProfileScreen() {
     const { isDark, toggleTheme } = useAppTheme();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+    // Local profile data — always fresh from the server
+    const [profileData, setProfileData] = useState(user);
+
+    // Fetch fresh profile data whenever this screen gains focus
+    useFocusEffect(
+        useCallback(() => {
+            const fetchProfile = async () => {
+                try {
+                    const data = await apiCall('/user/profile', { method: 'GET' });
+                    if (data.user) {
+                        setProfileData(prev => ({ ...prev, ...data.user }));
+                        updateUser(data.user);
+                    }
+                } catch (error) {
+                    // Silently ignore — we still have context data as fallback
+                }
+            };
+            fetchProfile();
+        }, [])
+    );
+
+    // Keep local state in sync when context user changes (e.g. after save)
+    React.useEffect(() => {
+        if (user) {
+            setProfileData(prev => ({ ...prev, ...user }));
+        }
+    }, [user]);
+
     // Edit state
     const [isEditing, setIsEditing] = useState(false);
-    const [editName, setEditName] = useState(user?.name ?? '');
-    const [editEmail, setEditEmail] = useState(user?.email ?? '');
-    const [editPhone, setEditPhone] = useState(user?.phone ?? '');
-    const [editAvailability, setEditAvailability] = useState(user?.availabilityPreferences ?? '');
+    const [editName, setEditName] = useState(profileData?.name ?? '');
+    const [editPhone, setEditPhone] = useState(profileData?.phone ?? '');
+    const [editRecoveryEmail, setEditRecoveryEmail] = useState(profileData?.recoveryEmail ?? '');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleEditToggle = () => {
         if (isEditing) {
             handleSave();
         } else {
-            setEditName(user?.name ?? '');
-            setEditEmail(user?.email ?? '');
-            setEditPhone(user?.phone ?? '');
-            setEditAvailability(user?.availabilityPreferences ?? '');
+            setEditName(profileData?.name ?? '');
+            setEditPhone(profileData?.phone ?? '');
+            setEditRecoveryEmail(profileData?.recoveryEmail ?? '');
+
             setIsEditing(true);
         }
     };
@@ -55,11 +83,13 @@ export default function ProfileScreen() {
                 token,
                 body: {
                     name: editName.trim(),
-                    email: editEmail.trim(),
                     phone: editPhone.trim(),
-                    availabilityPreferences: editAvailability.trim(),
+                    recoveryEmail: editRecoveryEmail.trim(),
+
                 },
             });
+            // Update both local state and context
+            setProfileData(prev => ({ ...prev, ...data.user }));
             updateUser(data.user);
             setIsEditing(false);
             Alert.alert('Success', 'Profile updated successfully');
@@ -72,10 +102,10 @@ export default function ProfileScreen() {
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        setEditName(user?.name ?? '');
-        setEditEmail(user?.email ?? '');
-        setEditPhone(user?.phone ?? '');
-        setEditAvailability(user?.availabilityPreferences ?? '');
+        setEditName(profileData?.name ?? '');
+        setEditPhone(profileData?.phone ?? '');
+        setEditRecoveryEmail(profileData?.recoveryEmail ?? '');
+
     };
 
     const handleLogout = () => {
@@ -120,10 +150,10 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                <ThemedText style={styles.userName}>{user.name}</ThemedText>
-                <ThemedText style={styles.userRole}>{user.role || 'Employee'}</ThemedText>
-                <ThemedText style={styles.userInfo}>Employee ID : {user.workerId || 'N/A'}</ThemedText>
-                <ThemedText style={styles.userInfo}>Plan : {user.plan || 'Basic'}</ThemedText>
+                <ThemedText style={styles.userName}>{profileData?.name || user?.name}</ThemedText>
+                <ThemedText style={styles.userRole}>{profileData?.role || user?.role || 'Employee'}</ThemedText>
+                <ThemedText style={styles.userInfo}>Employee ID : {profileData?.workerId || user?.workerId || 'N/A'}</ThemedText>
+                <ThemedText style={styles.userInfo}>Plan : {profileData?.plan || user?.plan || 'Basic'}</ThemedText>
             </ThemedView>
 
             {/* Personal Information */}
@@ -157,18 +187,13 @@ export default function ProfileScreen() {
                             keyboardType="phone-pad"
                         />
                         <EditableField
-                            label="Email"
-                            value={editEmail}
-                            onChangeText={setEditEmail}
-                            icon="envelope"
+                            label="Recovery Email"
+                            value={editRecoveryEmail}
+                            onChangeText={setEditRecoveryEmail}
+                            icon="envelope.badge"
                             keyboardType="email-address"
                         />
-                        <EditableField
-                            label="Availability Preferences"
-                            value={editAvailability}
-                            onChangeText={setEditAvailability}
-                            icon="clock"
-                        />
+
 
                         <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit}>
                             <ThemedText style={styles.cancelText}>Cancel</ThemedText>
@@ -179,25 +204,26 @@ export default function ProfileScreen() {
                         <InfoItem
                             icon="person.text.rectangle"
                             label="Employee ID"
-                            value={user.workerId || 'KH08 - 2233'}
+                            value={profileData?.workerId || user?.workerId || 'KH08 - 2233'}
                         />
                         <InfoItem
                             icon="phone"
                             label="Contact Number"
-                            value={user.phone || 'Not set'}
+                            value={profileData?.phone || user?.phone || 'Not set'}
                         />
                         <InfoItem
                             icon="envelope"
                             label="Email Address"
-                            value={user.email || 'Not set'}
+                            value={profileData?.email || user?.email || 'Not set'}
                         />
-                        {user.availabilityPreferences ? (
+                        <TouchableOpacity onPress={handleEditToggle} activeOpacity={0.7}>
                             <InfoItem
-                                icon="clock"
-                                label="Availability"
-                                value={user.availabilityPreferences}
+                                icon="envelope.badge"
+                                label="Recovery Email"
+                                value={profileData?.recoveryEmail || user?.recoveryEmail || 'Not set'}
                             />
-                        ) : null}
+                        </TouchableOpacity>
+
                     </>
                 )}
             </ThemedView>

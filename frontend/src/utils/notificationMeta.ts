@@ -42,6 +42,38 @@ export function getRosterPublishedDates(notification: AppNotification): string[]
     return dates.filter((date): date is string => typeof date === 'string' && date.length > 0);
 }
 
+export function getNotificationConversationId(notification: AppNotification): string | null {
+    const conversationId = notification.metadata?.conversationId;
+    return typeof conversationId === 'string' && conversationId.length > 0 ? conversationId : null;
+}
+
+export function getNotificationChatParticipantName(notification: AppNotification): string | null {
+    if (notification.type !== 'NEW_MESSAGE' && notification.type !== 'EMPLOYEE_MESSAGE_SENT') {
+        return null;
+    }
+
+    const senderName = notification.metadata?.senderName;
+    if (typeof senderName === 'string' && senderName.trim().length > 0) {
+        return senderName.trim();
+    }
+
+    const colonMatch = notification.message.match(/^([^:]+):\s*/);
+    if (colonMatch?.[1]) {
+        return colonMatch[1].trim();
+    } 
+
+    const sentMatch = notification.message.match(/^(.*) sent a message\.$/i);
+    if (sentMatch?.[1]) {
+        return sentMatch[1].trim();
+    }
+
+    if (notification.type === 'EMPLOYEE_MESSAGE_SENT' && notification.message.trim().length > 0) {
+        return notification.message.trim();
+    }
+
+    return null;
+}
+
 export function formatRelativeTime(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();
     const minutes = Math.floor(diffMs / 60000);

@@ -13,6 +13,7 @@ import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 import ScreenHeader from '@/src/components/ScreenHeader';
 import { getInitials, getAvatarColor } from '@/src/utils/avatar';
+import { getConversationReadState } from '@/src/utils/chatReadState';
 
 const fmt = (iso: string) => {
     const d = new Date(iso), h = d.getHours() % 12 || 12;
@@ -25,12 +26,25 @@ const Avatar = ({ name, size = 46 }: { name: string; size?: number }) => (
     </View>
 );
 
-function ConvoRow({ item, onPress, S }: { item: any; onPress: () => void; S: any }) {
+type ConversationListItem = {
+    id: string;
+    participantName: string;
+    participantAvatar: string | null;
+    lastMessage: string;
+    lastMessageSenderId?: string | null;
+    lastMessageTime: string;
+    hasUnread: boolean;
+};
+
+function ConvoRow({ item, onPress, S }: { item: ConversationListItem; onPress: () => void; S: any }) {
     return (
         <TouchableOpacity style={S.row} onPress={onPress} activeOpacity={0.7}>
             <Avatar name={item.participantName} />
             <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={S.name}>{item.participantName}</Text>
+                <View style={S.nameRow}>
+                    <Text style={S.name} numberOfLines={1}>{item.participantName}</Text>
+                    {item.hasUnread && <View style={S.unreadDot} />}
+                </View>
                 <Text style={S.sub} numberOfLines={1}>{item.lastMessage}</Text>
             </View>
             <Text style={S.time}>{fmt(item.lastMessageTime)}</Text>
@@ -99,7 +113,7 @@ export default function ManagerChatInbox() {
     const userId = user?.id ?? '';
     const { tab: initialTab } = useLocalSearchParams<{ tab?: string }>();
     const [tab, setTab] = useState<'msg' | 'swap'>(initialTab === 'swap' ? 'swap' : 'msg');
-    const [convos, setConvos] = useState<any[]>([]);
+    const [convos, setConvos] = useState<ConversationListItem[]>([]);
     const [swaps, setSwaps] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -164,7 +178,16 @@ export default function ManagerChatInbox() {
                 getConversations(userId),
                 getManagerSwapApprovals(),
             ]);
-            setConvos(Array.isArray(c) ? c : []);
+            const conversations = Array.isArray(c) ? c : [];
+            const readState = await getConversationReadState(conversations.map((conversation) => conversation.id));
+            setConvos(conversations.map((conversation) => ({
+                ...conversation,
+                hasUnread: Boolean(
+                    conversation.lastMessageSenderId
+                    && conversation.lastMessageSenderId !== userId
+                    && (!readState[conversation.id] || new Date(conversation.lastMessageTime).getTime() > new Date(readState[conversation.id]).getTime())
+                ),
+            })));
             setSwaps(Array.isArray(s) ? s : []);
         } catch (e) {
             console.error('Failed to load manager chat data:', e);
@@ -287,9 +310,11 @@ const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     tabOn: { borderBottomColor: palette.primary },
     tabTxt: { fontSize: 14, fontWeight: '600', color: theme.textMuted },
     row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+    nameRow: { flexDirection: 'row' as const, alignItems: 'center' as const, flexShrink: 1 },
     name: { fontSize: 15, fontWeight: '700', color: theme.text },
     sub: { fontSize: 13, color: theme.textSecondary, marginTop: 2 },
     time: { fontSize: 12, color: theme.textMuted, marginLeft: 8 },
+    unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1D4ED8', marginLeft: 6 },
     sep: { height: 1, backgroundColor: theme.border, marginLeft: 74 },
     swapCard: {
         backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB',

@@ -23,6 +23,7 @@ export interface Conversation {
     participantName: string;
     participantAvatar: string | null;
     lastMessage: string;
+    lastMessageSenderId?: string | null;
     lastMessageTime: string;
 }
 

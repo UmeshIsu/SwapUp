@@ -17,6 +17,7 @@ interface User {
     tenantId?: string;
     avatarUrl?: string;
     availabilityPreferences?: string;
+    recoveryEmail?: string;
     plan?: string;
     mustChangePassword?: boolean;
 }
@@ -159,11 +160,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const updateUser = (data: Partial<User>) => {
-        if (user) {
-            const updatedUser = { ...user, ...data };
-            setUser(updatedUser);
+        setUser(prev => {
+            if (!prev) return prev;
+            const updatedUser = { ...prev, ...data };
             AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-        }
+            return updatedUser;
+        });
     };
 
     return (

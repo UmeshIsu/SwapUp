@@ -7,7 +7,7 @@ import { getLeaveSummary } from '@/src/services/leaveApi';
 import { getAttendanceStatus, postCheckOut } from '@/src/services/attendanceService';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     RefreshControl,
     ScrollView,
@@ -15,10 +15,16 @@ import {
     Text,
     TouchableOpacity,
     View,
-    Alert
+    Alert,
+    Modal,
+    TextInput,
+    Dimensions,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AttendanceStatusCard from '@/src/components/AttendanceStatusCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiCall } from '@/src/services/api';
 
 
 interface Shift {
@@ -41,7 +47,7 @@ interface Announcement {
 
 export default function EmployeeHomeScreen() {
     const router = useRouter();
-    const { user, logout } = useAuth();
+    const { user, logout, token, updateUser } = useAuth();
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
     const isDark = colorScheme === 'dark';
@@ -75,11 +81,36 @@ export default function EmployeeHomeScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
+    // Recovery email prompt state
+    const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
+    const [recoveryEmailInput, setRecoveryEmailInput] = useState('');
+    const [isSavingRecovery, setIsSavingRecovery] = useState(false);
+
     useFocusEffect(
         useCallback(() => {
             loadData();
         }, [])
     );
+
+    // Check if we should show recovery email prompt (only on the very first login)
+    const recoveryPromptChecked = React.useRef(false);
+    useEffect(() => {
+        if (recoveryPromptChecked.current) return;
+        if (!user || user.role !== 'EMPLOYEE') return;
+        // Mark as checked immediately so this never runs twice per mount
+        recoveryPromptChecked.current = true;
+        // Already has a recovery email — no need to prompt
+        if (user.recoveryEmail) return;
+        const checkRecoveryPrompt = async () => {
+            const dismissedKey = `recovery_email_prompted_${user.id}`;
+            const wasDismissed = await AsyncStorage.getItem(dismissedKey);
+            if (!wasDismissed) {
+                // Small delay so the home screen loads first
+                setTimeout(() => setShowRecoveryPrompt(true), 800);
+            }
+        };
+        checkRecoveryPrompt();
+    }, [user?.id, user?.recoveryEmail]);
 
     const loadData = async () => {
         // Each call is wrapped individually so a 404 from a missing backend
@@ -132,6 +163,35 @@ export default function EmployeeHomeScreen() {
         await loadData();
         setRefreshing(false);
     }, []);
+
+    const handleSaveRecoveryEmail = async () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!recoveryEmailInput.trim() || !emailRegex.test(recoveryEmailInput.trim())) {
+            Alert.alert('Invalid Email', 'Please enter a valid email address.');
+            return;
+        }
+        setIsSavingRecovery(true);
+        try {
+            const data = await apiCall('/user/profile', {
+                method: 'PUT',
+                token,
+                body: { recoveryEmail: recoveryEmailInput.trim() },
+            });
+            updateUser(data.user);
+            await AsyncStorage.setItem(`recovery_email_prompted_${user?.id}`, 'true');
+            setShowRecoveryPrompt(false);
+            Alert.alert('Success', 'Recovery email saved successfully!');
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'Failed to save recovery email.');
+        } finally {
+            setIsSavingRecovery(false);
+        }
+    };
+
+    const handleSkipRecoveryEmail = async () => {
+        await AsyncStorage.setItem(`recovery_email_prompted_${user?.id}`, 'true');
+        setShowRecoveryPrompt(false);
+    };
 
     const handleCheckIn = () => {
         router.push('/check-in-qr' as any);
@@ -222,13 +282,15 @@ export default function EmployeeHomeScreen() {
 
     const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : 'there');
 
-    const formatDepartment = (dept?: string) => {
-        if (!dept) return 'Team Member';
+    const formatDepartment = (dept?: any) => {
+        // dept may be a string or an object like { name: "..." } from the API
+        const name = typeof dept === 'string' ? dept : dept?.name;
+        if (!name) return 'Team Member';
         const map: Record<string, string> = {
             INDIAN: 'Indian Cuisine',
             CHINESE: 'Chinese Cuisine',
         };
-        const label = map[dept] || dept.charAt(0).toUpperCase() + dept.slice(1).toLowerCase();
+        const label = map[name] || name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
         return `${label} Department`;
     };
 
@@ -433,6 +495,56 @@ export default function EmployeeHomeScreen() {
 
                 <View style={{ height: 24 }} />
             </ScrollView>
+
+            {/* Recovery Email Prompt Modal */}
+            <Modal transparent visible={showRecoveryPrompt} animationType="fade">
+                <View style={recoveryStyles.overlay}>
+                    <View style={recoveryStyles.card}>
+                        <View style={recoveryStyles.iconCircle}>
+                            <Ionicons name="mail-outline" size={32} color="#fff" />
+                        </View>
+
+                        <Text style={recoveryStyles.title}>Add a Recovery Email</Text>
+                        <Text style={recoveryStyles.subtitle}>
+                            Secure your account by adding a recovery email. You can use it to recover your account if you forget your password.
+                        </Text>
+
+                        <TextInput
+                            style={recoveryStyles.input}
+                            placeholder="Enter recovery email"
+                            placeholderTextColor="#999"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            value={recoveryEmailInput}
+                            onChangeText={setRecoveryEmailInput}
+                            editable={!isSavingRecovery}
+                        />
+
+                        <TouchableOpacity
+                            style={[recoveryStyles.saveButton, isSavingRecovery && { opacity: 0.7 }]}
+                            onPress={handleSaveRecoveryEmail}
+                            disabled={isSavingRecovery}
+                            activeOpacity={0.8}
+                        >
+                            {isSavingRecovery ? (
+                                <ActivityIndicator color="#fff" size="small" />
+                            ) : (
+                                <Text style={recoveryStyles.saveButtonText}>Save Recovery Email</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={recoveryStyles.skipButton}
+                            onPress={handleSkipRecoveryEmail}
+                            disabled={isSavingRecovery}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={recoveryStyles.skipButtonText}>Skip for now</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -819,5 +931,89 @@ const makeStyles = (C: any) => StyleSheet.create({
         fontWeight: '600',
         marginTop: 2,
         opacity: 0.85,
+    },
+});
+
+const { width: screenWidth } = Dimensions.get('window');
+
+const recoveryStyles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    card: {
+        width: screenWidth * 0.88,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 28,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: '#3498db',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 24,
+        paddingHorizontal: 8,
+    },
+    input: {
+        width: '100%',
+        height: 50,
+        borderWidth: 1.5,
+        borderColor: '#E0E0E0',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        fontSize: 15,
+        color: '#333',
+        backgroundColor: '#F9F9F9',
+        marginBottom: 16,
+    },
+    saveButton: {
+        width: '100%',
+        backgroundColor: '#3498db',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    skipButton: {
+        width: '100%',
+        backgroundColor: '#F0F0F0',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    skipButtonText: {
+        color: '#666',
+        fontSize: 15,
+        fontWeight: '600',
     },
 });

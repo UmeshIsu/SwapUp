@@ -5,14 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { notificationAPI } from '@/src/services/api';
 import socketService from '@/src/services/socketService';
 import ScreenHeader from '@/src/components/ScreenHeader';
-import { getNotificationMeta, formatRelativeTime, AppNotification } from '@/src/utils/notificationMeta';
+import { getNotificationMeta, formatRelativeTime, AppNotification, getNotificationConversationId, getNotificationChatParticipantName } from '@/src/utils/notificationMeta';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
+import { useRouter } from 'expo-router';
 
 export default function ManagerNotificationsScreen() {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const router = useRouter();
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
     const isDark = colorScheme === 'dark';
@@ -49,12 +51,34 @@ export default function ManagerNotificationsScreen() {
     };
 
     const handlePress = async (item: AppNotification) => {
-        if (item.isRead) return;
-        setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
-        try {
-            await notificationAPI.markAsRead(item.id);
-        } catch (error) {
-            console.error('Failed to mark notification as read:', error);
+        if (!item.isRead) {
+            setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
+            try {
+                await notificationAPI.markAsRead(item.id);
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        }
+
+        // Route to chat when the notification points to a conversation
+        const conversationId = getNotificationConversationId(item);
+        const participantName = getNotificationChatParticipantName(item);
+        if (conversationId && participantName) {
+            router.push({
+                pathname: '/(manager)/chat/[conversationId]' as any,
+                params: {
+                    conversationId,
+                    participantName,
+                    participantAvatar: '',
+                },
+            });
+            return;
+        }
+
+        // If this is a leave request, open the leave management screen on the Pending tab
+        if (item.type === 'LEAVE_REQUESTED') {
+            router.push({ pathname: '/(manager)/leaveManagment', params: { tab: 'pending' } } as any);
+            return;
         }
     };
 
@@ -74,7 +98,6 @@ export default function ManagerNotificationsScreen() {
                     <Text style={styles.message}>{item.message}</Text>
                     <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
                 </View>
-                {!item.isRead && <View style={styles.unreadDot} />}
             </TouchableOpacity>
         );
     };
@@ -165,14 +188,6 @@ const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
         fontSize: 11,
         color: theme.textMuted,
         marginTop: 6,
-    },
-    unreadDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: theme.primary,
-        marginLeft: 8,
-        marginTop: 4,
     },
     emptyContainer: {
         paddingVertical: 80,

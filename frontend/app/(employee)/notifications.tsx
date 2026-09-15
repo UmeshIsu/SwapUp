@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { notificationAPI } from '@/src/services/api';
 import socketService from '@/src/services/socketService';
 import ScreenHeader from '@/src/components/ScreenHeader';
-import { getNotificationMeta, formatRelativeTime, AppNotification, getRosterPublishedDates } from '@/src/utils/notificationMeta';
+import { getNotificationMeta, formatRelativeTime, AppNotification, getRosterPublishedDates, getNotificationConversationId, getNotificationChatParticipantName } from '@/src/utils/notificationMeta';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 
@@ -59,6 +59,20 @@ export default function NotificationsScreen() {
             }
         }
 
+        const conversationId = getNotificationConversationId(item);
+        const participantName = getNotificationChatParticipantName(item);
+        if (conversationId && participantName) {
+            router.push({
+                pathname: '/(employee)/chat/[conversationId]' as any,
+                params: {
+                    conversationId,
+                    participantName,
+                    participantAvatar: '',
+                },
+            });
+            return;
+        }
+
         if (item.type === 'ROSTER_PUBLISHED') {
             const rosterDates = getRosterPublishedDates(item);
             const firstDate = rosterDates[0];
@@ -91,7 +105,6 @@ export default function NotificationsScreen() {
                     <Text style={styles.message}>{item.message}</Text>
                     <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
                 </View>
-                {!item.isRead && <View style={styles.unreadDot} />}
             </TouchableOpacity>
         );
     };
@@ -182,14 +195,6 @@ const makeStyles = (theme: any, isDark: boolean) => StyleSheet.create({
         fontSize: 11,
         color: theme.textMuted,
         marginTop: 6,
-    },
-    unreadDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: theme.primary,
-        marginLeft: 8,
-        marginTop: 4,
     },
     emptyContainer: {
         paddingVertical: 80,

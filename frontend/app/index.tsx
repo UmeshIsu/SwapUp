@@ -19,15 +19,21 @@ export default function RoleSelectionScreen() {
     const router = useRouter();
     const { setSelectedRole, isAuthenticated, user } = useAuth();
 
+    const hasRedirected = React.useRef(false);
+
     React.useEffect(() => {
-        if (isAuthenticated && user) {
+        if (isAuthenticated && user && !hasRedirected.current) {
+            hasRedirected.current = true;
             if (user.role === 'MANAGER') {
                 router.replace('/(manager)/home' as any);
             } else {
                 router.replace('/(employee)/home' as any);
             }
         }
-    }, [isAuthenticated, user]);
+        if (!isAuthenticated) {
+            hasRedirected.current = false;
+        }
+    }, [isAuthenticated]);
 
     const handleRoleSelect = (role: 'MANAGER' | 'EMPLOYEE') => {
         setSelectedRole(role);

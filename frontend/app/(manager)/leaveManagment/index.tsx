@@ -3,6 +3,7 @@ import { palette } from '@/src/constants/palette';
 // Matches Column 1, 3, and 4 from the design mockup
 
 import React, { useState, useEffect } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import {
     View,
     Text,
@@ -23,6 +24,7 @@ type Tab = 'Pending' | 'Approved' | 'Declined';
 
 export default function ManagerLeaveDashboard() {
     const router = useRouter();
+    const { tab } = useLocalSearchParams<{ tab?: string }>();
     const { user } = useAuth();
     const MANAGER_ID = user?.id || '';
     const colorScheme = useColorScheme();
@@ -34,6 +36,14 @@ export default function ManagerLeaveDashboard() {
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        if (!tab) return;
+        const t = String(tab).toLowerCase();
+        if (t === 'pending') setActiveTab('Pending');
+        else if (t === 'approved') setActiveTab('Approved');
+        else if (t === 'declined') setActiveTab('Declined');
+    }, [tab]);
 
     const loadData = async () => {
         try {

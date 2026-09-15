@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSocket } from '@/src/hooks/useSocket';
 import { getMessages, respondToSwapRequest } from '@/src/services/chatService';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { markConversationAsRead } from '@/src/utils/chatReadState';
 
 
 
@@ -124,8 +125,9 @@ export default function ManagerChatScreen() {
 
     const addMessage = useCallback((msg: any) => {
         setMessages(prev => [...prev, msg]);
+        markConversationAsRead(conversationId, msg.createdAt).catch(() => {});
         setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
-    }, []);
+    }, [conversationId]);
 
     const handleStatusUpdate = useCallback(({ swapRequestId, status }: { swapRequestId: string; status: string }) => {
         setMessages(prev => prev.map(m => {
@@ -140,7 +142,15 @@ export default function ManagerChatScreen() {
 
     useEffect(() => {
         getMessages(conversationId)
-            .then(data => { if (Array.isArray(data)) setMessages(data); })
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setMessages(data);
+                    const lastMessage = data[data.length - 1];
+                    if (lastMessage?.createdAt) {
+                        markConversationAsRead(conversationId, lastMessage.createdAt).catch(() => {});
+                    }
+                }
+            })
             .catch(e => console.error('Failed to load messages:', e));
     }, [conversationId]);
 

@@ -16,6 +16,7 @@ import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { Colors } from '@/src/constants/theme';
 import ScreenHeader from '@/src/components/ScreenHeader';
 import { getInitials, getAvatarColor } from '@/src/utils/avatar';
+import { getConversationReadState } from '@/src/utils/chatReadState';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,12 +47,17 @@ const Avatar = ({ name, size = 46 }: { name: string; size?: number }) => (
 
 // ─── Conversation Row ─────────────────────────────────────────────────────────
 
-function ConvoRow({ item, onPress, theme }: { item: Conversation; onPress: () => void; theme: typeof Colors.light }) {
+type ConversationListItem = Conversation & { hasUnread: boolean };
+
+function ConvoRow({ item, onPress, theme }: { item: ConversationListItem; onPress: () => void; theme: typeof Colors.light }) {
     return (
         <TouchableOpacity style={S.row} onPress={onPress} activeOpacity={0.7}>
             <Avatar name={item.participantName} />
             <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={[S.name, { color: theme.text }]}>{item.participantName}</Text>
+                <View style={S.nameRow}>
+                    <Text style={[S.name, { color: theme.text }]} numberOfLines={1}>{item.participantName}</Text>
+                    {item.hasUnread && <View style={S.unreadDot} />}
+                </View>
                 <Text style={[S.sub, { color: theme.textSecondary }]} numberOfLines={1}>{item.lastMessage}</Text>
             </View>
             <Text style={[S.time, { color: theme.textMuted }]}>{fmt(item.lastMessageTime)}</Text>
@@ -177,7 +183,7 @@ export default function ChatScreen() {
     const theme = Colors[colorScheme ?? 'light'];
 
     const [tab, setTab] = useState<'msg' | 'incoming' | 'sent'>('msg');
-    const [convos, setConvos] = useState<Conversation[]>([]);
+    const [convos, setConvos] = useState<ConversationListItem[]>([]);
     const [incomingSwaps, setIncomingSwaps] = useState<IncomingSwapRequest[]>([]);
     const [sentSwaps, setSentSwaps] = useState<MySwapRequest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -241,7 +247,16 @@ export default function ChatScreen() {
             console.log('DEBUG CHAT LOAD - userId:', userId);
             console.log('DEBUG INCOMING:', incoming);
             console.log('DEBUG SENT:', sent);
-            setConvos(Array.isArray(c) ? c : []);
+            const conversations = Array.isArray(c) ? c : [];
+            const readState = await getConversationReadState(conversations.map((conversation) => conversation.id));
+            setConvos(conversations.map((conversation) => ({
+                ...conversation,
+                hasUnread: Boolean(
+                    conversation.lastMessageSenderId
+                    && conversation.lastMessageSenderId !== userId
+                    && (!readState[conversation.id] || new Date(conversation.lastMessageTime).getTime() > new Date(readState[conversation.id]).getTime())
+                ),
+            })));
             setIncomingSwaps(Array.isArray(incoming) ? incoming : []);
             setSentSwaps(Array.isArray(sent) ? sent : []);
         } catch (e) {
@@ -439,9 +454,11 @@ const S = StyleSheet.create({
     tabOn: { borderBottomColor: palette.primary },
     tabTxt: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
     row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+    nameRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
     name: { fontSize: 15, fontWeight: '700', color: '#111' },
     sub: { fontSize: 13, color: '#6B7280', marginTop: 2 },
     time: { fontSize: 12, color: '#9CA3AF', marginLeft: 8 },
+    unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1D4ED8', marginLeft: 6 },
     sep: { height: 1, backgroundColor: '#F3F4F6', marginLeft: 74 },
     avatarFb: { alignItems: 'center', justifyContent: 'center' },
     empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 80 },

@@ -124,6 +124,7 @@ export default function ApplyLeave() {
         if (new Date(startDate) > new Date(endDate)) {
             Alert.alert('Error', 'End date must be on or after start date'); return;
         }
+        if (!reason || reason.trim().length === 0) { Alert.alert('Missing', 'Please provide a reason for your leave'); return; }
 
         setSubmitting(true);
         try {
@@ -232,7 +233,7 @@ export default function ApplyLeave() {
             </View>
 
             {/* ---- Reason ---- */}
-            <Text style={styles.sectionLabel}>Reason <Text style={styles.optionalTag}>(Optional)</Text></Text>
+            <Text style={styles.sectionLabel}>Reason <Text style={styles.optionalTag}>(Required)</Text></Text>
             <View style={[styles.card, { padding: 0, overflow: 'hidden' }]}>
                 <TextInput
                     style={styles.reasonInput}
