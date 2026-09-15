@@ -81,6 +81,7 @@ model User {
   avatarUrl               String?
   plan                    String  @default("Basic")
   availabilityPreferences String?
+  recoveryEmail           String?
   fcmToken                String?
 
   // Department FK (replaces old Department enum column)

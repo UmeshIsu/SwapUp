@@ -58,10 +58,9 @@ export async function notifyManagers(
 }
 
 /**
- * Handles notifications when an employee sends a chat message:
- * 1. Notifies every other participant in the conversation (NEW_MESSAGE).
- * 2. Notifies the sender's manager(s) that an employee sent a message
- *    (EMPLOYEE_MESSAGE_SENT).
+ * Handles notifications when an employee sends a chat message.
+ * Recipients get a single NEW_MESSAGE notification that already includes
+ * the sender identity and conversation metadata for navigation.
  */
 export async function handleChatMessageNotification(
     io: Server | undefined,
@@ -105,16 +104,4 @@ export async function handleChatMessageNotification(
         )
     );
 
-    // 2. Notify the sender's manager(s) — only when the sender is an employee
-    if (sender.role === 'EMPLOYEE') {
-        await notifyManagers(
-            io,
-            sender.tenantId,
-            sender.departmentId,
-            'EMPLOYEE_MESSAGE_SENT',
-            'Employee Sent a Message',
-            `${sender.name} sent a message.`,
-            { conversationId, senderId }
-        );
-    }
 }

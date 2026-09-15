@@ -16,9 +16,10 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
                 role: true,
                 workerId: true,
                 phone: true,
-                department: true,
+                department: { select: { name: true } },
                 avatarUrl: true,
                 availabilityPreferences: true,
+                recoveryEmail: true,
                 plan: true,
             },
         });
@@ -28,25 +29,33 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        res.json({ user });
+        // Flatten department to a name string (consistent with login response)
+        const { department, ...rest } = user;
+        res.json({ user: { ...rest, department: department?.name ?? null } });
     } catch (error: any) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
-    const { name, email, phone, availabilityPreferences } = req.body;
+    const { name, phone, availabilityPreferences, recoveryEmail } = req.body;
     const userId = req.user!.userId;
+
+    console.log("[UPDATE_PROFILE] req.body:", req.body);
+
+    // Only include fields that were explicitly sent in the request
+    const data: Record<string, any> = {};
+    if (name !== undefined) data.name = name;
+    if (phone !== undefined) data.phone = phone;
+    if (availabilityPreferences !== undefined) data.availabilityPreferences = availabilityPreferences;
+    if (recoveryEmail !== undefined) data.recoveryEmail = recoveryEmail;
+
+    console.log("[UPDATE_PROFILE] data to update:", data);
 
     try {
         const updatedUser = await (prisma as any).user.update({
             where: { id: userId },
-            data: {
-                name,
-                email,
-                phone,
-                availabilityPreferences,
-            },
+            data,
             select: {
                 id: true,
                 name: true,
@@ -55,12 +64,15 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
                 workerId: true,
                 phone: true,
                 availabilityPreferences: true,
+                recoveryEmail: true,
                 plan: true,
             },
         });
 
+        console.log("[UPDATE_PROFILE] updatedUser:", updatedUser);
         res.json({ message: "Profile updated successfully", user: updatedUser });
     } catch (error: any) {
+        console.error("[UPDATE_PROFILE] Error:", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

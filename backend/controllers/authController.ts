@@ -234,8 +234,8 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
 
     const deptRecord = department
       ? await prisma.department.findFirst({
-          where: { tenantId, name: { contains: department, mode: "insensitive" } },
-        })
+        where: { tenantId, name: { contains: department, mode: "insensitive" } },
+      })
       : null;
 
     const user = await prisma.user.create({
@@ -367,6 +367,7 @@ export const login = async (req: Request, res: Response) => {
         workerId: user.workerId,
         phone: user.phone,
         availabilityPreferences: user.availabilityPreferences,
+        recoveryEmail: user.recoveryEmail,
         plan: user.plan,
         mustChangePassword: (user as any).mustChangePassword ?? false,
       }

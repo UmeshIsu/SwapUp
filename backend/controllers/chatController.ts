@@ -115,6 +115,7 @@ export const getConversations = async (req: Request, res: Response): Promise<voi
                 participantName: other?.name ?? 'Unknown',
                 participantAvatar: other?.avatarUrl ?? null,
                 lastMessage: last?.content ?? '',
+                lastMessageSenderId: last?.senderId ?? null,
                 lastMessageTime: (last?.createdAt ?? c.createdAt).toISOString(),
             };
         });
@@ -162,6 +163,7 @@ export const getOrCreateConversation = async (
                     avatarUrl: p.user.avatarUrl,
                 })),
                 lastMessage: existing.messages[0]?.content ?? '',
+                lastMessageSenderId: existing.messages[0]?.senderId ?? null,
                 lastMessageTime: (existing.messages[0]?.createdAt ?? existing.createdAt).toISOString(),
             });
             return;
@@ -187,6 +189,7 @@ export const getOrCreateConversation = async (
                 avatarUrl: p.user.avatarUrl,
             })),
             lastMessage: '',
+            lastMessageSenderId: null,
             lastMessageTime: conversation.createdAt.toISOString(),
         });
     } catch (e) {

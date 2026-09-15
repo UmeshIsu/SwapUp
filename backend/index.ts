@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import http from 'http';
+import net from 'net';
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
@@ -175,9 +176,55 @@ io.on(
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 
-const PORT = Number(process.env.PORT) || 5000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 SwapUp API + Socket.io running on port ${PORT}`);
+const BASE_PORT = Number(process.env.PORT) || 5000;
+
+function isPortAvailable(port: number, host: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const tester = net.createServer();
+
+        tester.once('error', (error: NodeJS.ErrnoException) => {
+            tester.close();
+            if (error.code === 'EADDRINUSE') {
+                resolve(false);
+                return;
+            }
+
+            reject(error);
+        });
+
+        tester.once('listening', () => {
+            tester.close(() => resolve(true));
+        });
+
+        tester.listen(port, host);
+    });
+}
+
+async function findAvailablePort(startPort: number, host: string): Promise<number> {
+    for (let port = startPort; port < startPort + 20; port += 1) {
+        if (await isPortAvailable(port, host)) {
+            return port;
+        }
+    }
+
+    throw new Error(`No available ports found between ${startPort} and ${startPort + 19}`);
+}
+
+async function startServer() {
+    const host = '0.0.0.0';
+    const port = await findAvailablePort(BASE_PORT, host);
+
+    server.listen(port, host, () => {
+        console.log(`🚀 SwapUp API + Socket.io running on port ${port}`);
+        if (port !== BASE_PORT) {
+            console.log(`Port ${BASE_PORT} was busy, so the server started on ${port} instead.`);
+        }
+    });
+}
+
+void startServer().catch((error) => {
+    console.error('Failed to start backend server:', error);
+    process.exit(1);
 });
 
 // Periodically check for employees working unhealthy hours and notify their manager.
